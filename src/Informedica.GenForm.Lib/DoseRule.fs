@@ -963,6 +963,26 @@ module DoseRule =
                         let chunkBySize = Parallel.totalWorders
 
                         rules
+                        |> Array.map (fun (d, r) ->
+                            r |> Result.get, d
+                        )
+                        |> Array.groupBy fst
+                        |> Array.chunkBySize chunkBySize
+                        |> Array.map (fun grp ->
+                            async {
+                                return
+                                    grp
+                                    |> Array.map (fun (dr, rs) ->
+                                        dr |> addDoseLimits (rs |> Array.map snd)
+                                    )
+                            }
+                        )
+                        |> Async.Parallel
+                        |> Async.RunSynchronously
+                        |> Array.collect id
+
+                        (*
+                        rules
                         |> Array.chunkBySize chunkBySize
                         |> Array.map (fun rs ->
                             async {
@@ -980,6 +1000,7 @@ module DoseRule =
                         |> Async.Parallel
                         |> Async.RunSynchronously
                         |> Array.collect id
+                        *)
 
                     |> StopWatch.clockFunc $"add dose limits {rules |> Array.length}"
 
