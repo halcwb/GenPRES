@@ -88,7 +88,6 @@ let tpnComplete =
             11N
             |> ValueUnit.singleWithUnit Units.Weight.kiloGram
             |> Some
-        AdjustUnit = Units.Weight.kiloGram |> Some
         Frequencies =
             1N
             |> ValueUnit.singleWithUnit (Units.Count.times |> Units.per Units.Time.day)
@@ -432,7 +431,6 @@ let tpn =
             11N
             |> ValueUnit.singleWithUnit Units.Weight.kiloGram
             |> Some
-        AdjustUnit = Units.Weight.kiloGram |> Some
         Frequencies =
             1N
             |> ValueUnit.singleWithUnit (Units.Count.times |> Units.per Units.Time.day)
