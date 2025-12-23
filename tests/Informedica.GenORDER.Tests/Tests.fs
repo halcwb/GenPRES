@@ -564,15 +564,17 @@ module Tests
             dto.Schedule.Time.Constraints.MaxIncl <- d.Time.Max.IsSome
             dto.Schedule.Time.Constraints.MaxOpt <- d.Time.Max |> limToDto
 
-            if d.AdjustUnit
+            if d.Adjust
+            |> Option.map ValueUnit.getUnit
             |> Option.map (ValueUnit.Group.eqsGroup Units.Weight.kiloGram)
             |> Option.defaultValue false then
+                let u = d.Adjust |> Option.map ValueUnit.getUnit |> Option.defaultValue NoUnit
                 // Adjusted by weight
                 dto.Adjust.Constraints.MinOpt <-
-                    (200N /1000N) |> createSingleValueUnitDto d.AdjustUnit.Value
+                    (200N /1000N) |> createSingleValueUnitDto u
 
                 dto.Adjust.Constraints.MaxOpt <-
-                    150N |> createSingleValueUnitDto d.AdjustUnit.Value
+                    150N |> createSingleValueUnitDto u
             // TODO: add constraints for BSA
             dto.Adjust.Constraints.ValsOpt <- d.Adjust |> vuToDto
 
@@ -673,7 +675,6 @@ module Tests
                     Name = "Dose Printout Test Order"
                     OrderType = DiscontinuousOrder
                     Frequencies = ValueUnit.create (Units.Count.times |> Units.per Units.Time.day) [| 2N |] |> Some
-                    AdjustUnit = adjustUnit
                     Components = [
                         { Medication.productComponent with
                             Name = "Test Component"
@@ -894,7 +895,6 @@ module Tests
                             Id = "ONCE_TEST"
                             Name = "Once Order Test"
                             OrderType = OnceOrder
-                            AdjustUnit = Some Units.Weight.kiloGram
                             Components = [
                                 { Medication.productComponent with
                                     Name = "Test Component"

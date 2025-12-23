@@ -294,7 +294,7 @@ module Types =
 
     /// The representation of a drug order that
     /// can be derived by a drug product inventory
-    /// and the related dose rule. A DrugOrder maps
+    /// and the related dose rule. A medication order maps
     /// to an Orderable and a Prescription.
     type Medication =
         {
@@ -311,12 +311,12 @@ module Types =
             // The type of order
             OrderType : OrderType
             // The unit to adjust the dose with
-            AdjustUnit : Unit option
+            // AdjustUnit : Unit option
             // The list of possible frequency values
             Frequencies : ValueUnit option
             // The min and/or max time for the infusion time
             Time : MinMax
-            // The dose limits for a DrugOrder
+            // The dose limits for a medication order
             Dose : DoseLimit option
             // The amount of orderable that will be given each time
             DoseCount : MinMax
@@ -336,7 +336,7 @@ module Types =
             Form : string
             // The quantities of the product
             // Note: the first (main) component has the same unit as
-            // the DrugOrder unit
+            // the medication order unit
             Quantities : ValueUnit option
             // The "divisibility" of the products
             Divisible : BigRational option

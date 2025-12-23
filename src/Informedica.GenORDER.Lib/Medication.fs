@@ -220,7 +220,7 @@ module Medication =
             Quantities = None
             Route = ""
             OrderType = AnyOrder
-            AdjustUnit = None
+            //AdjustUnit = None
             Frequencies = None
             Time = MinMax.empty
             Dose = None
@@ -252,7 +252,7 @@ module Medication =
                 "Route", med.Route
                 "OrderType", $"{med.OrderType}"
                 "Adjust", med.Adjust |> valueUnitOptToString
-                "AdjustUnit", med.AdjustUnit |> Option.map Units.toStringEngShort |> Option.defaultValue ""
+                //"AdjustUnit", med.AdjustUnit |> Option.map Units.toStringEngShort |> Option.defaultValue ""
                 "Frequencies", med.Frequencies |> valueUnitOptToString
                 "Time", med.Time |> minMaxToString
                 "Dose", med.Dose |> limitOptToString
@@ -472,7 +472,7 @@ module Medication =
                 if au |> ValueUnit.Group.eqsGroup Units.Weight.kiloGram then
                     pat.Weight
                 else pat |> Patient.calcBSA
-            AdjustUnit = Some au
+            //AdjustUnit = Some au
         }
         |> addSolution sr
 
@@ -836,12 +836,15 @@ module Medication =
 
         /// Set patient adjustment constraints (weight/BSA based)
         let setAdjustmentConstraints (dto : Order.Dto.Dto) (d : Medication) =
-            // Handle weight-based adjustment
-            if d.AdjustUnit
-               |> Option.map (ValueUnit.Group.eqsGroup Units.Weight.kiloGram)
-               |> Option.defaultValue false then
-                dto.Adjust.Constraints.MinOpt <- 200N/1000N |> createSingleValueUnitDto d.AdjustUnit.Value
-                dto.Adjust.Constraints.MaxOpt <- 150N |> createSingleValueUnitDto d.AdjustUnit.Value
+            match d.Adjust with
+            | None -> ()
+            | Some vu ->
+                let adjustUnit = vu |> ValueUnit.getUnit
+
+                // Handle weight-based adjustment
+                if adjustUnit |> ValueUnit.Group.eqsGroup Units.Weight.kiloGram then
+                    dto.Adjust.Constraints.MinOpt <- 200N/1000N |> createSingleValueUnitDto adjustUnit
+                    dto.Adjust.Constraints.MaxOpt <- 150N |> createSingleValueUnitDto adjustUnit
 
             // TODO: add constraints for BSA
             dto.Adjust.Constraints.ValsOpt <- d.Adjust |> vuToDto
