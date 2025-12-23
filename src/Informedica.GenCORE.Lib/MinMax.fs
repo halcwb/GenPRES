@@ -520,6 +520,8 @@ module MinMax =
     let isEmpty mm = mm = empty
 
 
+    let createSame lim = create (Some lim) (Some lim)
+
 
     /// A `MinMax` range with value 1, can
     /// be used in calculations as a "unit"

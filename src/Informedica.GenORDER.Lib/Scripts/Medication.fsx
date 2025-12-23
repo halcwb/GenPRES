@@ -20,8 +20,28 @@ open Informedica.GenOrder.Lib
 
 let print sl = sl |> List.iter (printfn "%s")
 
+let inline printOrderTable order =
+    order
+    |> Result.iter (Order.printTable ConsoleTables.Format.Minimal)
+    
+    order
+
+
+let solveOrder order = 
+    match order with
+    | Error e -> $"Error solving order: {e}" |> failwith
+    | Ok o ->
+        o
+        |> Order.solveMinMax true OrderLogging.noOp
+
 
 let cotrim =
+    let au = Units.Weight.kiloGram
+    let fu = Units.General.general "tablet"
+    let su = Units.Mass.milliGram
+    let cu = su |> Units.per fu
+    let tu = Units.Time.day
+
     {
         Medication.order with
             Id = "1"
@@ -34,9 +54,9 @@ let cotrim =
                             Form = "tablet"
                             Quantities =
                                 1N
-                                |> ValueUnit.singleWithUnit Units.Count.times
+                                |> ValueUnit.singleWithUnit fu
                                 |> Some
-                            Divisible = Some (1N)
+                            Divisible = Some 1N
                             Substances =
                                 [
                                     {
@@ -44,7 +64,7 @@ let cotrim =
                                             Name = "sulfamethoxazol"
                                             Concentrations =
                                                 [| 100N; 400N; 800N |]
-                                                |> ValueUnit.withUnit Units.Mass.milliGram
+                                                |> ValueUnit.withUnit cu
                                                 |> Some
                                     }
                                     {
@@ -52,7 +72,7 @@ let cotrim =
                                             Name = "trimethoprim"
                                             Concentrations =
                                                 [| 20N; 80N; 160N |]
-                                                |> ValueUnit.withUnit Units.Mass.milliGram
+                                                |> ValueUnit.withUnit cu
                                                 |> Some
                                     }
                                 ]
@@ -62,7 +82,32 @@ let cotrim =
             OrderType = DiscontinuousOrder
             Frequencies =
                 [|2N |]
-                |> ValueUnit.withUnit (Units.Count.times |> Units.per Units.Time.day)
+                |> ValueUnit.withUnit (Units.Count.times |> Units.per tu)
+                |> Some
+            Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+            DoseCount = 
+                { MinMax.empty with
+                    Min =
+                        1N
+                        |> ValueUnit.singleWithUnit Units.Count.times
+                        |> Limit.inclusive
+                        |> Some
+                    Max =
+                        1N
+                        |> ValueUnit.singleWithUnit Units.Count.times
+                        |> Limit.inclusive
+                        |> Some
+                }
+            Dose =
+                { DoseLimit.limit with
+                    DoseLimitTarget = "tablet" |> FormLimitTarget
+                    AdjustUnit = au |> Some
+                    Quantity =
+                            1N
+                            |> ValueUnit.singleWithUnit fu
+                            |> Limit.inclusive
+                            |> MinMax.createSame
+                }
                 |> Some
     }
 
@@ -75,8 +120,11 @@ cotrim
 cotrim
 |> Medication.toOrderDto
 |> Order.Dto.fromDto
-|> Result.map Order.toString
-
+|> printOrderTable
+|> Result.map Order.applyConstraints
+|> solveOrder
+|> printOrderTable
+|> ignore
 
 let tpnComplete =
     { Medication.order with

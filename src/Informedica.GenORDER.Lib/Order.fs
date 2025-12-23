@@ -1278,19 +1278,52 @@ module Order =
                 }
 
 
+            /// <summary>
+            /// Harmonize the valid concentration value indices across all items in a component.
+            /// </summary>
+            /// <remarks>
+            /// When a component is created by combining multiple medication products (e.g., tablets),
+            /// each item (substance) accumulates concentration values from all products. The indices
+            /// represent which product each value came from, ensuring valid combinations.
+            ///
+            /// Example: Two tablets combined into one component:
+            /// - Tablet 1: Substance A = 10 mg/tablet, Substance B = 20 mg/tablet
+            /// - Tablet 2: Substance A = 30 mg/tablet, Substance B = 25 mg/tablet
+            ///
+            /// Results in:
+            /// - Item A concentrations: [10; 30] mg/tablet (indices 0, 1)
+            /// - Item B concentrations: [20; 25] mg/tablet (indices 0, 1)
+            ///
+            /// Index 0 corresponds to Tablet 1 (10 mg A + 20 mg B).
+            /// Index 1 corresponds to Tablet 2 (30 mg A + 25 mg B).
+            ///
+            /// A combination of 10 mg A with 25 mg B is invalid because no tablet has that
+            /// concentration pair. This function ensures all items share the same valid indices,
+            /// so when one item's values are constrained (e.g., only index 0 remains valid),
+            /// all other items are updated to use only those same indices.
+            /// </remarks>
+            /// <param name="cmp">The Component to harmonize</param>
+            /// <returns>
+            /// A tuple of (bool * Component) where the bool indicates if harmonization
+            /// was applied, and the Component is the possibly modified component.
+            /// </returns>
             let harmonizeItemConcentrations cmp =
                 if (cmp |> inf).Items |> List.length <= 1 then false, cmp
                 else
                     match
                         cmp.Items
                         |> List.map _.ComponentConcentration
+                        // Get the indices of remaining valid concentration values.
+                        // ValueUnit preserves insertion order (no sorting), and values are added
+                        // in consistent product order during constraint creation, so each index
+                        // corresponds to a specific product across all items.
                         |> List.map (Concentration.toOrdVar >> OrderVariable.getIndices)
                         |> List.distinct with
                     | []
                     | [ _ ] -> false, cmp
                     | xs ->
                         let indices = xs |> List.sortBy Array.length |> List.head
-                        writeWarningMessage $"applying indices {indices |> Array.toList} to items in {cmp.Name}"
+
                         true,
                         { cmp with
                             Items =
@@ -1299,6 +1332,7 @@ module Order =
                                     { itm with
                                         ComponentConcentration =
                                             itm.ComponentConcentration
+                                            // Apply the harmonized indices to each item's concentration.
                                             |> Concentration.applyIndices indices
                                     }
                                 )
