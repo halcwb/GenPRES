@@ -940,6 +940,43 @@ module OrderVariable =
         |> Variable.isNonZeroPositive
 
 
+    /// <summary>
+    /// Step a variable's value up or down by the increment amount.
+    /// This function is intentionally allowed to pass min/max constraint
+    /// boundaries, but enforces:
+    /// - Values must be aligned to the increment
+    /// - Values must remain positive (non-zero), using the increment
+    ///   as the minimum floor since it's the smallest valid positive
+    ///   increment-aligned value
+    /// </summary>
+    /// <param name="op">The operation to apply (+ for increase, - for decrease)</param>
+    /// <param name="getValue">Function to get the current value (minValue or maxValue)</param>
+    /// <param name="ovar">The OrderVariable to step</param>
+    let step op getValue (ovar : OrderVariable) =
+        match ovar.Constraints.Incr, ovar.Variable |> Variable.getValueRange |> ValueRange.getValSet with
+        | Some incr, Some vs ->
+            match vs |> ValueSet.toValueUnit |> getValue with
+            | None    -> ovar
+            | Some vu ->
+                let vr = 
+                    let incr = incr |> Increment.toValueUnit
+                    let vu = vu |> op <| incr 
+                    // Floor at incr to ensure non-zero positive value
+                    if vu <? incr then incr else vu
+                    |> ValueSet.create |> ValSet
+
+                { ovar with
+                    OrderVariable.Variable.Values = vr
+                }
+        | _ -> ovar
+
+
+    let decrease = step (-) ValueUnit.maxValue
+
+
+    let increase = step (+) ValueUnit.minValue
+
+
     module Dto =
 
         open Newtonsoft.Json
@@ -1398,6 +1435,12 @@ module OrderVariable =
         /// Set the Values (or use the increment)
         /// to the nth value (if not > max)
         let setPercValue nth = apply (setPercValue nth)
+
+
+        let decrease = apply decrease
+
+
+        let increase = apply increase
 
 
         /// Set standard frequency values based on the time unit (e.g., per day/week)
