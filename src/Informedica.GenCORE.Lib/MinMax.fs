@@ -520,7 +520,13 @@ module MinMax =
     let isEmpty mm = mm = empty
 
 
-    let createSame lim = create (Some lim) (Some lim)
+    let createInclIncl min max =
+        create
+            (min |> Limit.inclusive |> Some)
+            (max |> Limit.inclusive |> Some)
+
+
+    let createExact vu = createInclIncl vu vu
 
 
     /// A `MinMax` range with value 1, can
