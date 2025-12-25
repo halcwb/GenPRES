@@ -195,7 +195,7 @@ let tpnSimple =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> LimitTarget.FormLimitTarget
+                DoseLimitTarget = LimitTarget.OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with
@@ -484,7 +484,7 @@ let tpnComplete =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> LimitTarget.FormLimitTarget
+                DoseLimitTarget = LimitTarget.OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with

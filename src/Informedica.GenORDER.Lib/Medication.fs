@@ -321,7 +321,7 @@ module Medication =
                         r.SolutionLimits
                         |> Array.tryFind (fun sl ->
                             match sl.SolutionLimitTarget with
-                            | FormLimitTarget s -> s |> String.equalsCapInsens shape
+                            | OrderableLimitTarget -> true
                             | _ -> false
                         )
                 Dose = lim.Limit

@@ -396,7 +396,7 @@ let cotrim =
             DoseCount = 1N |> ValueUnit.singleWithUnit Units.Count.times |> MinMax.createExact
             Dose =
                 { DoseLimit.limit with
-                    DoseLimitTarget = "drank" |> FormLimitTarget
+                    DoseLimitTarget = OrderableLimitTarget
                     AdjustUnit = au |> Some
                     QuantityAdjust =
                         { MinMax.empty with
@@ -503,7 +503,7 @@ let tpnComplete =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> FormLimitTarget
+                DoseLimitTarget = OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with
@@ -846,7 +846,7 @@ let tpn =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> FormLimitTarget
+                DoseLimitTarget = OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with

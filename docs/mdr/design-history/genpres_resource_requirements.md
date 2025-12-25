@@ -743,7 +743,7 @@ Completed systematic migration from "Shape" to "Form" terminology throughout the
 - ✓ `Product.UseForm` (line 143) - "Use pharmaceutical form"
 - ✓ `Product.Form` (line 155) - "The pharmaceutical form of the Product"
 - ✓ `FormularyProduct.UseForm` (line 187)
-- ✓ `LimitTarget.FormLimitTarget` (line 204) - discriminated union case
+- ✓ `LimitTarget.OrderableTarget` (line 204) - discriminated union case
 - ✓ `DoseRuleData.Form` (line 346)
 - ✓ `DoseRule.Form` (line 417) - "The pharmaceutical pharmaceutical form of the DoseRule"
 - ✓ `SolutionRule.Form` (line 469) - "The pharmaceutical form of the SolutionRule"
