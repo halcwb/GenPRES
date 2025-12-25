@@ -949,39 +949,54 @@ module OrderVariable =
 
     /// <summary>
     /// Step a variable's value up or down by the increment amount.
-    /// This function is intentionally allowed to pass min/max constraint
-    /// boundaries, but enforces:
-    /// - Values must be aligned to the increment
-    /// - Values must remain positive (non-zero), using the increment
-    ///   as the minimum floor since it's the smallest valid positive
-    ///   increment-aligned value
+    /// Uses a two-phase normalization approach:
+    /// - If both min and max exist: steps from min (increase) or max (decrease)
+    /// - If only one bound exists: returns that bound as a single value,
+    ///   so subsequent calls will have both min=max and can step normally
+    /// Enforces that values remain positive (non-zero), using the increment
+    /// as the minimum floor since it's the smallest valid positive
+    /// increment-aligned value.
     /// </summary>
-    /// <param name="op">The operation to apply (+ for increase, - for decrease)</param>
-    /// <param name="getValue">Function to get the current value (minValue or maxValue)</param>
+    /// <param name="isIncr">Whether the operation is an increment, otherwise decrement</param>
     /// <param name="ovar">The OrderVariable to step</param>
-    let step op getValue (ovar : OrderVariable) =
-        match ovar.Constraints.Incr, ovar.Variable |> Variable.getValueRange |> ValueRange.getValSet with
-        | Some incr, Some vs ->
-            match vs |> ValueSet.toValueUnit |> getValue with
-            | None    -> ovar
-            | Some vu ->
-                let vr = 
-                    let incr = incr |> Increment.toValueUnit
-                    let vu = vu |> op <| incr 
-                    // Floor at incr to ensure non-zero positive value
+    /// <returns>The OrderVariable with stepped value, unchanged if no increment constraint</returns>
+    let step isIncr (ovar : OrderVariable) =
+        if ovar.Constraints.Incr.IsNone then ovar
+        else
+            let minVal, maxVal =
+                ovar.Variable.Values |> ValueRange.getMin |> Option.map Minimum.toValueUnit,
+                ovar.Variable.Values |> ValueRange.getMax |> Option.map Maximum.toValueUnit
+
+            let incr = ovar.Constraints.Incr.Value |> Increment.toValueUnit
+
+            let vr =
+                match isIncr, minVal, maxVal with
+                // Increase: prefer stepping from minVal, otherwise from maxVal
+                | true, Some minVal, _ ->
+                    minVal + incr
+                | true, None, Some maxVal ->
+                    maxVal
+                // Decrease: prefer stepping from maxVal, otherwise from minVal
+                | false, _, Some maxVal ->
+                    let vu = maxVal - incr
+                    // make sure that the value doesn't get below incr
                     if vu <? incr then incr else vu
-                    |> ValueSet.create |> ValSet
+                | false, Some minVal, None ->
+                    let vu = minVal
+                    // make sure that the value doesn't get below incr
+                    if vu <? incr then incr else vu
+                // Fallback when no min or max: use incr as the base value
+                | _ -> incr
+                |> ValueSet.create |> ValSet
 
-                { ovar with
-                    OrderVariable.Variable.Values = vr
-                }
-        | _ -> ovar
+            { ovar with
+                OrderVariable.Variable.Values = vr
+            }
+
+    let decrease = step false
 
 
-    let decrease = step (-) ValueUnit.maxValue
-
-
-    let increase = step (+) ValueUnit.minValue
+    let increase = step true
 
 
     module Dto =
@@ -1767,6 +1782,12 @@ module OrderVariable =
 
         /// Materialize Min/Incr/Max of a Quantity into a ValueSet
         let minIncrMaxToValues = toOrdVar >> minIncrMaxToValues None >> Quantity
+
+
+        let decrease = toOrdVar >> decrease >> Quantity
+
+
+        let increase = toOrdVar >> increase >> Quantity
 
 
     /// Type and functions that represent a quantity per time

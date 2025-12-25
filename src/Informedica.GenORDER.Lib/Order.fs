@@ -437,6 +437,20 @@ module Order =
                 }
 
 
+            /// Decrease the quantity of a Dose 
+            let decreaseQuantity dos =
+                { (dos |> inf) with
+                    Quantity = dos.Quantity |> Quantity.decrease
+                }
+
+
+            /// Increase the quantity of a Dose
+            let increaseQuantity dos =
+                { (dos |> inf) with
+                    Quantity = dos.Quantity |> Quantity.increase
+                }
+
+
             /// Clear both the quantity and quantityAdjust of a Dose
             /// by setting them to non-zero positive
             let setQuantityToNonZeroPositive dos =

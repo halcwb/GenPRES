@@ -33,6 +33,8 @@ module Types =
     and ChangePropertyCommand =
         | IncreaseFrequency
         | DecreaseFrequency
+        | IncreaseDoseQuantity of cmp: string
+        | DecreaseDoseQuantity of cmp: string
 
 
 module OrderProcessor =
@@ -41,8 +43,57 @@ module OrderProcessor =
     open Order
     open Informedica.GenOrder.Lib.OrderProcessor
 
+    module Name = Informedica.GenSolver.Lib.Variable.Name
+    module Quantity = OrderVariable.Quantity
     module Frequency = OrderVariable.Frequency
     module Dose = Orderable.Dose
+
+
+
+    let orderPropertyIncrOrDecrDoseQuantity step cmp ord =
+        ord
+        |> OrderPropertyChange.proc
+            [
+                if ord.Schedule |> Schedule.hasTime then
+                    ScheduleTime OrderVariable.Time.setToNonZeroPositive
+                    OrderableDose Dose.setRateToNonZeroPositive
+
+                // only clear other components than the one being changed
+                for c in ord.Orderable.Components do
+                    if c.Name |> Name.toString <> cmp then
+                        ComponentDose (c.Name |> Name.toString, Dose.setQuantityToNonZeroPositive)
+                
+                OrderableDose Dose.setQuantityToNonZeroPositive
+                ItemDose ("", "", Dose.setQuantityToNonZeroPositive)
+
+                OrderableDose Dose.setPerTimeToNonZeroPositive
+                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
+                ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
+
+                OrderableQuantity Quantity.setToNonZeroPositive
+                OrderableDoseCount OrderVariable.Count.setToNonZeroPositive
+                ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
+                ComponentOrderableQuantity ("", Quantity.setToNonZeroPositive)
+                ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
+            ]
+        |> OrderPropertyChange.proc
+            [
+                OrderableQuantity Quantity.applyConstraints
+                ComponentOrderableQuantity ("", Quantity.applyConstraints)
+                ItemOrderableQuantity ("", "", Quantity.applyConstraints)
+                ComponentDose ("", Dose.applyQuantityMaxConstraints)
+                OrderableDoseCount OrderVariable.Count.applyConstraints
+
+                if ord.Schedule |> Schedule.hasTime then
+                    ScheduleTime OrderVariable.Time.applyConstraints
+                    OrderableDose Dose.setStandardRateConstraints
+
+                ComponentDose (cmp, step)
+            ]
+            |> fun o -> 
+                printfn "\n=== AFTER CHANGE PROPERTY ===\n"
+                o |> printTable ConsoleTables.Format.Minimal
+                o
 
 
     let orderPropertyIncrOrDecrFrequency step ord =
@@ -63,6 +114,8 @@ module OrderProcessor =
         match cmd with
         | IncreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.increase
         | DecreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.decrease
+        | IncreaseDoseQuantity cmp -> ord |> orderPropertyIncrOrDecrDoseQuantity Dose.decreaseQuantity cmp
+        | DecreaseDoseQuantity cmp -> ord |> orderPropertyIncrOrDecrDoseQuantity Dose.increaseQuantity cmp
 
 
     /// <summary>
@@ -122,6 +175,8 @@ module OrderProcessor =
 
         let applyConstraintsStep ord = ord |> applyConstraints |> Ok
 
+        let processChangeProperty cmd ord = ord |> processChangeProperty cmd |> Ok
+
         match cmd with
         | CalcMinMax ord ->
             [ { Name = "calc-minmax: calc-minmax"; Guard = (fun s -> s.IsEmpty); Run = calcMinMaxStep true } ]
@@ -147,7 +202,15 @@ module OrderProcessor =
             ]
             |> runPipeline ord
 
-        | ChangeProperty (ord, cmd) -> ord |> processChangeProperty cmd |> Ok
+        | ChangeProperty (ord, cmd) -> //ord |> processChangeProperty cmd |> Ok
+            [
+                { Name = "change-property: process-change"; Guard = (fun _ -> true); Run = processChangeProperty cmd }
+                { Name = "change-property: solve-order"; Guard = (fun _ -> true); Run = solveStep }
+            ]
+            |> runPipeline ord
+
+
+open Types
 
 
 
@@ -217,7 +280,7 @@ let pcmDrink =
         OrderType = DiscontinuousOrder
         Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
         Frequencies =
-            [|4N |]
+            [|3N; 4N |]
             |> ValueUnit.withUnit (Units.Count.times |> Units.per tu)
             |> Some
         DoseCount = 1N |> ValueUnit.singleWithUnit Units.Count.times |> MinMax.createExact
@@ -241,6 +304,11 @@ pcmDrink
 |> printOrderTable
 |> Result.bind (fun o -> 
     (o, IncreaseFrequency) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> Result.bind (fun o -> 
+    (o, IncreaseDoseQuantity "paracetamol") 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
