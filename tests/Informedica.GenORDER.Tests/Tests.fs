@@ -558,6 +558,12 @@ module Tests
             dto.Orderable <- orbDto
 
             dto.Schedule.Frequency.Constraints.ValsOpt <- d.Frequencies |> vuToDto
+            dto.Schedule.Frequency.Constraints.IncrOpt <-
+                d.Frequencies
+                |> Option.bind (fun vu ->
+                    let u = ValueUnit.getUnit vu
+                    1N |> createSingleValueUnitDto u
+                )
 
             dto.Schedule.Time.Constraints.MinIncl <- d.Time.Min.IsSome
             dto.Schedule.Time.Constraints.MinOpt <- d.Time.Min |> limToDto

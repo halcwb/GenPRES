@@ -18,7 +18,141 @@ open Informedica.GenUnits.Lib
 open Informedica.GenOrder.Lib
 
 
+
+module Types =
+
+
+    /// Commands that can be executed on an order for calculations
+    type OrderCommand =
+        | CalcMinMax of Order
+        | CalcValues of Order
+        | ReCalcValues of Order
+        | SolveOrder of Order
+        | ChangeProperty of Order * ChangePropertyCommand
+
+    and ChangePropertyCommand =
+        | IncreaseFrequency
+        | DecreaseFrequency
+
+
+module OrderProcessor =
+
+    open Types
+    open Order
+    open Informedica.GenOrder.Lib.OrderProcessor
+
+    module Frequency = OrderVariable.Frequency
+    module Dose = Orderable.Dose
+
+
+    let orderPropertyIncrOrDecrFrequency step ord =
+        ord
+        |> OrderPropertyChange.proc
+            [
+                OrderableDose Dose.setPerTimeToNonZeroPositive
+                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
+                ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
+            ]
+        |> OrderPropertyChange.proc
+            [
+                ScheduleFrequency step
+            ]
+
+
+    let processChangeProperty cmd ord =
+        match cmd with
+        | IncreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.increase
+        | DecreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.decrease
+
+
+    /// <summary>
+    /// Process an order through a pipeline of steps
+    /// depending on the command given
+    /// </summary>
+    /// <param name="logger">The logger</param>
+    /// <param name="normDose">An optional norm dose adjustment</param>
+    /// <param name="cmd">The command to process</param>
+    /// <returns>A Result with the processed Order or a list of error messages</returns>
+    let processPipeline logger normDose cmd =
+
+        let runStep (step: Step) (ord: Order) =
+            if step.Guard (classify ord) then
+                $"\n=== PIPELINE STEP {step.Name} ===\n"
+                |> Events.OrderScenario
+                |> Logging.logInfo logger
+
+                ord |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
+                step.Run ord
+                |> function
+                | Ok ord ->
+                    ord |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
+                    Ok ord
+                | Error (ord, msgs) ->
+                    $"Error in {step.Name}"
+                    |> Events.OrderScenario
+                    |> Logging.logInfo logger
+
+                    Error (ord, msgs)
+            else Ok ord
+
+        let runPipeline (ord: Order) (steps: Step list) =
+            (Ok ord, steps)
+            ||> List.fold (fun acc step -> acc |> Result.bind (runStep step))
+
+        // Helper guards matching legacy active-pattern logic
+        // NoValues is defined as: not empty, no values, and not solved
+        let isNoValues (s: OrderState) = not s.IsEmpty && not s.HasValues && not s.DoseIsSolved
+
+        // Core step functions
+        let calcMinMaxStep increaseIncrement ord =
+            match calcMinMax logger normDose increaseIncrement ord with
+            | Ok o -> Ok o
+            | Error (o, errs) ->
+                o |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
+                Error (o, errs)
+
+        let calcValuesStep ord = ord |> minIncrMaxToValues false true logger |> Ok
+
+        let solveStep ord = solveOrder true logger ord
+
+        let processClearedStep ord =
+            match processClearedOrder logger ord with
+            | Ok o -> Ok o
+            | Error _ -> solveOrder true logger ord
+
+        let applyConstraintsStep ord = ord |> applyConstraints |> Ok
+
+        match cmd with
+        | CalcMinMax ord ->
+            [ { Name = "calc-minmax: calc-minmax"; Guard = (fun s -> s.IsEmpty); Run = calcMinMaxStep true } ]
+            |> runPipeline ord
+        | CalcValues ord ->
+            // Legacy behavior: only when NoValues (not for empty orders)
+            [ { Name = "calc-values: calc-values"; Guard = isNoValues; Run = calcValuesStep } ]
+            |> runPipeline ord
+        | SolveOrder ord ->
+            // Legacy behavior: do NOT run min/max here; use values-only flow
+            [
+                { Name = "solve-order: ensure-values-1"; Guard = isNoValues; Run = calcValuesStep };
+                { Name = "solve-order: solve-1"; Guard = (fun s -> s.HasValues); Run = solveStep };
+                { Name = "solve-order: process-cleared"; Guard = (fun s -> s.DoseIsSolved && s.IsCleared); Run = processClearedStep };
+                { Name = "solve-order: final-solve"; Guard = (fun s -> s.OrderIsSolved |> not); Run = solveStep }
+            ]
+            |> runPipeline ord
+        | ReCalcValues ord ->
+            [
+                { Name = "recalc-values: apply-constraints"; Guard = (fun _ -> true); Run = applyConstraintsStep };
+                { Name = "recalc-values: calc-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep false };
+                { Name = "recalc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep }
+            ]
+            |> runPipeline ord
+
+        | ChangeProperty (ord, cmd) -> ord |> processChangeProperty cmd |> Ok
+
+
+
 let print sl = sl |> List.iter (printfn "%s")
+
 
 let inline printOrderTable order =
     order
@@ -90,6 +224,8 @@ let pcmDrink =
     }
 
 
+open Types
+
 pcmDrink
 |> Medication.toString
 |> print
@@ -102,6 +238,12 @@ pcmDrink
 |> Result.map Order.applyConstraints
 |> printOrderTable
 |> solveOrder
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, IncreaseFrequency) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
 |> printOrderTable
 |> ignore
 

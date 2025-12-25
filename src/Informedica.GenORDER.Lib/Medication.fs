@@ -829,6 +829,12 @@ module Medication =
         /// Set prescription-level constraints (frequency and time)
         let setPrescriptionConstraints (dto : Order.Dto.Dto) (d : Medication) =
             dto.Schedule.Frequency.Constraints.ValsOpt <- d.Frequencies |> vuToDto
+            match d.Frequencies with
+            | None -> ()
+            | Some fu -> // frequency increment always defaults to 1
+                let freqUnit = fu |> ValueUnit.getUnit
+                let incr = 1N |> createSingleValueUnitDto freqUnit
+                dto.Schedule.Frequency.Constraints.IncrOpt <- incr
             dto.Schedule.Time.Constraints.MinIncl <- d.Time.Min.IsSome
             dto.Schedule.Time.Constraints.MinOpt <- d.Time.Min |> limToDto
             dto.Schedule.Time.Constraints.MaxIncl <- d.Time.Max.IsSome

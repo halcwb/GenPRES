@@ -254,16 +254,23 @@ module OrderVariable =
         /// Create a `ValueRange` from a `Constraints` record
         /// </summary>
         let toValueRange (cs : Constraints) =
-            ValueRange.unrestricted
-            |> ValueRange.setOptMin cs.Min
-            |> ValueRange.setOptMax cs.Max
-            |> ValueRange.setOptIncr cs.Incr
+            match cs.Values with
+            | Some _ -> // when there is a ValueSet, ignore Min, Max and Incr
+                ValueRange.unrestricted
+                |> ValueRange.setOptVs cs.Values
+            | None ->
+                ValueRange.unrestricted
+                |> ValueRange.setOptVs cs.Values
+                |> ValueRange.setOptMin cs.Min
+                |> ValueRange.setOptMax cs.Max
+                |> ValueRange.setOptIncr cs.Incr
+            (*
             // only set a ValueSet if there is no increment
             |> fun vr ->
                 if cs.Incr.IsSome then vr
                 else
                     vr
-                    |> ValueRange.setOptVs cs.Values
+            *)
 
 
         /// Get the string representation of a `ValueRange` from a `Constraints` record
@@ -1369,11 +1376,24 @@ module OrderVariable =
         /// <param name="tu">The Time Unit of the Frequency</param>
         let create n tu =
             match tu with
-            | Unit.NoUnit -> Unit.NoUnit
+            | NoUnit -> 
+                NoUnit
+                |> createNew (n |> Name.add name)
+
             | _ ->
-                Units.Count.times
-                |> ValueUnit.per tu
-            |> createNew (n |> Name.add name)
+                let frqU =
+                    Units.Count.times
+                    |> ValueUnit.per tu
+                let ovar =
+                    frqU
+                    |> createNew (n |> Name.add name)
+                // frequency increment defaults to 1
+                { ovar with
+                    OrderVariable.Constraints.Incr =
+                        1N |> ValueUnit.singleWithUnit frqU
+                        |> Increment.create
+                        |> Some
+                }
             |> Frequency
 
 
