@@ -2062,6 +2062,12 @@ module OrderVariable =
         let setToNonZeroPositive = toOrdVar >> setToNonZeroPositive >> Rate
 
 
+        let decrease n = toOrdVar >> decrease n >> Rate
+
+
+        let increase n = toOrdVar >> increase n >> Rate
+
+
     /// Type and functions that represent a total
     module Total =
 

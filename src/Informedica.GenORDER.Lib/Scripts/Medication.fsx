@@ -63,7 +63,7 @@ module OrderProcessor =
                     if c.Name |> Name.toString <> cmp then
                         ComponentDose (c.Name |> Name.toString, Dose.setQuantityToNonZeroPositive)
                     else
-                        ComponentDose (cmp, Dose.setQuantityToNonZeroPositive)
+                        ComponentDose (cmp, Dose.setQuantityAdjustToNonZeroPositive)
                         ComponentDose (cmp, Dose.setPerTimeToNonZeroPositive)
                 
                 OrderableDose Dose.setQuantityToNonZeroPositive
@@ -315,7 +315,7 @@ pcmDrink
 )
 |> printOrderTable
 |> Result.bind (fun o -> 
-    (o, IncreaseDoseQuantity ("paracetamol", 10)) 
+    (o, DecreaseDoseQuantity ("paracetamol", 20)) 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
@@ -426,6 +426,53 @@ cotrim
 |> ignore
 
 
+let morfCont =
+    let au = Units.Weight.kiloGram
+    let fu = Units.Volume.milliLiter
+    let su = Units.Mass.milliGram
+    let du = Units.Mass.microGram |> Units.per au |> Units.per Units.Time.minute
+    let cu = su |> Units.per fu
+    let ru = fu |> Units.per Units.Time.hour
+
+    { Medication.order with
+        Id = "1"
+        Name = "morfin pump"
+        Route = "INTRAVENEUS"
+        Components = [
+            { Medication.productComponent with
+                Name = "morfin"
+                Form = "iv fluid"
+                Substances = [
+                    { Medication.substanceItem with
+                        Name = "morfin"
+                        Concentrations = 
+                            10N
+                            |> ValueUnit.singleWithUnit cu
+                            |> Some
+
+                    }
+                ]
+            }
+            { Medication.productComponent with
+                Name = "saline"
+                Form = "iv fluid"
+
+            }
+        ]
+        OrderType = ContinuousOrder
+        Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+        Dose = 
+            { DoseLimit.limit with
+                AdjustUnit =  None
+
+            }
+            |> Some
+    }
+
+
+morfCont 
+|> Medication.toString
+|> print
 
 let tpnComplete =
     { Medication.order with
@@ -487,7 +534,7 @@ let tpnComplete =
                         Divisible = Some (1N)
                         Dose =
                             { DoseLimit.limit with
-                                DoseLimitTarget = "Samenstelling C" |> LimitTarget.ComponentLimitTarget
+                                DoseLimitTarget = "Samenstelling C" |> ComponentLimitTarget
                                 AdjustUnit = Units.Weight.kiloGram |> Some
                                 QuantityAdjust =
                                     { MinMax.empty with
@@ -523,11 +570,11 @@ let tpnComplete =
                                             |> Some
                                         Solution =
                                             { SolutionLimit.limit with
-                                                SolutionLimitTarget = "eiwit" |> LimitTarget.SubstanceLimitTarget
+                                                SolutionLimitTarget = "eiwit" |> SubstanceLimitTarget
                                                 Concentration =
                                                     { MinMax.empty with
                                                         Max =
-                                                            (5N / 100N)
+                                                            5N / 100N
                                                             |> ValueUnit.singleWithUnit (Units.Mass.gram |> Units.per Units.Volume.milliLiter)
                                                             |> Limit.inclusive
                                                             |> Some

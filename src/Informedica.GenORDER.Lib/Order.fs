@@ -410,6 +410,16 @@ module Order =
                 }
 
 
+            /// Clear only rateAdjust of a Dose
+            /// by setting them to non-zero positive
+            let setRateAdjustToNonZeroPositive dos =
+                { (dos |> inf) with
+                    RateAdjust =
+                        dos.RateAdjust
+                        |> RateAdjust.setToNonZeroPositive
+                }
+
+
             /// Convert min, incr, max to values for the rate of a Dose
             /// by creating a ValueSet from min, incr, max
             let rateMinIncrMaxToValues dos =
