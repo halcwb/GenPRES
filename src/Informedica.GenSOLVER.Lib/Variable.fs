@@ -2210,7 +2210,7 @@ module Variable =
                 ValueSet.getMin
 
 
-        /// Get an optional `Maximum` in a `ValueRange`
+        /// Get an optional `Increment` in a `ValueRange`
         let getIncr =
             apply
                 None

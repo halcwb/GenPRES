@@ -949,18 +949,20 @@ module OrderVariable =
 
     /// <summary>
     /// Step a variable's value up or down by the increment amount.
-    /// Uses a two-phase normalization approach:
-    /// - If both min and max exist: steps from min (increase) or max (decrease)
-    /// - If only one bound exists: returns that bound as a single value,
-    ///   so subsequent calls will have both min=max and can step normally
+    /// Designed for UI increment/decrement buttons with the following behavior:
+    /// - If a specific value is set (min = max): steps that value up or down
+    /// - If a range exists (min ≠ max): first click picks a starting point
+    ///   (min for increase, max for decrease), subsequent clicks step from there
+    /// - If only one bound exists: returns that bound as the starting value
     /// Enforces that values remain positive (non-zero), using the increment
     /// as the minimum floor since it's the smallest valid positive
     /// increment-aligned value.
     /// </summary>
-    /// <param name="isIncr">Whether the operation is an increment, otherwise decrement</param>
+    /// <param name="isIncr">Whether the operation is an increase, otherwise decrease</param>
+    /// <param name="n">The number of increases or decreases</param>
     /// <param name="ovar">The OrderVariable to step</param>
     /// <returns>The OrderVariable with stepped value, unchanged if no increment constraint</returns>
-    let step isIncr (ovar : OrderVariable) =
+    let step isIncr n (ovar : OrderVariable) =
         if ovar.Constraints.Incr.IsNone then ovar
         else
             let minVal, maxVal =
@@ -969,34 +971,61 @@ module OrderVariable =
 
             let incr = ovar.Constraints.Incr.Value |> Increment.toValueUnit
 
+            let calcIncr n incr =
+                if n <= 0 then 
+                    (0 |> BigRational.fromInt |> ValueUnit.singleWithUnit Units.Count.times) * incr
+                elif n = 1 then incr
+                else
+                    (n |> BigRational.fromInt |> ValueUnit.singleWithUnit Units.Count.times) * incr
+
             let vr =
                 match isIncr, minVal, maxVal with
+                // Increase: there is both a min and max
+                | true, Some minVal, Some maxVal ->
+                    // A specific value has been set, increase that value
+                    if minVal = maxVal then 
+                        (incr |> calcIncr n) + minVal 
+                    else
+                        // No specific value has been set, start with the min value
+                        (incr |> calcIncr (n - 1)) + minVal
                 // Increase: prefer stepping from minVal, otherwise from maxVal
-                | true, Some minVal, _ ->
-                    minVal + incr
+                | true, Some minVal, None ->
+                    (incr |> calcIncr (n - 1)) + minVal
                 | true, None, Some maxVal ->
-                    maxVal
+                    (incr |> calcIncr (n - 1)) + maxVal
+                // Fallback when no min or max: use incr as the base value
+                | true, _, _ -> incr + incr |> calcIncr (n - 1)
+                // Decrease: there is both a min and a max
+                | false, Some minVal, Some maxVal ->
+                    // A specific value has been set, decrease that value
+                    if minVal = maxVal then 
+                        let vu = minVal - (incr |> calcIncr n)
+                        if vu <? incr then incr else vu
+                    else
+                        // No specific value has been set, start with the max value
+                        let vu = maxVal - (incr |> calcIncr (n - 1))
+                        if vu <? incr then incr else vu
                 // Decrease: prefer stepping from maxVal, otherwise from minVal
                 | false, _, Some maxVal ->
-                    let vu = maxVal - incr
+                    let vu = maxVal - (incr |> calcIncr (n - 1))
                     // make sure that the value doesn't get below incr
                     if vu <? incr then incr else vu
                 | false, Some minVal, None ->
-                    let vu = minVal
+                    let vu = minVal - (incr |> calcIncr (n - 1))
                     // make sure that the value doesn't get below incr
                     if vu <? incr then incr else vu
                 // Fallback when no min or max: use incr as the base value
-                | _ -> incr
+                | false, _, _ -> incr
                 |> ValueSet.create |> ValSet
 
             { ovar with
                 OrderVariable.Variable.Values = vr
             }
 
-    let decrease = step false
+    let decrease n = step false n
 
 
-    let increase = step true
+    let increase n = step true n
 
 
     module Dto =
@@ -1472,10 +1501,10 @@ module OrderVariable =
         let setPercValue nth = apply (setPercValue nth)
 
 
-        let decrease = apply decrease
+        let decrease = apply (decrease 1)
 
 
-        let increase = apply increase
+        let increase = apply (increase 1)
 
 
         /// Set standard frequency values based on the time unit (e.g., per day/week)
@@ -1784,10 +1813,10 @@ module OrderVariable =
         let minIncrMaxToValues = toOrdVar >> minIncrMaxToValues None >> Quantity
 
 
-        let decrease = toOrdVar >> decrease >> Quantity
+        let decrease n = toOrdVar >> decrease n >> Quantity
 
 
-        let increase = toOrdVar >> increase >> Quantity
+        let increase n = toOrdVar >> increase n >> Quantity
 
 
     /// Type and functions that represent a quantity per time

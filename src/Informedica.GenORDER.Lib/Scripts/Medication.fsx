@@ -33,8 +33,8 @@ module Types =
     and ChangePropertyCommand =
         | IncreaseFrequency
         | DecreaseFrequency
-        | IncreaseDoseQuantity of cmp: string
-        | DecreaseDoseQuantity of cmp: string
+        | IncreaseDoseQuantity of cmp: string * ntimes: int
+        | DecreaseDoseQuantity of cmp: string * ntimes: int
 
 
 module OrderProcessor =
@@ -62,6 +62,9 @@ module OrderProcessor =
                 for c in ord.Orderable.Components do
                     if c.Name |> Name.toString <> cmp then
                         ComponentDose (c.Name |> Name.toString, Dose.setQuantityToNonZeroPositive)
+                    else
+                        ComponentDose (cmp, Dose.setQuantityToNonZeroPositive)
+                        ComponentDose (cmp, Dose.setPerTimeToNonZeroPositive)
                 
                 OrderableDose Dose.setQuantityToNonZeroPositive
                 ItemDose ("", "", Dose.setQuantityToNonZeroPositive)
@@ -76,12 +79,15 @@ module OrderProcessor =
                 ComponentOrderableQuantity ("", Quantity.setToNonZeroPositive)
                 ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
             ]
+            |> fun o -> 
+                printfn "\n=== AFTER CLEARING PROPERTY ===\n"
+                o |> printTable ConsoleTables.Format.Minimal
+                o
         |> OrderPropertyChange.proc
             [
                 OrderableQuantity Quantity.applyConstraints
                 ComponentOrderableQuantity ("", Quantity.applyConstraints)
                 ItemOrderableQuantity ("", "", Quantity.applyConstraints)
-                ComponentDose ("", Dose.applyQuantityMaxConstraints)
                 OrderableDoseCount OrderVariable.Count.applyConstraints
 
                 if ord.Schedule |> Schedule.hasTime then
@@ -112,10 +118,10 @@ module OrderProcessor =
 
     let processChangeProperty cmd ord =
         match cmd with
-        | IncreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.increase
         | DecreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.decrease
-        | IncreaseDoseQuantity cmp -> ord |> orderPropertyIncrOrDecrDoseQuantity Dose.decreaseQuantity cmp
-        | DecreaseDoseQuantity cmp -> ord |> orderPropertyIncrOrDecrDoseQuantity Dose.increaseQuantity cmp
+        | IncreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.increase
+        | DecreaseDoseQuantity (cmp, n) -> ord |> orderPropertyIncrOrDecrDoseQuantity (Dose.decreaseQuantity n) cmp
+        | IncreaseDoseQuantity (cmp, n) -> ord |> orderPropertyIncrOrDecrDoseQuantity (Dose.increaseQuantity n) cmp
 
 
     /// <summary>
@@ -307,8 +313,9 @@ pcmDrink
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
+|> printOrderTable
 |> Result.bind (fun o -> 
-    (o, IncreaseDoseQuantity "paracetamol") 
+    (o, IncreaseDoseQuantity ("paracetamol", 10)) 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
