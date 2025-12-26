@@ -31,10 +31,12 @@ module Types =
         | ChangeProperty of Order * ChangePropertyCommand
 
     and ChangePropertyCommand =
-        | IncreaseFrequency
         | DecreaseFrequency
-        | IncreaseDoseQuantity of cmp: string * ntimes: int
+        | IncreaseFrequency
         | DecreaseDoseQuantity of cmp: string * ntimes: int
+        | IncreaseDoseQuantity of cmp: string * ntimes: int
+        | DecreaseDoseRate of ntimes: int
+        | IncreaseDoseRate of ntimes: int
 
 
 module OrderProcessor =
@@ -45,8 +47,29 @@ module OrderProcessor =
 
     module Name = Informedica.GenSolver.Lib.Variable.Name
     module Quantity = OrderVariable.Quantity
+    module Time = OrderVariable.Time
     module Frequency = OrderVariable.Frequency
     module Dose = Orderable.Dose
+
+
+
+
+    let orderPropertyIncrOrDecrDoseRate step ord =
+        ord
+        |> OrderPropertyChange.proc
+            [
+                OrderableDose Dose.setRateAdjustToNonZeroPositive
+                // clear all dependent dose rates
+                ComponentDose ("", Dose.setRateToNonZeroPositive)
+                ItemDose ("", "", Dose.setRateToNonZeroPositive)
+                // clear time
+                ScheduleTime Time.setToNonZeroPositive
+            ]
+        |> OrderPropertyChange.proc
+            [
+                // apply dose rate constraints again
+                OrderableDose step
+            ]
 
 
 
@@ -79,10 +102,6 @@ module OrderProcessor =
                 ComponentOrderableQuantity ("", Quantity.setToNonZeroPositive)
                 ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
             ]
-            |> fun o -> 
-                printfn "\n=== AFTER CLEARING PROPERTY ===\n"
-                o |> printTable ConsoleTables.Format.Minimal
-                o
         |> OrderPropertyChange.proc
             [
                 OrderableQuantity Quantity.applyConstraints
@@ -91,15 +110,11 @@ module OrderProcessor =
                 OrderableDoseCount OrderVariable.Count.applyConstraints
 
                 if ord.Schedule |> Schedule.hasTime then
-                    ScheduleTime OrderVariable.Time.applyConstraints
+                    ScheduleTime Time.applyConstraints
                     OrderableDose Dose.setStandardRateConstraints
 
                 ComponentDose (cmp, step)
             ]
-            |> fun o -> 
-                printfn "\n=== AFTER CHANGE PROPERTY ===\n"
-                o |> printTable ConsoleTables.Format.Minimal
-                o
 
 
     let orderPropertyIncrOrDecrFrequency step ord =
@@ -122,6 +137,8 @@ module OrderProcessor =
         | IncreaseFrequency -> ord |> orderPropertyIncrOrDecrFrequency Frequency.increase
         | DecreaseDoseQuantity (cmp, n) -> ord |> orderPropertyIncrOrDecrDoseQuantity (Dose.decreaseQuantity n) cmp
         | IncreaseDoseQuantity (cmp, n) -> ord |> orderPropertyIncrOrDecrDoseQuantity (Dose.increaseQuantity n) cmp
+        | DecreaseDoseRate n -> ord |> orderPropertyIncrOrDecrDoseRate (Dose.decreaseRate n)
+        | IncreaseDoseRate n -> ord |> orderPropertyIncrOrDecrDoseRate (Dose.increaseRate n)
 
 
     /// <summary>
@@ -216,26 +233,122 @@ module OrderProcessor =
             |> runPipeline ord
 
 
+module HelperFunctions =
+
+    let print sl = sl |> List.iter (printfn "%s")
+
+
+    let inline printOrderTable order =
+        order
+        |> Result.iter (Order.printTable ConsoleTables.Format.Minimal)
+        
+        order
+
+
+    let solveOrder order = 
+        match order with
+        | Error e -> $"Error solving order: {e}" |> failwith
+        | Ok o ->
+            o
+            |> Order.solveMinMax true OrderLogging.noOp
+
+
 open Types
+open HelperFunctions
 
 
 
-let print sl = sl |> List.iter (printfn "%s")
+let morfCont =
+    let au = Units.Weight.kiloGram
+    let fu = Units.Volume.milliLiter
+    let su = Units.Mass.milliGram
+    let du = Units.Mass.microGram |> Units.per au |> Units.per Units.Time.hour
+    let cu = su |> Units.per fu
+    let ru = fu |> Units.per Units.Time.hour
+
+    { Medication.order with
+        Id = "1"
+        Name = "morfin pump"
+        Route = "INTRAVENEUS"
+        Quantities = 50N |> ValueUnit.singleWithUnit fu |> Some
+        Components = [
+            { Medication.productComponent with
+                Name = "morfin"
+                Form = "iv fluid"
+                Quantities = 1N |> ValueUnit.singleWithUnit fu |> Some
+                Divisible = Some 10N
+                Substances = [
+                    { Medication.substanceItem with
+                        Name = "morfin"
+                        Concentrations = 
+                            10N
+                            |> ValueUnit.singleWithUnit cu
+                            |> Some
+                        Dose = 
+                            { DoseLimit.limit with
+                                DoseLimitTarget = "morfin" |> SubstanceLimitTarget
+                                AdjustUnit = au |> Some
+                                RateAdjust = 
+                                    { MinMax.empty with
+                                        Min = 10N |> ValueUnit.singleWithUnit du |> Limit.inclusive |> Some
+                                        Max = 40N |> ValueUnit.singleWithUnit du |> Limit.inclusive |> Some
+                                    }
+                            }
+                            |> Some
+                        Solution =
+                            { SolutionLimit.limit with
+                                SolutionLimitTarget = "morfine" |> SubstanceLimitTarget
+                                Quantity = 5N |> ValueUnit.singleWithUnit su |> MinMax.createExact 
+                            }
+                            |> Some
+                    }
+                ]
+            }
+            { Medication.productComponent with
+                Name = "saline"
+                Form = "iv fluid"
+                Quantities = 1N |> ValueUnit.singleWithUnit fu |> Some
+                Divisible = Some 10N
+            }
+        ]
+        OrderType = ContinuousOrder
+        Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+        Dose = 
+            { DoseLimit.limit with
+                DoseLimitTarget = OrderableLimitTarget
+                AdjustUnit =  None
+            }
+            |> Some
+    }
 
 
-let inline printOrderTable order =
-    order
-    |> Result.iter (Order.printTable ConsoleTables.Format.Minimal)
-    
-    order
+morfCont 
+|> Medication.toString
+|> print
 
 
-let solveOrder order = 
-    match order with
-    | Error e -> $"Error solving order: {e}" |> failwith
-    | Ok o ->
-        o
-        |> Order.solveMinMax true OrderLogging.noOp
+morfCont
+|> Medication.toOrderDto
+|> Order.Dto.fromDto
+|> printOrderTable
+|> Result.map Order.applyConstraints
+|> printOrderTable
+|> solveOrder
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, IncreaseDoseRate 20) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, IncreaseDoseRate 1) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> ignore
+
 
 
 let pcmDrink =
@@ -424,55 +537,6 @@ cotrim
 |> solveOrder
 |> printOrderTable
 |> ignore
-
-
-let morfCont =
-    let au = Units.Weight.kiloGram
-    let fu = Units.Volume.milliLiter
-    let su = Units.Mass.milliGram
-    let du = Units.Mass.microGram |> Units.per au |> Units.per Units.Time.minute
-    let cu = su |> Units.per fu
-    let ru = fu |> Units.per Units.Time.hour
-
-    { Medication.order with
-        Id = "1"
-        Name = "morfin pump"
-        Route = "INTRAVENEUS"
-        Components = [
-            { Medication.productComponent with
-                Name = "morfin"
-                Form = "iv fluid"
-                Substances = [
-                    { Medication.substanceItem with
-                        Name = "morfin"
-                        Concentrations = 
-                            10N
-                            |> ValueUnit.singleWithUnit cu
-                            |> Some
-
-                    }
-                ]
-            }
-            { Medication.productComponent with
-                Name = "saline"
-                Form = "iv fluid"
-
-            }
-        ]
-        OrderType = ContinuousOrder
-        Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
-        Dose = 
-            { DoseLimit.limit with
-                AdjustUnit =  None
-
-            }
-            |> Some
-    }
-
-
-morfCont 
-|> Medication.toString
-|> print
 
 let tpnComplete =
     { Medication.order with

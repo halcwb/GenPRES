@@ -397,6 +397,20 @@ module Order =
             let clearRate = applyToRate Rate.clear
 
 
+
+            /// Decrease the rate of a Dose 
+            let decreaseRate n dos =
+                { (dos |> inf) with
+                    Rate = dos.Rate |> Rate.decrease n
+                }
+
+
+            /// Increase the rate of a Dose
+            let increaseRate n dos =
+                { (dos |> inf) with
+                    Rate = dos.Rate |> Rate.increase n
+                }
+
             /// Clear both the rate and rateAdjust of a Dose
             /// by setting them to non-zero positive
             let setRateToNonZeroPositive dos =
