@@ -279,6 +279,29 @@ module Types =
         | CalcValues of Order
         | ReCalcValues of Order
         | SolveOrder of Order
+        | ChangeProperty of Order * ChangePropertyCommand
+
+    /// Change an order property, either by
+    /// - Decrementing or Incrementing by using the set increment constraint. 
+    ///   This can result in an in- or decrease below of above the min max constraint.
+    /// - Set to Min or Max. Uses the calculated min max constraints
+    /// - Set to Median. Uses the calculated values or the increment with a min and max constraint.
+    and ChangePropertyCommand =
+        | DecreaseFrequency
+        | IncreaseFrequency
+        | SetMinFrequency
+        | SetMaxFrequency
+        | SetMedianFrequency
+        | DecreaseDoseQuantity of cmp: string * ntimes: int
+        | IncreaseDoseQuantity of cmp: string * ntimes: int
+        | SetMinDoseQuantity of cmp: string 
+        | SetMaxDoseQuantity of cmp: string 
+        | SetMedianDoseQuantity of cmp: string 
+        | DecreaseDoseRate of ntimes: int
+        | IncreaseDoseRate of ntimes: int
+        | SetMinDoseRate
+        | SetMaxDoseRate
+        | SetMedianDoseRate 
 
 
     /// The different possible order types

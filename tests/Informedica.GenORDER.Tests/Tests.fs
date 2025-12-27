@@ -1076,6 +1076,7 @@ module Tests
                     |> procIf "recalc requested: recalc order" (fun _ -> true) (fun o ->
                         calcMinMax logger normDose false o |> Result.bind (calcValues logger)
                     )
+                | ChangeProperty _ -> failwith "not implemented as a test case"
                 |> Result.map (function | Processed o | NotProcessed o -> o)
 
         // Helper to compare results while being lenient on error messages
