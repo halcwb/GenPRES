@@ -121,16 +121,12 @@ morfCont
 |> printOrderTable
 |> solveOrder
 |> printOrderTable
-(*
 |> Result.bind (fun o -> 
     (o, SetMedianDoseRate) 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
-*)
-(*
 |> printOrderTable
-*)
 |> Result.bind (fun o -> 
     (o, IncreaseDoseRate 1) 
     |> ChangeProperty

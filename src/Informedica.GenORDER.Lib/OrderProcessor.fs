@@ -138,8 +138,11 @@ module OrderProcessor =
             [
                 // clear time
                 ScheduleTime Time.setToNonZeroPositive
+                // clear only the orderable dose rate adjust
+                OrderableDose Dose.setRateAdjustToNonZeroPositive
                 // clear all dependent dose rates
-                yield! clearRateDoses
+                // Note skip the first which is the orderable dose rate!
+                yield! clearRateDoses |> List.tail
             ]
         // increase or decrease 
         |> OrderPropertyChange.proc
