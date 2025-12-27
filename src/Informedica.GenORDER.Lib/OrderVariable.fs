@@ -984,17 +984,22 @@ module OrderVariable =
                 | true, Some minVal, Some maxVal ->
                     // A specific value has been set, increase that value
                     if minVal = maxVal then 
-                        (incr |> calcIncr n) + minVal 
+                        minVal + (incr |> calcIncr n)
                     else
                         // No specific value has been set, start with the min value
-                        (incr |> calcIncr (n - 1)) + minVal
+                        minVal + (incr |> calcIncr (n - 1))
                 // Increase: prefer stepping from minVal, otherwise from maxVal
                 | true, Some minVal, None ->
-                    (incr |> calcIncr (n - 1)) + minVal
+                    printfn $"calculated minVal + (incr |> calcIncr (n - 1)): {minVal + (incr |> calcIncr (n - 1))}"
+                    let vu = minVal + (incr |> calcIncr (n - 1))
+                    // check when minVal is actually a non zero min
+                    if vu <? incr then incr else vu
                 | true, None, Some maxVal ->
-                    (incr |> calcIncr (n - 1)) + maxVal
+                    maxVal + (incr |> calcIncr (n - 1))
                 // Fallback when no min or max: use incr as the base value
-                | true, _, _ -> incr + incr |> calcIncr (n - 1)
+                | true, _, _ -> 
+                    printfn $"calculated incr + incr |> calcIncr (n - 1): {incr + incr |> calcIncr (n - 1)}"
+                    incr + incr |> calcIncr (n - 1)
                 // Decrease: there is both a min and a max
                 | false, Some minVal, Some maxVal ->
                     // A specific value has been set, decrease that value
