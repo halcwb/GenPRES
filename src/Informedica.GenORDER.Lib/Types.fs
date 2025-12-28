@@ -279,6 +279,29 @@ module Types =
         | CalcValues of Order
         | ReCalcValues of Order
         | SolveOrder of Order
+        | ChangeProperty of Order * ChangePropertyCommand
+
+    /// Change an order property, either by
+    /// - Decrementing or Incrementing by using the set increment constraint. 
+    ///   This can result in an in- or decrease below of above the min max constraint.
+    /// - Set to Min or Max. Uses the calculated min max constraints
+    /// - Set to Median. Uses the calculated values or the increment with a min and max constraint.
+    and ChangePropertyCommand =
+        | DecreaseFrequency
+        | IncreaseFrequency
+        | SetMinFrequency
+        | SetMaxFrequency
+        | SetMedianFrequency
+        | DecreaseDoseQuantity of cmp: string * ntimes: int
+        | IncreaseDoseQuantity of cmp: string * ntimes: int
+        | SetMinDoseQuantity of cmp: string 
+        | SetMaxDoseQuantity of cmp: string 
+        | SetMedianDoseQuantity of cmp: string 
+        | DecreaseDoseRate of ntimes: int
+        | IncreaseDoseRate of ntimes: int
+        | SetMinDoseRate
+        | SetMaxDoseRate
+        | SetMedianDoseRate 
 
 
     /// The different possible order types
@@ -294,7 +317,7 @@ module Types =
 
     /// The representation of a drug order that
     /// can be derived by a drug product inventory
-    /// and the related dose rule. A DrugOrder maps
+    /// and the related dose rule. A medication order maps
     /// to an Orderable and a Prescription.
     type Medication =
         {
@@ -311,12 +334,12 @@ module Types =
             // The type of order
             OrderType : OrderType
             // The unit to adjust the dose with
-            AdjustUnit : Unit option
+            // AdjustUnit : Unit option
             // The list of possible frequency values
             Frequencies : ValueUnit option
             // The min and/or max time for the infusion time
             Time : MinMax
-            // The dose limits for a DrugOrder
+            // The dose limits for a medication order
             Dose : DoseLimit option
             // The amount of orderable that will be given each time
             DoseCount : MinMax
@@ -336,7 +359,7 @@ module Types =
             Form : string
             // The quantities of the product
             // Note: the first (main) component has the same unit as
-            // the DrugOrder unit
+            // the medication order unit
             Quantities : ValueUnit option
             // The "divisibility" of the products
             Divisible : BigRational option

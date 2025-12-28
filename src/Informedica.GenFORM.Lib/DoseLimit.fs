@@ -89,7 +89,7 @@ module DoseLimit =
     let isComponentLimit (dl : DoseLimit) = dl.DoseLimitTarget |> LimitTarget.isComponentTarget
 
 
-    let isShapeLimit (dl : DoseLimit) = dl.DoseLimitTarget |> LimitTarget.isFormTarget
+    let isShapeLimit (dl : DoseLimit) = dl.DoseLimitTarget |> LimitTarget.isOrderableTarget
 
 
     let printMinMaxDose perDose (minMax : MinMax) =

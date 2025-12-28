@@ -220,7 +220,7 @@ module Medication =
             Quantities = None
             Route = ""
             OrderType = AnyOrder
-            AdjustUnit = None
+            //AdjustUnit = None
             Frequencies = None
             Time = MinMax.empty
             Dose = None
@@ -252,7 +252,7 @@ module Medication =
                 "Route", med.Route
                 "OrderType", $"{med.OrderType}"
                 "Adjust", med.Adjust |> valueUnitOptToString
-                "AdjustUnit", med.AdjustUnit |> Option.map Units.toStringEngShort |> Option.defaultValue ""
+                //"AdjustUnit", med.AdjustUnit |> Option.map Units.toStringEngShort |> Option.defaultValue ""
                 "Frequencies", med.Frequencies |> valueUnitOptToString
                 "Time", med.Time |> minMaxToString
                 "Dose", med.Dose |> limitOptToString
@@ -321,7 +321,7 @@ module Medication =
                         r.SolutionLimits
                         |> Array.tryFind (fun sl ->
                             match sl.SolutionLimitTarget with
-                            | FormLimitTarget s -> s |> String.equalsCapInsens shape
+                            | OrderableLimitTarget -> true
                             | _ -> false
                         )
                 Dose = lim.Limit
@@ -472,7 +472,7 @@ module Medication =
                 if au |> ValueUnit.Group.eqsGroup Units.Weight.kiloGram then
                     pat.Weight
                 else pat |> Patient.calcBSA
-            AdjustUnit = Some au
+            //AdjustUnit = Some au
         }
         |> addSolution sr
 
@@ -733,15 +733,21 @@ module Medication =
                 | _ -> None
 
             let setOrbDoseRate (dl : DoseLimit option) =
-                let rates =
-                    [ 100N .. 10N .. 1000N ]
-                    |> List.append [ 50N .. 5N .. 95N ]
-                    |> List.append [ 10N .. 1N .. 49N ]
-                    |> List.append [ 1N / 10N .. 1N / 10N .. 99N / 10N ]
-                    |> List.toArray
-                    |> createValueUnitDto (rateUnit |> Option.defaultValue NoUnit)
 
-                orbDto.Dose.Rate.Constraints.ValsOpt <- rates
+                match rateUnit with 
+                | None -> ()
+                | Some ru -> 
+                    let rates =
+                        [ 100N .. 10N .. 1000N ]
+                        |> List.append [ 50N .. 5N .. 95N ]
+                        |> List.append [ 10N .. 1N .. 49N ]
+                        |> List.append [ 1N / 10N .. 1N / 10N .. 99N / 10N ]
+                        |> List.toArray
+                        |> createValueUnitDto ru
+
+                    orbDto.Dose.Rate.Constraints.ValsOpt <- rates
+                    // increment defaults to 0.1
+                    orbDto.Dose.Rate.Constraints.IncrOpt <- [| 1N / 10N |] |> createValueUnitDto ru
 
                 match dl with
                 | None -> ()
@@ -829,6 +835,13 @@ module Medication =
         /// Set prescription-level constraints (frequency and time)
         let setPrescriptionConstraints (dto : Order.Dto.Dto) (d : Medication) =
             dto.Schedule.Frequency.Constraints.ValsOpt <- d.Frequencies |> vuToDto
+            match d.Frequencies with
+            | None -> ()
+            | Some fu -> // frequency increment always defaults to 1
+                let freqUnit = fu |> ValueUnit.getUnit
+                let incr = 1N |> createSingleValueUnitDto freqUnit
+                dto.Schedule.Frequency.Constraints.IncrOpt <- incr
+
             dto.Schedule.Time.Constraints.MinIncl <- d.Time.Min.IsSome
             dto.Schedule.Time.Constraints.MinOpt <- d.Time.Min |> limToDto
             dto.Schedule.Time.Constraints.MaxIncl <- d.Time.Max.IsSome
@@ -836,12 +849,15 @@ module Medication =
 
         /// Set patient adjustment constraints (weight/BSA based)
         let setAdjustmentConstraints (dto : Order.Dto.Dto) (d : Medication) =
-            // Handle weight-based adjustment
-            if d.AdjustUnit
-               |> Option.map (ValueUnit.Group.eqsGroup Units.Weight.kiloGram)
-               |> Option.defaultValue false then
-                dto.Adjust.Constraints.MinOpt <- 200N/1000N |> createSingleValueUnitDto d.AdjustUnit.Value
-                dto.Adjust.Constraints.MaxOpt <- 150N |> createSingleValueUnitDto d.AdjustUnit.Value
+            match d.Adjust with
+            | None -> ()
+            | Some vu ->
+                let adjustUnit = vu |> ValueUnit.getUnit
+
+                // Handle weight-based adjustment
+                if adjustUnit |> ValueUnit.Group.eqsGroup Units.Weight.kiloGram then
+                    dto.Adjust.Constraints.MinOpt <- 200N/1000N |> createSingleValueUnitDto adjustUnit
+                    dto.Adjust.Constraints.MaxOpt <- 150N |> createSingleValueUnitDto adjustUnit
 
             // TODO: add constraints for BSA
             dto.Adjust.Constraints.ValsOpt <- d.Adjust |> vuToDto

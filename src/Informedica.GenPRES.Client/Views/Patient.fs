@@ -403,7 +403,9 @@ module Patient =
                 selected = sel |> Option.map string
                 values = vs
                 updateSelected = changeValue
+                navigate = None
                 isLoading = false
+                hasClear = true
             |})
 
         let wghts =

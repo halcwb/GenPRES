@@ -2210,7 +2210,7 @@ module Variable =
                 ValueSet.getMin
 
 
-        /// Get an optional `Maximum` in a `ValueRange`
+        /// Get an optional `Increment` in a `ValueRange`
         let getIncr =
             apply
                 None
@@ -2709,11 +2709,11 @@ module Variable =
         /// with only the median value.
         let setMedianValue vr =
             match vr with
-            | ValSet vs ->
-                    vs
-                    |> ValueSet.getMedian
-                    |> ValSet
-            | _ -> vr
+            | MinIncrMax (min, incr, max) -> ValueSet.minIncrMaxToValueSet min incr max |> Some
+            | ValSet vs -> vs |> Some
+            | _ -> None
+            |> Option.map (ValueSet.getMedian >> ValSet)
+            |> Option.defaultValue vr
 
 
         /// Get the indices of the values in a ValueRange vr1
@@ -3712,7 +3712,7 @@ module Variable =
                               var.Values |> ValueRange.getIncr,
                               var.Values |> ValueRange.getMax with
                         | Some min, Some incr, Some max ->
-                            ValueRange.ValueSet.minIncrMaxToValueSet min incr max
+                            ValueSet.minIncrMaxToValueSet min incr max
                             |> ValSet
                         | _ -> var.Values
                         |> fun vr ->

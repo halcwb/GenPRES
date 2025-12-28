@@ -254,16 +254,23 @@ module OrderVariable =
         /// Create a `ValueRange` from a `Constraints` record
         /// </summary>
         let toValueRange (cs : Constraints) =
-            ValueRange.unrestricted
-            |> ValueRange.setOptMin cs.Min
-            |> ValueRange.setOptMax cs.Max
-            |> ValueRange.setOptIncr cs.Incr
+            match cs.Values with
+            | Some _ -> // when there is a ValueSet, ignore Min, Max and Incr
+                ValueRange.unrestricted
+                |> ValueRange.setOptVs cs.Values
+            | None ->
+                ValueRange.unrestricted
+                |> ValueRange.setOptVs cs.Values
+                |> ValueRange.setOptMin cs.Min
+                |> ValueRange.setOptMax cs.Max
+                |> ValueRange.setOptIncr cs.Incr
+            (*
             // only set a ValueSet if there is no increment
             |> fun vr ->
                 if cs.Incr.IsSome then vr
                 else
                     vr
-                    |> ValueRange.setOptVs cs.Values
+            *)
 
 
         /// Get the string representation of a `ValueRange` from a `Constraints` record
@@ -940,6 +947,92 @@ module OrderVariable =
         |> Variable.isNonZeroPositive
 
 
+    /// <summary>
+    /// Step a variable's value up or down by the increment amount.
+    /// Designed for UI increment/decrement buttons with the following behavior:
+    /// - If a specific value is set (min = max): steps that value up or down
+    /// - If a range exists (min ≠ max): first click picks a starting point
+    ///   (min for increase, max for decrease), subsequent clicks step from there
+    /// - If only one bound exists: returns that bound as the starting value
+    /// Enforces that values remain positive (non-zero), using the increment
+    /// as the minimum floor since it's the smallest valid positive
+    /// increment-aligned value.
+    /// </summary>
+    /// <param name="isIncr">Whether the operation is an increase, otherwise decrease</param>
+    /// <param name="n">The number of increases or decreases</param>
+    /// <param name="ovar">The OrderVariable to step</param>
+    /// <returns>The OrderVariable with stepped value, unchanged if no increment constraint</returns>
+    let step isIncr n (ovar : OrderVariable) =
+        if ovar.Constraints.Incr.IsNone then ovar
+        else
+            let minVal, maxVal =
+                ovar.Variable.Values |> ValueRange.getMin |> Option.map Minimum.toValueUnit,
+                ovar.Variable.Values |> ValueRange.getMax |> Option.map Maximum.toValueUnit
+
+            let incr = ovar.Constraints.Incr.Value |> Increment.toValueUnit
+
+            let calcIncr n incr =
+                if n <= 0 then 
+                    (0 |> BigRational.fromInt |> ValueUnit.singleWithUnit Units.Count.times) * incr
+                elif n = 1 then incr
+                else
+                    (n |> BigRational.fromInt |> ValueUnit.singleWithUnit Units.Count.times) * incr
+
+            let vr =
+                match isIncr, minVal, maxVal with
+                // Increase: there is both a min and max
+                | true, Some minVal, Some maxVal ->
+                    // A specific value has been set, increase that value
+                    if minVal = maxVal then 
+                        minVal + (incr |> calcIncr n)
+                    else
+                        // No specific value has been set, start with the min value
+                        minVal + (incr |> calcIncr (n - 1))
+                // Increase: prefer stepping from minVal, otherwise from maxVal
+                | true, Some minVal, None ->
+                    printfn $"calculated minVal + (incr |> calcIncr (n - 1)): {minVal + (incr |> calcIncr (n - 1))}"
+                    let vu = minVal + (incr |> calcIncr (n - 1))
+                    // check when minVal is actually a non zero min
+                    if vu <? incr then incr else vu
+                | true, None, Some maxVal ->
+                    maxVal + (incr |> calcIncr (n - 1))
+                // Fallback when no min or max: use incr as the base value
+                | true, _, _ -> 
+                    printfn $"calculated incr + incr |> calcIncr (n - 1): {incr + incr |> calcIncr (n - 1)}"
+                    incr + incr |> calcIncr (n - 1)
+                // Decrease: there is both a min and a max
+                | false, Some minVal, Some maxVal ->
+                    // A specific value has been set, decrease that value
+                    if minVal = maxVal then 
+                        let vu = minVal - (incr |> calcIncr n)
+                        if vu <? incr then incr else vu
+                    else
+                        // No specific value has been set, start with the max value
+                        let vu = maxVal - (incr |> calcIncr (n - 1))
+                        if vu <? incr then incr else vu
+                // Decrease: prefer stepping from maxVal, otherwise from minVal
+                | false, _, Some maxVal ->
+                    let vu = maxVal - (incr |> calcIncr (n - 1))
+                    // make sure that the value doesn't get below incr
+                    if vu <? incr then incr else vu
+                | false, Some minVal, None ->
+                    let vu = minVal - (incr |> calcIncr (n - 1))
+                    // make sure that the value doesn't get below incr
+                    if vu <? incr then incr else vu
+                // Fallback when no min or max: use incr as the base value
+                | false, _, _ -> incr
+                |> ValueSet.create |> ValSet
+
+            { ovar with
+                OrderVariable.Variable.Values = vr
+            }
+
+    let decrease n = step false n
+
+
+    let increase n = step true n
+
+
     module Dto =
 
         open Newtonsoft.Json
@@ -1332,11 +1425,24 @@ module OrderVariable =
         /// <param name="tu">The Time Unit of the Frequency</param>
         let create n tu =
             match tu with
-            | Unit.NoUnit -> Unit.NoUnit
+            | NoUnit -> 
+                NoUnit
+                |> createNew (n |> Name.add name)
+
             | _ ->
-                Units.Count.times
-                |> ValueUnit.per tu
-            |> createNew (n |> Name.add name)
+                let frqU =
+                    Units.Count.times
+                    |> ValueUnit.per tu
+                let ovar =
+                    frqU
+                    |> createNew (n |> Name.add name)
+                // frequency increment defaults to 1
+                { ovar with
+                    OrderVariable.Constraints.Incr =
+                        1N |> ValueUnit.singleWithUnit frqU
+                        |> Increment.create
+                        |> Some
+                }
             |> Frequency
 
 
@@ -1398,6 +1504,12 @@ module OrderVariable =
         /// Set the Values (or use the increment)
         /// to the nth value (if not > max)
         let setPercValue nth = apply (setPercValue nth)
+
+
+        let decrease = apply (decrease 1)
+
+
+        let increase = apply (increase 1)
 
 
         /// Set standard frequency values based on the time unit (e.g., per day/week)
@@ -1706,6 +1818,12 @@ module OrderVariable =
         let minIncrMaxToValues = toOrdVar >> minIncrMaxToValues None >> Quantity
 
 
+        let decrease n = toOrdVar >> decrease n >> Quantity
+
+
+        let increase n = toOrdVar >> increase n >> Quantity
+
+
     /// Type and functions that represent a quantity per time
     module PerTime =
 
@@ -1947,6 +2065,12 @@ module OrderVariable =
 
         /// Set a Rate to non-zero positive values
         let setToNonZeroPositive = toOrdVar >> setToNonZeroPositive >> Rate
+
+
+        let decrease n = toOrdVar >> decrease n >> Rate
+
+
+        let increase n = toOrdVar >> increase n >> Rate
 
 
     /// Type and functions that represent a total

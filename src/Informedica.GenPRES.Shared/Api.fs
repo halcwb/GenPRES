@@ -19,6 +19,25 @@ module Api =
         | UpdateOrderScenario of OrderContext
         | ResetOrderScenario of OrderContext
         | ReloadResources of OrderContext
+        // Frequency property commands
+        | DecreaseOrderFrequencyProperty of OrderContext
+        | IncreaseOrderFrequencyProperty of OrderContext
+        | SetMinOrderFrequencyProperty of OrderContext
+        | SetMaxOrderFrequencyProperty of OrderContext
+        | SetMedianOrderFrequencyProperty of OrderContext
+        // DoseQuantity property commands (cmp = component, ntimes = number of times to adjust)
+        | DecreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+        | IncreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+        | SetMinOrderDoseQuantityProperty of OrderContext * cmp: string
+        | SetMaxOrderDoseQuantityProperty of OrderContext * cmp: string
+        | SetMedianOrderDoseQuantityProperty of OrderContext * cmp: string
+        // DoseRate property commands
+        | DecreaseOrderDoseRateProperty of OrderContext * ntimes: int
+        | IncreaseOrderDoseRateProperty of OrderContext * ntimes: int
+        | SetMinOrderDoseRateProperty of OrderContext
+        | SetMaxOrderDoseRateProperty of OrderContext
+        | SetMedianOrderDoseRateProperty of OrderContext
+
 
     and TreatmentPlanCommand =
         | UpdateTreatmentPlan of TreatmentPlan
@@ -51,6 +70,24 @@ module Api =
                 | UpdateOrderScenario _ -> "UpdateOrderScenario"
                 | ResetOrderScenario _ -> "ResetOrderScenario"
                 | ReloadResources _ -> "ReloadResources"
+                // Frequency property commands
+                | DecreaseOrderFrequencyProperty _ -> "DecreaseOrderFrequencyProperty"
+                | IncreaseOrderFrequencyProperty _ -> "IncreaseOrderFrequencyProperty"
+                | SetMinOrderFrequencyProperty _ -> "SetMinOrderFrequencyProperty"
+                | SetMaxOrderFrequencyProperty _ -> "SetMaxOrderFrequencyProperty"
+                | SetMedianOrderFrequencyProperty _ -> "SetMedianOrderFrequencyProperty"
+                // DoseQuantity property commands
+                | DecreaseOrderDoseQuantityProperty _ -> "DecreaseOrderDoseQuantityProperty"
+                | IncreaseOrderDoseQuantityProperty _ -> "IncreaseOrderDoseQuantityProperty"
+                | SetMinOrderDoseQuantityProperty _ -> "SetMinOrderDoseQuantityProperty"
+                | SetMaxOrderDoseQuantityProperty _ -> "SetMaxOrderDoseQuantityProperty"
+                | SetMedianOrderDoseQuantityProperty _ -> "SetMedianOrderDoseQuantityProperty"
+                // DoseRate property commands
+                | DecreaseOrderDoseRateProperty _ -> "DecreaseOrderDoseRateProperty"
+                | IncreaseOrderDoseRateProperty _ -> "IncreaseOrderDoseRateProperty"
+                | SetMinOrderDoseRateProperty _ -> "SetMinOrderDoseRateProperty"
+                | SetMaxOrderDoseRateProperty _ -> "SetMaxOrderDoseRateProperty"
+                | SetMedianOrderDoseRateProperty _ -> "SetMedianOrderDoseRateProperty"
             | TreatmentPlanCmd cmd ->
                 match cmd with
                 | UpdateTreatmentPlan _ -> "UpdateTreatmentPlan"

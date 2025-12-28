@@ -329,6 +329,20 @@ module TreatmentPlan =
                                     |> Option.defaultValue HasNotStartedYet
                                 | _ -> HasNotStartedYet
                             updateOrderScenario = updateOrderScenario
+                            navigateOrderScenario = {|
+                                setMinFrequency = ignore // Api.SetMinOrderFrequencyProperty >> props.updateOrderContext
+                                decrFrequency = ignore
+                                setMedianFrequency = ignore //Api.SetMedianOrderFrequencyProperty >> props.updateOrderContext
+                                incrFrequency = ignore
+                                setMaxFrequency = ignore //Api.SetMinOrderFrequencyProperty >> props.updateOrderContext
+                                // Rate
+                                setMinRate = ignore //Api.SetMinOrderDoseRateProperty >> props.updateOrderContext
+                                decrRate = ignore // (fun ctx -> (ctx, 1) |> Api.DecreaseOrderDoseRateProperty |> props.updateOrderContext)
+                                setMedianRate = ignore // Api.SetMedianOrderDoseRateProperty >> props.updateOrderContext
+                                incrRate = ignore // (fun ctx -> (ctx, 1) |> Api.IncreaseOrderDoseRateProperty |> props.updateOrderContext)
+                                setMaxRate = ignore //Api.SetMaxOrderDoseRateProperty >> props.updateOrderContext
+
+                            |}
                             refreshOrderScenario = refreshOrderScenario
                             closeOrder = handleModalClose
                             localizationTerms = props.localizationTerms

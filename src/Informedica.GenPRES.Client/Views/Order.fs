@@ -45,6 +45,26 @@ module Order =
             | ChangeOrderableQuantity of string option
             | UpdateOrderScenario of Order
             | ResetOrderScenario
+            // Frequency property commands
+            | DecreaseOrderFrequencyProperty
+            | IncreaseOrderFrequencyProperty
+            | SetMinOrderFrequencyProperty 
+            | SetMaxOrderFrequencyProperty
+            | SetMedianOrderFrequencyProperty
+            // DoseQuantity property commands (cmp = component, ntimes = number of times to adjust)
+            (*
+            | DecreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+            | IncreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+            | SetMinOrderDoseQuantityProperty of OrderContext * cmp: string
+            | SetMaxOrderDoseQuantityProperty of OrderContext * cmp: string
+            | SetMedianOrderDoseQuantityProperty of OrderContext * cmp: string
+            // DoseRate property commands
+            *)
+            | DecreaseOrderDoseRateProperty of ntimes: int
+            | IncreaseOrderDoseRateProperty of ntimes: int
+            | SetMinOrderDoseRateProperty
+            | SetMaxOrderDoseRateProperty
+            | SetMedianOrderDoseRateProperty
 
 
         let init (ctx : Deferred<OrderContext>) =
@@ -104,6 +124,21 @@ module Order =
         let update
             updateOrderScenario
             resetOrderScenario
+            (navigate : 
+                {| 
+                    setFreqMin : OrderLoader -> unit
+                    setFreqDec : OrderLoader -> unit
+                    setFreqMed : OrderLoader -> unit 
+                    setFreqInc : OrderLoader -> unit
+                    setFreqMax : OrderLoader -> unit
+
+                    setRateMin : OrderLoader -> unit
+                    setRateDec : OrderLoader -> unit
+                    setRateMed : OrderLoader -> unit 
+                    setRateInc : OrderLoader -> unit
+                    setRateMax : OrderLoader -> unit
+
+                |})
             (msg: Msg)
             (state : State) : State * Cmd<Msg>
             =
@@ -133,6 +168,19 @@ module Order =
 
             let setOvar s (ovar: OrderVariable) =
                 { ovar with Variable = ovar.Variable |> setVar s }
+
+            let handleNav nav =
+                match state.Order with
+                | None -> state, Cmd.none
+                | Some ord -> 
+                // dispatch to parent
+                OrderLoader.create state.SelectedComponent state.SelectedItem ord
+                |> nav
+                // return awaiting updated order
+                { state with
+                    Order = None
+                }
+                , Cmd.none
 
             match msg with
 
@@ -622,6 +670,21 @@ module Order =
                     { state with Order = None}, Cmd.ofMsg msg
                 | _ -> state, Cmd.none
 
+            // == Frequency ==
+            | SetMinOrderFrequencyProperty -> handleNav navigate.setFreqMin
+            | DecreaseOrderFrequencyProperty -> handleNav navigate.setFreqDec
+            | SetMedianOrderFrequencyProperty -> handleNav navigate.setFreqMed
+            | IncreaseOrderFrequencyProperty -> handleNav navigate.setFreqInc
+            | SetMaxOrderFrequencyProperty -> handleNav navigate.setFreqMax
+
+            // == Rate ==
+            | SetMinOrderDoseRateProperty -> handleNav navigate.setRateMin
+            | DecreaseOrderDoseRateProperty _ -> handleNav navigate.setRateDec
+            | SetMedianOrderDoseRateProperty -> handleNav navigate.setRateMed
+            | IncreaseOrderDoseRateProperty _ -> handleNav navigate.setRateInc
+            | SetMaxOrderDoseRateProperty -> handleNav navigate.setRateMax
+
+
         let showOrderName (ord : Order option) =
             match ord with
             | Some ord ->
@@ -642,6 +705,20 @@ module Order =
         {|
             orderContext: Deferred<OrderContext>
             updateOrderScenario: OrderContext -> unit
+            navigateOrderScenario : {|
+                // Frequency
+                setMinFrequency : OrderContext -> unit
+                decrFrequency : OrderContext -> unit
+                setMedianFrequency: OrderContext -> unit
+                incrFrequency : OrderContext -> unit
+                setMaxFrequency: OrderContext -> unit
+                // Rate
+                setMinRate : OrderContext -> unit
+                decrRate : OrderContext -> unit
+                setMedianRate: OrderContext -> unit
+                incrRate : OrderContext -> unit
+                setMaxRate: OrderContext -> unit
+            |}
             refreshOrderScenario : OrderContext -> unit
             closeOrder : unit -> unit
             localizationTerms : Deferred<string [] []>
@@ -706,10 +783,47 @@ module Order =
                 |> props.refreshOrderScenario
             | _ -> ()
 
+        let navigate = 
+            let create nav =
+                    fun (ol : OrderLoader) ->
+                        match props.orderContext with
+                        | Resolved ctx ->
+                            { ctx with
+                                Scenarios =
+                                    ctx.Scenarios
+                                    |> Array.map (fun sc ->
+                                        if sc.Order.Id <> ol.Order.Id then sc
+                                        else
+                                            {
+                                                sc with
+                                                    Component = ol.Component
+                                                    Item = ol.Item
+                                                    Order = ol.Order
+                                            }
+                                    )
+                            }
+                            |> nav
+                        | _ -> ()
+
+            {|
+                // Frequency
+                setFreqMin = create props.navigateOrderScenario.setMinFrequency
+                setFreqDec = create props.navigateOrderScenario.decrFrequency
+                setFreqMed = create props.navigateOrderScenario.setMedianFrequency
+                setFreqInc = create props.navigateOrderScenario.incrFrequency
+                setFreqMax = create props.navigateOrderScenario.setMaxFrequency
+                // Rate
+                setRateMin = create props.navigateOrderScenario.setMinRate
+                setRateDec = create props.navigateOrderScenario.decrRate
+                setRateMed = create props.navigateOrderScenario.setMedianRate
+                setRateInc = create props.navigateOrderScenario.incrRate
+                setRateMax = create props.navigateOrderScenario.setMaxRate
+            |}
+
         let state, dispatch =
             React.useElmish (
                 init props.orderContext,
-                update updateOrderScenario resetOrderScenario,
+                update updateOrderScenario resetOrderScenario navigate,
                 [| box props.orderContext |]
             )
 
@@ -741,18 +855,20 @@ module Order =
             | None -> Some 0
             | Some i -> Some i
 
-        let select isLoading lbl selected dispatch xs =
+        let select isLoading lbl selected updateSelected navigate hasClear xs =
             if xs |> Array.isEmpty then
                 JSX.jsx $"<></>"
             else
                 Components.SimpleSelect.View({|
-                    updateSelected = dispatch
+                    updateSelected = updateSelected
                     label = lbl
                     selected =
                         if xs |> Array.length = 1 then xs[0] |> fst |> Some
                         else selected
                     values = xs
                     isLoading = isLoading
+                    hasClear = hasClear
+                    navigate = navigate
                 |})
 
         let progress =
@@ -808,10 +924,10 @@ module Order =
                                 ord.Orderable.Components
                                 |> Array.map _.Name
                                 |> Array.map (fun s -> s, s)
-                                |> select false "Componenten" state.SelectedComponent (ChangeComponent >> dispatch)
+                                |> select false "Componenten" state.SelectedComponent (ChangeComponent >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // component dose quantity
@@ -823,10 +939,10 @@ module Order =
                             |> Option.bind _.Dose.Quantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Quantity`` |> getTerm "Hoeveelheid") None (ChangeComponentDoseQuantity >> dispatch)
+                            |> select false (Terms.``Order Quantity`` |> getTerm "Hoeveelheid") None (ChangeComponentDoseQuantity >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance name
@@ -838,22 +954,31 @@ module Order =
                                 itms
                                 |> Array.map _.Name
                                 |> Array.map (fun s -> s, s)
-                                |> select false "Stoffen" state.SelectedItem (ChangeItem >> dispatch)
+                                |> select false "Stoffen" state.SelectedItem (ChangeItem >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // frequency
+                        let navigate =
+                            {|
+                                first = fun () -> SetMinOrderFrequencyProperty |> dispatch
+                                decrease = fun () -> DecreaseOrderFrequencyProperty |> dispatch
+                                median = fun () -> SetMedianOrderFrequencyProperty |> dispatch
+                                increase = fun () -> IncreaseOrderFrequencyProperty |> dispatch
+                                last = fun () -> SetMaxOrderFrequencyProperty |> dispatch
+                            |}
+                            |> Some
                         match state.Order with
                         | Some ord ->
                             ord.Schedule.Frequency.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch)
+                            |> select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch) navigate true
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance dose quantity
@@ -873,10 +998,10 @@ module Order =
                                 |> Option.defaultValue ("", [||])
 
                             vals
-                            |> select false label None (ChangeSubstanceDoseQuantity >> dispatch)
+                            |> select false label None (ChangeSubstanceDoseQuantity >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance dose quantity adjust
@@ -896,10 +1021,10 @@ module Order =
                                 |> Option.defaultValue ("", [||])
 
                             vals
-                            |> select false label None (ChangeSubstanceDoseQuantityAdjust >> dispatch)
+                            |> select false label None (ChangeSubstanceDoseQuantityAdjust >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance dose per time
@@ -925,13 +1050,15 @@ module Order =
                                 |> Option.defaultValue ("", [||])
 
                             vals
-                            |> select false label None dispatch
+                            |> select false label None dispatch None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance dose rate
+                        let navigate = None
+
                         match substIndx, state.Order with
                         | Some i, Some ord when ord.Schedule.IsContinuous &&
                                                 itms |> Array.length > 0 ->
@@ -947,10 +1074,10 @@ module Order =
                                 |> Array.distinctBy snd
                             )
                             |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Adjusted dose`` |> getTerm "Dosering") None dispatch
+                            |> select false (Terms.``Order Adjusted dose`` |> getTerm "Dosering") None dispatch navigate true
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // orderable dose quantity
@@ -959,10 +1086,10 @@ module Order =
                             ord.Orderable.Dose.Quantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Toedien Hoeveelheid" None (ChangeOrderableDoseQuantity >> dispatch)
+                            |> select false "Toedien Hoeveelheid" None (ChangeOrderableDoseQuantity >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance component concentration
@@ -980,7 +1107,7 @@ module Order =
                                 |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> fixPrecision 3} {v.Unit}"))
                                 |> Option.defaultValue [||]
                                 |> fun xs -> if xs |> Array.length <= 1 then [||] else xs
-                                |> select false "Product Sterkte" None (change >> dispatch)
+                                |> select false "Product Sterkte" None (change >> dispatch) None true
                             | None ->
                                 match 
                                     ord.Orderable.Components
@@ -993,17 +1120,17 @@ module Order =
                                         itm.ComponentConcentration.Variable.Vals
                                         |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                                         |> Option.defaultValue [||]
-                                        |> select false "Product Sterkte" None (change >> dispatch)
+                                        |> select false "Product Sterkte" None (change >> dispatch) None true
                                     | None -> 
                                         [||]
-                                        |> select true "" None ignore
+                                        |> select true "" None ignore None false
                                 | None -> 
                                     [||]
-                                    |> select true "" None ignore
+                                    |> select true "" None ignore None false
 
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
 
                     }
                     {
@@ -1015,10 +1142,10 @@ module Order =
                             itms[i].OrderableConcentration.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> fixPrecision 3} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false $"{itms[i].Name |> String.capitalize} Concentratie" None (ChangeSubstanceOrderableConcentration >> dispatch)
+                            |> select false $"{itms[i].Name |> String.capitalize} Concentratie" None (ChangeSubstanceOrderableConcentration >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // substance orderable quantity
@@ -1029,10 +1156,10 @@ module Order =
                             itms[i].OrderableQuantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> fixPrecision 3} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false $"{itms[i].Name |> String.capitalize} Hoeveelheid" None (ChangeSubstanceOrderableQuantity >> dispatch)
+                            |> select false $"{itms[i].Name |> String.capitalize} Hoeveelheid" None (ChangeSubstanceOrderableQuantity >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // orderable quantity
@@ -1041,23 +1168,33 @@ module Order =
                             ord.Orderable.OrderableQuantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch)
+                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
 
                     {
                         // orderable dose rate
+                        let navigate =
+                            {|
+                                first = fun () -> SetMinOrderDoseRateProperty |> dispatch
+                                decrease = fun () -> 1 |> DecreaseOrderDoseRateProperty |> dispatch
+                                median = fun () -> SetMedianOrderDoseRateProperty |> dispatch
+                                increase = fun () -> 1 |> IncreaseOrderDoseRateProperty |> dispatch
+                                last = fun () -> SetMaxOrderDoseRateProperty |> dispatch
+                            |}
+                            |> Some
+
                         match state.Order with
                         | Some ord ->
                             ord.Orderable.Dose.Rate.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Drip rate`` |> getTerm "Pompsnelheid") None (ChangeOrderableDoseRate >> dispatch)
+                            |> select false (Terms.``Order Drip rate`` |> getTerm "Pompsnelheid") None (ChangeOrderableDoseRate >> dispatch) navigate false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                     {
                         // administration time
@@ -1067,10 +1204,10 @@ module Order =
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> fixPrecision 2} {v.Unit}"))
                             |> Option.defaultValue [||]
                             |> Array.distinctBy snd
-                            |> select false (Terms.``Order Administration time`` |> getTerm "Inloop tijd") None (ChangeTime >> dispatch)
+                            |> select false (Terms.``Order Administration time`` |> getTerm "Inloop tijd") None (ChangeTime >> dispatch) None false
                         | _ ->
                             [||]
-                            |> select true "" None ignore
+                            |> select true "" None ignore None false
                     }
                 </Stack>
                 {progress}

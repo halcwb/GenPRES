@@ -145,6 +145,8 @@ module Parenteralia =
                 selected = selected
                 values = xs
                 isLoading = isLoading
+                hasClear = true
+                navigate = None
             |})
 
         let autoComplete isLoading lbl selected dispatch xs =

@@ -741,7 +741,7 @@ module DoseRule =
             |> Mapping.filterFormRoutes routeMapping formRoutes dr.Route dr.Form
             |> Array.map (fun rsu ->
                 { DoseLimit.limit with
-                    DoseLimitTarget = dr.Form |> FormLimitTarget
+                    DoseLimitTarget = OrderableLimitTarget
                     Quantity =
                         {
                             Min = rsu.MinDoseQty |> Option.map Limit.Inclusive

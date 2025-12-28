@@ -397,6 +397,20 @@ module Order =
             let clearRate = applyToRate Rate.clear
 
 
+
+            /// Decrease the rate of a Dose 
+            let decreaseRate n dos =
+                { (dos |> inf) with
+                    Rate = dos.Rate |> Rate.decrease n
+                }
+
+
+            /// Increase the rate of a Dose
+            let increaseRate n dos =
+                { (dos |> inf) with
+                    Rate = dos.Rate |> Rate.increase n
+                }
+
             /// Clear both the rate and rateAdjust of a Dose
             /// by setting them to non-zero positive
             let setRateToNonZeroPositive dos =
@@ -404,6 +418,16 @@ module Order =
                     Rate =
                         dos.Rate
                         |> Rate.setToNonZeroPositive
+                    RateAdjust =
+                        dos.RateAdjust
+                        |> RateAdjust.setToNonZeroPositive
+                }
+
+
+            /// Clear only rateAdjust of a Dose
+            /// by setting them to non-zero positive
+            let setRateAdjustToNonZeroPositive dos =
+                { (dos |> inf) with
                     RateAdjust =
                         dos.RateAdjust
                         |> RateAdjust.setToNonZeroPositive
@@ -437,11 +461,33 @@ module Order =
                 }
 
 
+            /// Decrease the quantity of a Dose 
+            let decreaseQuantity n dos =
+                { (dos |> inf) with
+                    Quantity = dos.Quantity |> Quantity.decrease n
+                }
+
+
+            /// Increase the quantity of a Dose
+            let increaseQuantity n dos =
+                { (dos |> inf) with
+                    Quantity = dos.Quantity |> Quantity.increase n
+                }
+
+
             /// Clear both the quantity and quantityAdjust of a Dose
             /// by setting them to non-zero positive
             let setQuantityToNonZeroPositive dos =
                 { (dos |> inf) with
                     Quantity = dos.Quantity |> Quantity.setToNonZeroPositive
+                    QuantityAdjust = dos.QuantityAdjust |> QuantityAdjust.setToNonZeroPositive
+                }
+
+
+            /// Clear only quantityAdjust of a Dose
+            /// by setting them to non-zero positive
+            let setQuantityAdjustToNonZeroPositive dos =
+                { (dos |> inf) with
                     QuantityAdjust = dos.QuantityAdjust |> QuantityAdjust.setToNonZeroPositive
                 }
 
@@ -1278,19 +1324,52 @@ module Order =
                 }
 
 
+            /// <summary>
+            /// Harmonize the valid concentration value indices across all items in a component.
+            /// </summary>
+            /// <remarks>
+            /// When a component is created by combining multiple medication products (e.g., tablets),
+            /// each item (substance) accumulates concentration values from all products. The indices
+            /// represent which product each value came from, ensuring valid combinations.
+            ///
+            /// Example: Two tablets combined into one component:
+            /// - Tablet 1: Substance A = 10 mg/tablet, Substance B = 20 mg/tablet
+            /// - Tablet 2: Substance A = 30 mg/tablet, Substance B = 25 mg/tablet
+            ///
+            /// Results in:
+            /// - Item A concentrations: [10; 30] mg/tablet (indices 0, 1)
+            /// - Item B concentrations: [20; 25] mg/tablet (indices 0, 1)
+            ///
+            /// Index 0 corresponds to Tablet 1 (10 mg A + 20 mg B).
+            /// Index 1 corresponds to Tablet 2 (30 mg A + 25 mg B).
+            ///
+            /// A combination of 10 mg A with 25 mg B is invalid because no tablet has that
+            /// concentration pair. This function ensures all items share the same valid indices,
+            /// so when one item's values are constrained (e.g., only index 0 remains valid),
+            /// all other items are updated to use only those same indices.
+            /// </remarks>
+            /// <param name="cmp">The Component to harmonize</param>
+            /// <returns>
+            /// A tuple of (bool * Component) where the bool indicates if harmonization
+            /// was applied, and the Component is the possibly modified component.
+            /// </returns>
             let harmonizeItemConcentrations cmp =
                 if (cmp |> inf).Items |> List.length <= 1 then false, cmp
                 else
                     match
                         cmp.Items
                         |> List.map _.ComponentConcentration
+                        // Get the indices of remaining valid concentration values.
+                        // ValueUnit preserves insertion order (no sorting), and values are added
+                        // in consistent product order during constraint creation, so each index
+                        // corresponds to a specific product across all items.
                         |> List.map (Concentration.toOrdVar >> OrderVariable.getIndices)
                         |> List.distinct with
                     | []
                     | [ _ ] -> false, cmp
                     | xs ->
                         let indices = xs |> List.sortBy Array.length |> List.head
-                        writeWarningMessage $"applying indices {indices |> Array.toList} to items in {cmp.Name}"
+
                         true,
                         { cmp with
                             Items =
@@ -1299,6 +1378,7 @@ module Order =
                                     { itm with
                                         ComponentConcentration =
                                             itm.ComponentConcentration
+                                            // Apply the harmonized indices to each item's concentration.
                                             |> Concentration.applyIndices indices
                                     }
                                 )

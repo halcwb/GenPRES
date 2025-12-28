@@ -201,9 +201,9 @@ module Types =
 
     type LimitTarget =
         | NoLimitTarget
-        | SubstanceLimitTarget of string
+        | OrderableLimitTarget
         | ComponentLimitTarget of string
-        | FormLimitTarget of string
+        | SubstanceLimitTarget of string
 
 
     /// A DoseLimit for a pharmaceutical form or Substance.

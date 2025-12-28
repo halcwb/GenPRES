@@ -18,10 +18,217 @@ open Informedica.GenUnits.Lib
 open Informedica.GenOrder.Lib
 
 
-let print sl = sl |> List.iter (printfn "%s")
+
+module HelperFunctions =
+
+    let print sl = sl |> List.iter (printfn "%s")
+
+
+    let inline printOrderTable order =
+        order
+        |> Result.iter (Order.printTable ConsoleTables.Format.Minimal)
+        
+        order
+
+
+    let solveOrder order = 
+        match order with
+        | Error e -> $"Error solving order: {e}" |> failwith
+        | Ok o ->
+            o
+            |> Order.solveMinMax true OrderLogging.noOp
+
+
+open Types
+open HelperFunctions
+
+
+
+let morfCont =
+    let au = Units.Weight.kiloGram
+    let fu = Units.Volume.milliLiter
+    let su = Units.Mass.milliGram
+    let du = Units.Mass.microGram |> Units.per au |> Units.per Units.Time.hour
+    let cu = su |> Units.per fu
+    let ru = fu |> Units.per Units.Time.hour
+
+    { Medication.order with
+        Id = "1"
+        Name = "morfin pump"
+        Route = "INTRAVENEUS"
+        Quantities = 50N |> ValueUnit.singleWithUnit fu |> Some
+        Components = [
+            { Medication.productComponent with
+                Name = "morfin"
+                Form = "iv fluid"
+                Quantities = 1N |> ValueUnit.singleWithUnit fu |> Some
+                Divisible = Some 10N
+                Substances = [
+                    { Medication.substanceItem with
+                        Name = "morfin"
+                        Concentrations = 
+                            10N
+                            |> ValueUnit.singleWithUnit cu
+                            |> Some
+                        Dose = 
+                            { DoseLimit.limit with
+                                DoseLimitTarget = "morfin" |> SubstanceLimitTarget
+                                AdjustUnit = au |> Some
+                                RateAdjust = 
+                                    { MinMax.empty with
+                                        Min = 10N |> ValueUnit.singleWithUnit du |> Limit.inclusive |> Some
+                                        Max = 40N |> ValueUnit.singleWithUnit du |> Limit.inclusive |> Some
+                                    }
+                            }
+                            |> Some
+                        Solution =
+                            { SolutionLimit.limit with
+                                SolutionLimitTarget = "morfine" |> SubstanceLimitTarget
+                                Quantity = 5N |> ValueUnit.singleWithUnit su |> MinMax.createExact 
+                            }
+                            |> Some
+                    }
+                ]
+            }
+            { Medication.productComponent with
+                Name = "saline"
+                Form = "iv fluid"
+                Quantities = 1N |> ValueUnit.singleWithUnit fu |> Some
+                Divisible = Some 10N
+            }
+        ]
+        OrderType = ContinuousOrder
+        Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+        Dose = 
+            { DoseLimit.limit with
+                DoseLimitTarget = OrderableLimitTarget
+                AdjustUnit =  None
+            }
+            |> Some
+    }
+
+
+morfCont 
+|> Medication.toString
+|> print
+
+
+morfCont
+|> Medication.toOrderDto
+|> Order.Dto.fromDto
+|> printOrderTable
+|> Result.map Order.applyConstraints
+|> printOrderTable
+|> solveOrder
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, SetMedianDoseRate) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, IncreaseDoseRate 1) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> ignore
+
+
+
+let pcmDrink =
+    let au = Units.Weight.kiloGram
+    let fu = Units.Volume.milliLiter
+    let su = Units.Mass.milliGram
+    let cu = su |> Units.per fu
+    let tu = Units.Time.day
+
+    { Medication.order with
+        Id = "pcm-drank"
+        Name = "paracetamol drank"
+        Components =
+            [
+                {
+                    Medication.productComponent with
+                        Name = "paracetamol"
+                        Form = "drank"
+                        Quantities =
+                            5N
+                            |> ValueUnit.singleWithUnit fu
+                            |> Some
+                        Divisible = Some 1N
+                        Substances =
+                            [
+                                {
+                                    Medication.substanceItem with
+                                        Name = "paracetamol"
+                                        Concentrations =
+                                            24N
+                                            |> ValueUnit.singleWithUnit cu
+                                            |> Some
+                                        Dose =
+                                            { DoseLimit.limit with
+                                                DoseLimitTarget = "paracetamol" |> SubstanceLimitTarget
+                                                AdjustUnit = su |> Some
+                                                PerTimeAdjust =
+                                                    MinMax.createInclIncl
+                                                        (60N |> ValueUnit.singleWithUnit (su |> Units.per au |> Units.per tu))
+                                                        (90N |> ValueUnit.singleWithUnit (su |> Units.per au |> Units.per tu))
+                                            }
+                                            |> Some
+                                }
+                            ]
+                }
+            ]
+        Route = "or"
+        OrderType = DiscontinuousOrder
+        Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+        Frequencies =
+            [|3N; 4N; 6N |]
+            |> ValueUnit.withUnit (Units.Count.times |> Units.per tu)
+            |> Some
+        DoseCount = 1N |> ValueUnit.singleWithUnit Units.Count.times |> MinMax.createExact
+    }
+
+
+open Types
+
+pcmDrink
+|> Medication.toString
+|> print
+
+
+pcmDrink
+|> Medication.toOrderDto
+|> Order.Dto.fromDto
+|> printOrderTable
+|> Result.map Order.applyConstraints
+|> printOrderTable
+|> solveOrder
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, SetMedianFrequency) 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> Result.bind (fun o -> 
+    (o, SetMaxDoseQuantity "paracetamol") 
+    |> ChangeProperty
+    |> OrderProcessor.processPipeline OrderLogging.noOp None
+)
+|> printOrderTable
+|> ignore
 
 
 let cotrim =
+    let au = Units.Weight.kiloGram
+    let fu = Units.Volume.milliLiter
+    let su = Units.Mass.milliGram
+    let cu = su |> Units.per fu
+    let tu = Units.Time.day
+
     {
         Medication.order with
             Id = "1"
@@ -31,28 +238,48 @@ let cotrim =
                     {
                         Medication.productComponent with
                             Name = "cotrimoxazol"
-                            Form = "tablet"
+                            Form = "drank"
                             Quantities =
                                 1N
-                                |> ValueUnit.singleWithUnit Units.Count.times
+                                |> ValueUnit.singleWithUnit fu
                                 |> Some
-                            Divisible = Some (1N)
+                            Divisible = Some 1N
                             Substances =
                                 [
                                     {
                                         Medication.substanceItem with
                                             Name = "sulfamethoxazol"
                                             Concentrations =
-                                                [| 100N; 400N; 800N |]
-                                                |> ValueUnit.withUnit Units.Mass.milliGram
+                                                [| 40N; 400N; 800N |]
+                                                |> ValueUnit.withUnit cu
+                                                |> Some
+                                            Dose =
+                                                { DoseLimit.limit with
+                                                    DoseLimitTarget = "sulfamethoxazol" |> SubstanceLimitTarget
+                                                    AdjustUnit = su |> Some
+                                                    QuantityAdjust =
+                                                        MinMax.createInclIncl
+                                                            (27N |> ValueUnit.singleWithUnit (su |> Units.per au))
+                                                            (30N |> ValueUnit.singleWithUnit (su |> Units.per au))
+                                                }
                                                 |> Some
                                     }
                                     {
                                         Medication.substanceItem with
                                             Name = "trimethoprim"
                                             Concentrations =
-                                                [| 20N; 80N; 160N |]
-                                                |> ValueUnit.withUnit Units.Mass.milliGram
+                                                [| 8N; 80N; 160N |]
+                                                |> ValueUnit.withUnit cu
+                                                |> Some
+                                            Dose =
+                                                { DoseLimit.limit with
+                                                    DoseLimitTarget = "trimethoprim" |> SubstanceLimitTarget
+                                                    AdjustUnit = su |> Some
+                                                    QuantityAdjust =
+                                                        MinMax.createInclIncl
+                                                            (6N - 6N / 10N |> ValueUnit.singleWithUnit (su |> Units.per au))
+                                                            (6N |> ValueUnit.singleWithUnit (su |> Units.per au))
+                                                }
                                                 |> Some
                                     }
                                 ]
@@ -62,7 +289,23 @@ let cotrim =
             OrderType = DiscontinuousOrder
             Frequencies =
                 [|2N |]
-                |> ValueUnit.withUnit (Units.Count.times |> Units.per Units.Time.day)
+                |> ValueUnit.withUnit (Units.Count.times |> Units.per tu)
+                |> Some
+            Adjust = 10N |> ValueUnit.singleWithUnit au |> Some
+            DoseCount = 1N |> ValueUnit.singleWithUnit Units.Count.times |> MinMax.createExact
+            Dose =
+                { DoseLimit.limit with
+                    DoseLimitTarget = OrderableLimitTarget
+                    AdjustUnit = au |> Some
+                    QuantityAdjust =
+                        { MinMax.empty with
+                            Max =
+                                10N
+                                |> ValueUnit.singleWithUnit (fu |> Units.per au)
+                                |> Limit.inclusive
+                                |> Some
+                        }
+                }
                 |> Some
     }
 
@@ -75,8 +318,11 @@ cotrim
 cotrim
 |> Medication.toOrderDto
 |> Order.Dto.fromDto
-|> Result.map Order.toString
-
+|> printOrderTable
+|> Result.map Order.applyConstraints
+|> solveOrder
+|> printOrderTable
+|> ignore
 
 let tpnComplete =
     { Medication.order with
@@ -88,7 +334,6 @@ let tpnComplete =
             11N
             |> ValueUnit.singleWithUnit Units.Weight.kiloGram
             |> Some
-        AdjustUnit = Units.Weight.kiloGram |> Some
         Frequencies =
             1N
             |> ValueUnit.singleWithUnit (Units.Count.times |> Units.per Units.Time.day)
@@ -108,7 +353,7 @@ let tpnComplete =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> FormLimitTarget
+                DoseLimitTarget = OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with
@@ -139,7 +384,7 @@ let tpnComplete =
                         Divisible = Some (1N)
                         Dose =
                             { DoseLimit.limit with
-                                DoseLimitTarget = "Samenstelling C" |> LimitTarget.ComponentLimitTarget
+                                DoseLimitTarget = "Samenstelling C" |> ComponentLimitTarget
                                 AdjustUnit = Units.Weight.kiloGram |> Some
                                 QuantityAdjust =
                                     { MinMax.empty with
@@ -175,11 +420,11 @@ let tpnComplete =
                                             |> Some
                                         Solution =
                                             { SolutionLimit.limit with
-                                                SolutionLimitTarget = "eiwit" |> LimitTarget.SubstanceLimitTarget
+                                                SolutionLimitTarget = "eiwit" |> SubstanceLimitTarget
                                                 Concentration =
                                                     { MinMax.empty with
                                                         Max =
-                                                            (5N / 100N)
+                                                            5N / 100N
                                                             |> ValueUnit.singleWithUnit (Units.Mass.gram |> Units.per Units.Volume.milliLiter)
                                                             |> Limit.inclusive
                                                             |> Some
@@ -432,7 +677,6 @@ let tpn =
             11N
             |> ValueUnit.singleWithUnit Units.Weight.kiloGram
             |> Some
-        AdjustUnit = Units.Weight.kiloGram |> Some
         Frequencies =
             1N
             |> ValueUnit.singleWithUnit (Units.Count.times |> Units.per Units.Time.day)
@@ -452,7 +696,7 @@ let tpn =
             }
         Dose =
             { DoseLimit.limit with
-                DoseLimitTarget = "vloeistof" |> FormLimitTarget
+                DoseLimitTarget = OrderableLimitTarget
                 AdjustUnit = Units.Weight.kiloGram |> Some
                 QuantityAdjust =
                     { MinMax.empty with

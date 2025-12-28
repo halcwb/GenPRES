@@ -212,6 +212,8 @@ module Formulary =
                 selected = selected
                 values = xs
                 isLoading = isLoading
+                hasClear = true
+                navigate = None
             |})
 
 

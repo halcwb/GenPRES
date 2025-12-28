@@ -296,6 +296,36 @@ module Icons =
      <RefreshIcon/>
     """
 
+    let FirstPageIcon = JSX.jsx $"""
+     import FirstPageIcon from '@mui/icons-material/FirstPage';
+     <FirstPageIcon/>
+    """
+
+    let LastPageIcon = JSX.jsx $"""
+     import LastPageIcon from '@mui/icons-material/LastPage';
+     <LastPageIcon/>
+    """
+
+    let SkipNextIcon = JSX.jsx $"""
+     import SkipNextIcon from '@mui/icons-material/SkipNext';
+     <SkipNextIcon/>
+    """
+
+    let SkipPreviousIcon = JSX.jsx $"""
+     import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+     <SkipPreviousIcon/>
+    """
+
+    let PauseIcon = JSX.jsx $"""
+    import PauseIcon from '@mui/icons-material/Pause';
+    <PauseIcon/>
+    """
+
+    let AlignHorizontalCenterIcon = JSX.jsx $"""
+    import AlignHorizontalCenterIcon from '@mui/icons-material/AlignHorizontalCenter';
+    <AlignHorizontalCenterIcon/>
+    """
+
 type Color = {|
     ``50`` : string;
     ``100`` : string;

@@ -157,7 +157,7 @@ module SolutionRule =
                                 let u = l.Unit |> Units.fromString
                                 {
                                     SolutionLimitTarget =
-                                        if l.Substance |> String.isNullOrWhiteSpace then l.Form|> FormLimitTarget
+                                        if l.Substance |> String.isNullOrWhiteSpace then OrderableLimitTarget
                                         else l.Substance |> SubstanceLimitTarget
                                     Quantity =
                                         (l.MinQty, l.MaxQty)

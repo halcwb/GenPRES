@@ -6,8 +6,8 @@ module LimitTarget =
 
     /// Get the LimitTarget as a string.
     let toString = function
-        | NoLimitTarget -> ""
-        | FormLimitTarget s
+        | NoLimitTarget 
+        | OrderableLimitTarget -> ""
         | ComponentLimitTarget s
         | SubstanceLimitTarget s -> s
 
@@ -23,6 +23,14 @@ module LimitTarget =
         | _ -> ""
 
 
+    /// Check whether the LimitTarget is a OrderableLimitTarget.
+    let isOrderableTarget target =
+        target
+        |> function
+        | OrderableLimitTarget -> true
+        | _ -> false
+
+
     /// Check whether the LimitTarget is a SubstanceLimitTarget.
     let isComponentTarget target =
         target
@@ -36,12 +44,4 @@ module LimitTarget =
         target
         |> function
         | SubstanceLimitTarget _ -> true
-        | _ -> false
-
-
-    /// Check whether the LimitTarget is a FormLimitTarget.
-    let isFormTarget target =
-        target
-        |> function
-        | FormLimitTarget _ -> true
         | _ -> false
