@@ -746,6 +746,7 @@ module Medication =
                         |> createValueUnitDto ru
 
                     orbDto.Dose.Rate.Constraints.ValsOpt <- rates
+                    // increment defaults to 0.1
                     orbDto.Dose.Rate.Constraints.IncrOpt <- [| 1N / 10N |] |> createValueUnitDto ru
 
                 match dl with
@@ -840,6 +841,7 @@ module Medication =
                 let freqUnit = fu |> ValueUnit.getUnit
                 let incr = 1N |> createSingleValueUnitDto freqUnit
                 dto.Schedule.Frequency.Constraints.IncrOpt <- incr
+
             dto.Schedule.Time.Constraints.MinIncl <- d.Time.Min.IsSome
             dto.Schedule.Time.Constraints.MinOpt <- d.Time.Min |> limToDto
             dto.Schedule.Time.Constraints.MaxIncl <- d.Time.Max.IsSome

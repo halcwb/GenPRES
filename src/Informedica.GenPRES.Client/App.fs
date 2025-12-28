@@ -60,6 +60,24 @@ module private Elmish =
         | LoadSelectedOrderScenario of ApiResponse
         | LoadUpdatedOrderScenario of ApiResponse
         | LoadRefreshedOrderScenario of ApiResponse
+        // Frequency property change responses
+        | LoadFrequencyDecreasePropertyChange of ApiResponse
+        | LoadFrequencyIncreasePropertyChange of ApiResponse
+        | LoadFrequencySetMinPropertyChange of ApiResponse
+        | LoadFrequencySetMaxPropertyChange of ApiResponse
+        | LoadFrequencySetMedianPropertyChange of ApiResponse
+        // DoseQuantity property change responses
+        | LoadDoseQuantityDecreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
+        | LoadDoseQuantityIncreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
+        | LoadDoseQuantitySetMinPropertyChange of cmp: string * resp: ApiResponse
+        | LoadDoseQuantitySetMaxPropertyChange of cmp: string * resp: ApiResponse
+        | LoadDoseQuantitySetMedianPropertyChange of cmp: string * resp: ApiResponse
+        // DoseRate property change responses
+        | LoadDoseRateDecreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadDoseRateIncreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadDoseRateSetMinPropertyChange of ApiResponse
+        | LoadDoseRateSetMaxPropertyChange of ApiResponse
+        | LoadDoseRateSetMedianPropertyChange of ApiResponse
 
         | TreatmentPlanCommand of Api.TreatmentPlanCommand
         | LoadUpdatedTreatmentPlan of ApiResponse
@@ -381,69 +399,150 @@ module private Elmish =
         | _ -> pat
 
 
-    let updateOrderContext state (ctx : OrderContext) =
-            let ctx =
-                { ctx with
-                    Patient =
-                        state.Patient
-                        |> Option.defaultValue ctx.Patient
-                }
 
-            { state with
-                OrderContext = Resolved ctx
-                Formulary =
-                    state.Formulary
-                    |> Deferred.map (fun form ->
-                        { form with
-                            Indication = ctx.Filter.Indication
-                            Generic = ctx.Filter.Generic
-                            Route = ctx.Filter.Route
-                            Form = ctx.Filter.Form
-                            DoseType = ctx.Filter.DoseType
-                        }
-                    )
-                Parenteralia =
-                    state.Parenteralia
-                    |> Deferred.map (fun par ->
-                        { par with
-                            Generic = ctx.Filter.Generic
-                            Form = ctx.Filter.Form
-                            Route = ctx.Filter.Route
-                        }
-                    )
-            },
-            Cmd.batch [
-                Cmd.ofMsg (LoadUpdatedOrderContext Started)
-                Cmd.ofMsg (LoadFormulary Started)
-                Cmd.ofMsg (LoadParenteralia Started)
-            ]
+    module CommandHandlers =
 
 
-    let selectOrderScenario state (ctx : OrderContext) =
-            { state with
-                OrderContext = Resolved ctx
-            },
-            Cmd.batch [
-                Cmd.ofMsg (LoadSelectedOrderScenario Started)
-            ]
+        let updateOrderContext state (ctx : OrderContext) =
+                let ctx =
+                    { ctx with
+                        Patient =
+                            state.Patient
+                            |> Option.defaultValue ctx.Patient
+                    }
+
+                { state with
+                    OrderContext = Resolved ctx
+                    Formulary =
+                        state.Formulary
+                        |> Deferred.map (fun form ->
+                            { form with
+                                Indication = ctx.Filter.Indication
+                                Generic = ctx.Filter.Generic
+                                Route = ctx.Filter.Route
+                                Form = ctx.Filter.Form
+                                DoseType = ctx.Filter.DoseType
+                            }
+                        )
+                    Parenteralia =
+                        state.Parenteralia
+                        |> Deferred.map (fun par ->
+                            { par with
+                                Generic = ctx.Filter.Generic
+                                Form = ctx.Filter.Form
+                                Route = ctx.Filter.Route
+                            }
+                        )
+                },
+                Cmd.batch [
+                    Cmd.ofMsg (LoadUpdatedOrderContext Started)
+                    Cmd.ofMsg (LoadFormulary Started)
+                    Cmd.ofMsg (LoadParenteralia Started)
+                ]
+
+        let selectOrderScenario state (ctx : OrderContext) =
+                { state with
+                    OrderContext = Resolved ctx
+                },
+                Cmd.batch [
+                    Cmd.ofMsg (LoadSelectedOrderScenario Started)
+                ]
 
 
-    let updateOrderScenario state (ctx : OrderContext) =
-            { state with
-                OrderContext = Resolved ctx
-            },
-            Cmd.batch [
-                Cmd.ofMsg (LoadUpdatedOrderScenario Started)
-            ]
+        let updateOrderScenario state (ctx : OrderContext) =
+                { state with
+                    OrderContext = Resolved ctx
+                },
+                Cmd.batch [
+                    Cmd.ofMsg (LoadUpdatedOrderScenario Started)
+                ]
 
 
-    let refreshOrderScenario state (ctx : OrderContext) =
-            { state with
-                OrderContext = Resolved ctx
-            },
-            Cmd.batch [
-                Cmd.ofMsg (LoadRefreshedOrderScenario Started)
-            ]
+        let refreshOrderScenario state (ctx : OrderContext) =
+                { state with
+                    OrderContext = Resolved ctx
+                },
+                Cmd.batch [
+                    Cmd.ofMsg (LoadRefreshedOrderScenario Started)
+                ]
+
+
+        // Frequency property handlers
+        let decreaseFrequencyProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadFrequencyDecreasePropertyChange Started) ]
+
+
+        let increaseFrequencyProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadFrequencyIncreasePropertyChange Started) ]
+
+
+        let setMinFrequencyProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadFrequencySetMinPropertyChange Started) ]
+
+
+        let setMaxFrequencyProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadFrequencySetMaxPropertyChange Started) ]
+
+
+        let setMedianFrequencyProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadFrequencySetMedianPropertyChange Started) ]
+
+
+        // DoseQuantity property handlers
+        let decreaseDoseQuantityProperty state (ctx : OrderContext) cmp ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, Started)) ]
+
+
+        let increaseDoseQuantityProperty state (ctx : OrderContext) cmp ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, Started)) ]
+
+
+        let setMinDoseQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMinPropertyChange (cmp, Started)) ]
+
+
+        let setMaxDoseQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMaxPropertyChange (cmp, Started)) ]
+
+
+        let setMedianDoseQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMedianPropertyChange (cmp, Started)) ]
+
+
+        // DoseRate property handlers
+        let decreaseDoseRateProperty state (ctx : OrderContext) ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseRateDecreasePropertyChange (ntimes, Started)) ]
+
+
+        let increaseDoseRateProperty state (ctx : OrderContext) ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseRateIncreasePropertyChange (ntimes, Started)) ]
+
+
+        let setMinDoseRateProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseRateSetMinPropertyChange Started) ]
+
+
+        let setMaxDoseRateProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseRateSetMaxPropertyChange Started) ]
+
+
+        let setMedianDoseRateProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadDoseRateSetMedianPropertyChange Started) ]
 
 
     let update (msg: Msg) (state: State) =
@@ -693,11 +792,29 @@ module private Elmish =
 
         | OrderContextCommand ctxCmd ->
             match ctxCmd with
-            | Api.UpdateOrderContext ctx -> ctx |> updateOrderContext state
-            | Api.SelectOrderScenario ctx -> ctx |> selectOrderScenario state
-            | Api.UpdateOrderScenario ctx -> ctx |> updateOrderScenario state
-            | Api.ResetOrderScenario ctx -> ctx |> refreshOrderScenario state
-            | Api.ReloadResources ctx -> ctx |> updateOrderContext state
+            | Api.UpdateOrderContext ctx -> ctx |> CommandHandlers.updateOrderContext state
+            | Api.SelectOrderScenario ctx -> ctx |> CommandHandlers.selectOrderScenario state
+            | Api.UpdateOrderScenario ctx -> ctx |> CommandHandlers.updateOrderScenario state
+            | Api.ResetOrderScenario ctx -> ctx |> CommandHandlers.refreshOrderScenario state
+            | Api.ReloadResources ctx -> ctx |> CommandHandlers.updateOrderContext state
+            // Frequency property commands
+            | Api.DecreaseOrderFrequencyProperty ctx -> ctx |> CommandHandlers.decreaseFrequencyProperty state
+            | Api.IncreaseOrderFrequencyProperty ctx -> ctx |> CommandHandlers.increaseFrequencyProperty state
+            | Api.SetMinOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMinFrequencyProperty state
+            | Api.SetMaxOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMaxFrequencyProperty state
+            | Api.SetMedianOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMedianFrequencyProperty state
+            // DoseQuantity property commands
+            | Api.DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.decreaseDoseQuantityProperty state ctx cmp ntimes
+            | Api.IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.increaseDoseQuantityProperty state ctx cmp ntimes
+            | Api.SetMinOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMinDoseQuantityProperty state ctx cmp
+            | Api.SetMaxOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMaxDoseQuantityProperty state ctx cmp
+            | Api.SetMedianOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMedianDoseQuantityProperty state ctx cmp
+            // DoseRate property commands
+            | Api.DecreaseOrderDoseRateProperty (ctx, ntimes) -> CommandHandlers.decreaseDoseRateProperty state ctx ntimes
+            | Api.IncreaseOrderDoseRateProperty (ctx, ntimes) -> CommandHandlers.increaseDoseRateProperty state ctx ntimes
+            | Api.SetMinOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMinDoseRateProperty state
+            | Api.SetMaxOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMaxDoseRateProperty state
+            | Api.SetMedianOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMedianDoseRateProperty state
 
         | LoadResourcesReloaded Started ->
             match state.Patient with
@@ -804,6 +921,242 @@ module private Elmish =
 
         | LoadRefreshedOrderScenario (Finished (Ok msg)) -> msg |> processOk
         | LoadRefreshedOrderScenario (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        // Frequency property change handlers
+        | LoadFrequencyDecreasePropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.DecreaseOrderFrequencyProperty
+                |> loadOrderContext LoadFrequencyDecreasePropertyChange
+
+        | LoadFrequencyDecreasePropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadFrequencyDecreasePropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadFrequencyIncreasePropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.IncreaseOrderFrequencyProperty
+                |> loadOrderContext LoadFrequencyIncreasePropertyChange
+
+        | LoadFrequencyIncreasePropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadFrequencyIncreasePropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadFrequencySetMinPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMinOrderFrequencyProperty
+                |> loadOrderContext LoadFrequencySetMinPropertyChange
+
+        | LoadFrequencySetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadFrequencySetMinPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadFrequencySetMaxPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMaxOrderFrequencyProperty
+                |> loadOrderContext LoadFrequencySetMaxPropertyChange
+
+        | LoadFrequencySetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadFrequencySetMaxPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadFrequencySetMedianPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMedianOrderFrequencyProperty
+                |> loadOrderContext LoadFrequencySetMedianPropertyChange
+
+        | LoadFrequencySetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadFrequencySetMedianPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        // DoseQuantity property change handlers
+        | LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, resp))
+
+        | LoadDoseQuantityDecreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantityDecreasePropertyChange (_, _, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, resp))
+
+        | LoadDoseQuantityIncreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantityIncreasePropertyChange (_, _, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseQuantitySetMinPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMinOrderDoseQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMinPropertyChange (cmp, resp))
+
+        | LoadDoseQuantitySetMinPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMinPropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseQuantitySetMaxPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMaxOrderDoseQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMaxPropertyChange (cmp, resp))
+
+        | LoadDoseQuantitySetMaxPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMaxPropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseQuantitySetMedianPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMedianOrderDoseQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMedianPropertyChange (cmp, resp))
+
+        | LoadDoseQuantitySetMedianPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMedianPropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        // DoseRate property change handlers
+        | LoadDoseRateDecreasePropertyChange (ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.DecreaseOrderDoseRateProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseRateDecreasePropertyChange (ntimes, resp))
+
+        | LoadDoseRateDecreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseRateDecreasePropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseRateIncreasePropertyChange (ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.IncreaseOrderDoseRateProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseRateIncreasePropertyChange (ntimes, resp))
+
+        | LoadDoseRateIncreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseRateIncreasePropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseRateSetMinPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMinOrderDoseRateProperty
+                |> loadOrderContext LoadDoseRateSetMinPropertyChange
+
+        | LoadDoseRateSetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseRateSetMinPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseRateSetMaxPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMaxOrderDoseRateProperty
+                |> loadOrderContext LoadDoseRateSetMaxPropertyChange
+
+        | LoadDoseRateSetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseRateSetMaxPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadDoseRateSetMedianPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                ctx
+                |> Api.SetMedianOrderDoseRateProperty
+                |> loadOrderContext LoadDoseRateSetMedianPropertyChange
+
+        | LoadDoseRateSetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseRateSetMedianPropertyChange (Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err

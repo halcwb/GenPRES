@@ -229,7 +229,24 @@ module OrderContext =
         | UpdateOrderScenario of OrderContext
         | ResetOrderScenario of OrderContext
         | ReloadResources of OrderContext
-
+        // Frequency property commands
+        | DecreaseOrderFrequencyProperty of OrderContext
+        | IncreaseOrderFrequencyProperty of OrderContext
+        | SetMinOrderFrequencyProperty of OrderContext
+        | SetMaxOrderFrequencyProperty of OrderContext
+        | SetMedianOrderFrequencyProperty of OrderContext
+        // DoseQuantity property commands (cmp = component, ntimes = number of times to adjust)
+        | DecreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+        | IncreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
+        | SetMinOrderDoseQuantityProperty of OrderContext * cmp: string
+        | SetMaxOrderDoseQuantityProperty of OrderContext * cmp: string
+        | SetMedianOrderDoseQuantityProperty of OrderContext * cmp: string
+        // DoseRate property commands
+        | DecreaseOrderDoseRateProperty of OrderContext * ntimes: int
+        | IncreaseOrderDoseRateProperty of OrderContext * ntimes: int
+        | SetMinOrderDoseRateProperty of OrderContext
+        | SetMaxOrderDoseRateProperty of OrderContext
+        | SetMedianOrderDoseRateProperty of OrderContext
 
     module Command =
 
@@ -240,6 +257,24 @@ module OrderContext =
             | UpdateOrderScenario ctx -> ctx
             | ResetOrderScenario ctx -> ctx
             | ReloadResources ctx -> ctx
+            // Frequency property commands
+            | DecreaseOrderFrequencyProperty ctx -> ctx
+            | IncreaseOrderFrequencyProperty ctx -> ctx
+            | SetMinOrderFrequencyProperty ctx -> ctx
+            | SetMaxOrderFrequencyProperty ctx -> ctx
+            | SetMedianOrderFrequencyProperty ctx -> ctx
+            // DoseQuantity property commands
+            | DecreaseOrderDoseQuantityProperty (ctx, _, _) -> ctx
+            | IncreaseOrderDoseQuantityProperty (ctx, _, _) -> ctx
+            | SetMinOrderDoseQuantityProperty (ctx, _) -> ctx
+            | SetMaxOrderDoseQuantityProperty (ctx, _) -> ctx
+            | SetMedianOrderDoseQuantityProperty (ctx, _) -> ctx
+            // DoseRate property commands
+            | DecreaseOrderDoseRateProperty (ctx, _) -> ctx
+            | IncreaseOrderDoseRateProperty (ctx, _) -> ctx
+            | SetMinOrderDoseRateProperty ctx -> ctx
+            | SetMaxOrderDoseRateProperty ctx -> ctx
+            | SetMedianOrderDoseRateProperty ctx -> ctx
 
 
         let toString = function
@@ -248,6 +283,25 @@ module OrderContext =
             | UpdateOrderScenario _ -> "UpdateOrderScenario"
             | ResetOrderScenario _ -> "ResetOrderScenario"
             | ReloadResources _ -> "ReloadResources"
+            // Frequency property commands
+            | DecreaseOrderFrequencyProperty _ -> "DecreaseOrderFrequencyProperty"
+            | IncreaseOrderFrequencyProperty _ -> "IncreaseOrderFrequencyProperty"
+            | SetMinOrderFrequencyProperty _ -> "SetMinOrderFrequencyProperty"
+            | SetMaxOrderFrequencyProperty _ -> "SetMaxOrderFrequencyProperty"
+            | SetMedianOrderFrequencyProperty _ -> "SetMedianOrderFrequencyProperty"
+            // DoseQuantity property commands
+            | DecreaseOrderDoseQuantityProperty _ -> "DecreaseOrderDoseQuantityProperty"
+            | IncreaseOrderDoseQuantityProperty _ -> "IncreaseOrderDoseQuantityProperty"
+            | SetMinOrderDoseQuantityProperty _ -> "SetMinOrderDoseQuantityProperty"
+            | SetMaxOrderDoseQuantityProperty _ -> "SetMaxOrderDoseQuantityProperty"
+            | SetMedianOrderDoseQuantityProperty _ -> "SetMedianOrderDoseQuantityProperty"
+            // DoseRate property commands
+            | DecreaseOrderDoseRateProperty _ -> "DecreaseOrderDoseRateProperty"
+            | IncreaseOrderDoseRateProperty _ -> "IncreaseOrderDoseRateProperty"
+            | SetMinOrderDoseRateProperty _ -> "SetMinOrderDoseRateProperty"
+            | SetMaxOrderDoseRateProperty _ -> "SetMaxOrderDoseRateProperty"
+            | SetMedianOrderDoseRateProperty _ -> "SetMedianOrderDoseRateProperty"
+
 
         let apply f cmd =
             match cmd with
@@ -256,6 +310,24 @@ module OrderContext =
             | UpdateOrderScenario ctx -> f ctx
             | ResetOrderScenario ctx -> f ctx
             | ReloadResources ctx -> f ctx
+            // Frequency property commands
+            | DecreaseOrderFrequencyProperty ctx -> f ctx
+            | IncreaseOrderFrequencyProperty ctx -> f ctx
+            | SetMinOrderFrequencyProperty ctx -> f ctx
+            | SetMaxOrderFrequencyProperty ctx -> f ctx
+            | SetMedianOrderFrequencyProperty ctx -> f ctx
+            // DoseQuantity property commands
+            | DecreaseOrderDoseQuantityProperty (ctx, _, _) -> f ctx
+            | IncreaseOrderDoseQuantityProperty (ctx, _, _) -> f ctx
+            | SetMinOrderDoseQuantityProperty (ctx, _) -> f ctx
+            | SetMaxOrderDoseQuantityProperty (ctx, _) -> f ctx
+            | SetMedianOrderDoseQuantityProperty (ctx, _) -> f ctx
+            // DoseRate property commands
+            | DecreaseOrderDoseRateProperty (ctx, _) -> f ctx
+            | IncreaseOrderDoseRateProperty (ctx, _) -> f ctx
+            | SetMinOrderDoseRateProperty ctx -> f ctx
+            | SetMaxOrderDoseRateProperty ctx -> f ctx
+            | SetMedianOrderDoseRateProperty ctx -> f ctx
 
 
         let map f cmd =
@@ -265,6 +337,24 @@ module OrderContext =
             | UpdateOrderScenario ctx -> UpdateOrderScenario (f ctx)
             | ResetOrderScenario ctx -> ResetOrderScenario (f ctx)
             | ReloadResources ctx -> ReloadResources (f ctx)
+            // Frequency property commands
+            | DecreaseOrderFrequencyProperty ctx -> DecreaseOrderFrequencyProperty (f ctx)
+            | IncreaseOrderFrequencyProperty ctx -> IncreaseOrderFrequencyProperty (f ctx)
+            | SetMinOrderFrequencyProperty ctx -> SetMinOrderFrequencyProperty (f ctx)
+            | SetMaxOrderFrequencyProperty ctx -> SetMaxOrderFrequencyProperty (f ctx)
+            | SetMedianOrderFrequencyProperty ctx -> SetMedianOrderFrequencyProperty (f ctx)
+            // DoseQuantity property commands
+            | DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> DecreaseOrderDoseQuantityProperty (f ctx, cmp, ntimes)
+            | IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> IncreaseOrderDoseQuantityProperty (f ctx, cmp, ntimes)
+            | SetMinOrderDoseQuantityProperty (ctx, cmp) -> SetMinOrderDoseQuantityProperty (f ctx, cmp)
+            | SetMaxOrderDoseQuantityProperty (ctx, cmp) -> SetMaxOrderDoseQuantityProperty (f ctx, cmp)
+            | SetMedianOrderDoseQuantityProperty (ctx, cmp) -> SetMedianOrderDoseQuantityProperty (f ctx, cmp)
+            // DoseRate property commands
+            | DecreaseOrderDoseRateProperty (ctx, ntimes) -> DecreaseOrderDoseRateProperty (f ctx, ntimes)
+            | IncreaseOrderDoseRateProperty (ctx, ntimes) -> IncreaseOrderDoseRateProperty (f ctx, ntimes)
+            | SetMinOrderDoseRateProperty ctx -> SetMinOrderDoseRateProperty (f ctx)
+            | SetMaxOrderDoseRateProperty ctx -> SetMaxOrderDoseRateProperty (f ctx)
+            | SetMedianOrderDoseRateProperty ctx -> SetMedianOrderDoseRateProperty (f ctx)
 
 
         let mapInv cmd f = map f cmd
@@ -871,6 +961,18 @@ Scenarios: {scenarios}
 
 
     let evaluate logger provider cmd =
+        // Helper to process property commands when there's exactly one scenario with an order
+        let processPropertyCmd ctx propCmd wrapResult =
+            match ctx.Scenarios |> Array.tryExactlyOne with
+            | Some _ ->
+                ctx
+                |> processScenarioOrder logger (fun o -> ChangeProperty (o, propCmd))
+                |> wrapResult
+                |> ValidatedResult.createOkNoMsgs
+            | None ->
+                // No single scenario, return ctx unchanged
+                wrapResult ctx |> ValidatedResult.createOkNoMsgs
+
         match cmd with
         | UpdateOrderContext ctx -> ctx |> getScenarios logger provider    |> ValidatedResult.map UpdateOrderContext
         | ReloadResources ctx    -> ctx |> reloadResources logger provider |> ValidatedResult.map ReloadResources
@@ -878,6 +980,24 @@ Scenarios: {scenarios}
         | SelectOrderScenario ctx -> ctx |> processScenarioOrder logger CalcValues   |> SelectOrderScenario  |> ValidatedResult.createOkNoMsgs
         | UpdateOrderScenario ctx -> ctx |> processScenarioOrder logger SolveOrder   |> UpdateOrderScenario  |> ValidatedResult.createOkNoMsgs
         | ResetOrderScenario ctx  -> ctx |> processScenarioOrder logger ReCalcValues |> ResetOrderScenario   |> ValidatedResult.createOkNoMsgs
+        // Frequency property commands
+        | DecreaseOrderFrequencyProperty ctx -> processPropertyCmd ctx DecreaseFrequency DecreaseOrderFrequencyProperty
+        | IncreaseOrderFrequencyProperty ctx -> processPropertyCmd ctx IncreaseFrequency IncreaseOrderFrequencyProperty
+        | SetMinOrderFrequencyProperty ctx -> processPropertyCmd ctx SetMinFrequency SetMinOrderFrequencyProperty
+        | SetMaxOrderFrequencyProperty ctx -> processPropertyCmd ctx SetMaxFrequency SetMaxOrderFrequencyProperty
+        | SetMedianOrderFrequencyProperty ctx -> processPropertyCmd ctx SetMedianFrequency SetMedianOrderFrequencyProperty
+        // DoseQuantity property commands
+        | DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> processPropertyCmd ctx (DecreaseDoseQuantity (cmp, ntimes)) (fun c -> DecreaseOrderDoseQuantityProperty (c, cmp, ntimes))
+        | IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> processPropertyCmd ctx (IncreaseDoseQuantity (cmp, ntimes)) (fun c -> IncreaseOrderDoseQuantityProperty (c, cmp, ntimes))
+        | SetMinOrderDoseQuantityProperty (ctx, cmp) -> processPropertyCmd ctx (SetMinDoseQuantity cmp) (fun c -> SetMinOrderDoseQuantityProperty (c, cmp))
+        | SetMaxOrderDoseQuantityProperty (ctx, cmp) -> processPropertyCmd ctx (SetMaxDoseQuantity cmp) (fun c -> SetMaxOrderDoseQuantityProperty (c, cmp))
+        | SetMedianOrderDoseQuantityProperty (ctx, cmp) -> processPropertyCmd ctx (SetMedianDoseQuantity cmp) (fun c -> SetMedianOrderDoseQuantityProperty (c, cmp))
+        // DoseRate property commands
+        | DecreaseOrderDoseRateProperty (ctx, ntimes) -> processPropertyCmd ctx (DecreaseDoseRate ntimes) (fun c -> DecreaseOrderDoseRateProperty (c, ntimes))
+        | IncreaseOrderDoseRateProperty (ctx, ntimes) -> processPropertyCmd ctx (IncreaseDoseRate ntimes) (fun c -> IncreaseOrderDoseRateProperty (c, ntimes))
+        | SetMinOrderDoseRateProperty ctx -> processPropertyCmd ctx SetMinDoseRate SetMinOrderDoseRateProperty
+        | SetMaxOrderDoseRateProperty ctx -> processPropertyCmd ctx SetMaxDoseRate SetMaxOrderDoseRateProperty
+        | SetMedianOrderDoseRateProperty ctx -> processPropertyCmd ctx SetMedianDoseRate SetMedianOrderDoseRateProperty
 
 
     let logOrderContext (logger: Logger) msg cmd =

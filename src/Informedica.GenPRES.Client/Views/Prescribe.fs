@@ -189,6 +189,8 @@ module Prescribe =
                 selected = selected
                 values = xs
                 isLoading = isLoading
+                hasClear = true
+                navigate = None
             |})
 
         let multiSelect isLoading lbl selected dispatch xs =
@@ -631,6 +633,20 @@ module Prescribe =
                         Order.View {|
                             orderContext = props.orderContext
                             updateOrderScenario = Api.UpdateOrderScenario >> props.updateOrderContext
+                            navigateOrderScenario = {|
+                                // Frequency
+                                setMinFrequency = Api.SetMinOrderFrequencyProperty >> props.updateOrderContext
+                                decrFrequency = Api.DecreaseOrderFrequencyProperty >> props.updateOrderContext
+                                setMedianFrequency = Api.SetMedianOrderFrequencyProperty >> props.updateOrderContext
+                                incrFrequency = Api.IncreaseOrderFrequencyProperty >> props.updateOrderContext
+                                setMaxFrequency = Api.SetMaxOrderFrequencyProperty >> props.updateOrderContext
+                                // Rate
+                                setMinRate = Api.SetMinOrderDoseRateProperty >> props.updateOrderContext
+                                decrRate = (fun ctx -> (ctx, 1) |> Api.DecreaseOrderDoseRateProperty |> props.updateOrderContext)
+                                setMedianRate = Api.SetMedianOrderDoseRateProperty >> props.updateOrderContext
+                                incrRate = (fun ctx -> (ctx, 1) |> Api.IncreaseOrderDoseRateProperty |> props.updateOrderContext)
+                                setMaxRate = Api.SetMaxOrderDoseRateProperty >> props.updateOrderContext
+                            |}
                             refreshOrderScenario = Api.ResetOrderScenario >> props.updateOrderContext
                             closeOrder = handleModalClose
                             localizationTerms = props.localizationTerms

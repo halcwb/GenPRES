@@ -214,7 +214,7 @@ pcmDrink
 )
 |> printOrderTable
 |> Result.bind (fun o -> 
-    (o, SetMedianDoseQuantity "paracetamol") 
+    (o, SetMaxDoseQuantity "paracetamol") 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )

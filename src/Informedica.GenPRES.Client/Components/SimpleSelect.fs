@@ -16,7 +16,15 @@ module SimpleSelect =
                 selected : string option
                 values : (string * string) []
                 updateSelected : string option -> unit
+                navigate : {| 
+                    first : unit -> unit
+                    decrease : unit -> unit
+                    median : unit -> unit 
+                    increase : unit -> unit
+                    last : unit -> unit
+                |} option
                 isLoading : bool
+                hasClear : bool
             |}
         ) =
 
@@ -61,6 +69,40 @@ module SimpleSelect =
                 </IconButton>
                 """
 
+        let navigationSx = {|
+            display = "flex"
+            felxDirection = "column"
+            alignItems = "center"
+        |}
+
+        let navigation = 
+            if props.navigate.IsSome && not isClear then
+                JSX.jsx
+                    $"""
+                import IconButton from "@mui/material/IconButton";
+                import ButtonGroup from '@mui/material/ButtonGroup';
+                import Box from '@mui/material/Box';
+                <Box
+                sx={navigationSx}
+                >
+                <ButtonGroup variant="text" aria-label="navigation button group">
+                    <IconButton onClick={fun _ -> props.navigate.Value.first ()} >{Mui.Icons.FirstPageIcon}</IconButton>
+                    <IconButton onClick={fun _ -> props.navigate.Value.decrease () } >{Mui.Icons.SkipPreviousIcon}</IconButton>
+                    <IconButton onClick={fun _ -> props.navigate.Value.median ()} >{Mui.Icons.PauseIcon}</IconButton>
+                    <IconButton onClick={fun _ -> props.navigate.Value.increase ()} >{Mui.Icons.SkipNextIcon}</IconButton>
+                    <IconButton onClick={fun _ -> props.navigate.Value.last ()} >{Mui.Icons.LastPageIcon}</IconButton>
+                </ButtonGroup>
+                </Box>            
+                """
+                |> Some
+            else
+                None
+
+        let endAdornment = 
+            if navigation.IsNone && not isClear && props.hasClear then Some clearButton
+            else
+                navigation
+
         JSX.jsx
             $"""
         import InputLabel from '@mui/material/InputLabel';
@@ -76,12 +118,14 @@ module SimpleSelect =
             value={props.selected |> Option.defaultValue ""}
             onChange={handleChange}
             label={props.label}
-            endAdornment={clearButton}
+            endAdornment={endAdornment}
             sx=
                 {
                     {| ``& .MuiSelect-icon`` =
                         {|
-                            visibility = if isClear && not props.isLoading then "visible" else "hidden"
+                            visibility = 
+                                if endAdornment.IsNone then "visible" 
+                                else "hidden"
                         |}
                     |}
                 }

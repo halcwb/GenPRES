@@ -599,7 +599,7 @@ module OrderProcessor =
 
         | ChangeProperty (ord, cmd) -> //ord |> processChangeProperty cmd |> Ok
             [
-                { Name = "change-property: process-change"; Guard = (fun _ -> true); Run = processChangeProperty false logger cmd }
+                { Name = $"change-property: {cmd}"; Guard = (fun _ -> true); Run = processChangeProperty false logger cmd }
                 { Name = "change-property: solve-order"; Guard = (fun _ -> true); Run = solveStep }
             ]
             |> runPipeline ord
