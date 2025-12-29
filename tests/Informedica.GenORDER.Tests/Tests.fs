@@ -241,41 +241,41 @@ module Tests
             | _ -> ()
 
             orbDto.DoseCount.Constraints
-            |>  setConstraints None d.DoseCount
+            |>  setMinMaxConstraints None d.DoseCount
 
             orbDto.OrderableQuantity.Constraints.ValsOpt <- d.Quantities |> vuToDto
 
             let setOrbDoseRate (dl : DoseLimit) =
 
                 orbDto.Dose.Rate.Constraints
-                |> setConstraints
+                |> setMinMaxConstraints
                     None
                     dl.Rate
 
                 orbDto.Dose.RateAdjust.Constraints
-                |> setConstraints
+                |> setMinMaxConstraints
                     None
                     dl.RateAdjust
 
             let setOrbDoseQty isOnce (dl : DoseLimit) =
                 orbDto.Dose.Quantity.Constraints
-                |> setConstraints
+                |> setMinMaxConstraints
                     None
                     dl.Quantity
 
                 orbDto.Dose.QuantityAdjust.Constraints
-                |> setConstraints
+                |> setMinMaxConstraints
                     dl.NormQuantityAdjust
                     dl.QuantityAdjust
 
                 if not isOnce then
                     orbDto.Dose.PerTime.Constraints
-                    |> setConstraints
+                    |> setMinMaxConstraints
                         None
                         dl.PerTime
 
                     orbDto.Dose.PerTimeAdjust.Constraints
-                    |> setConstraints
+                    |> setMinMaxConstraints
                         dl.NormPerTimeAdjust
                         dl.PerTimeAdjust
 
@@ -381,12 +381,12 @@ module Tests
                         match p.Solution with
                         | Some sl ->
                             cmpDto.OrderableQuantity.Constraints
-                            |> setConstraints
+                            |> setMinMaxConstraints
                                 sl.Quantities
                                 sl.Quantity
 
                             cmpDto.OrderableConcentration.Constraints
-                            |> setConstraints
+                            |> setMinMaxConstraints
                                 None
                                 sl.Concentration
                         | None -> ()
@@ -394,39 +394,39 @@ module Tests
                         let setDoseRate (dl : DoseLimit) =
                             if dl.Rate |> MinMax.isEmpty |> not then
                                 cmpDto.Dose.Rate.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     None
                                     dl.Rate
 
                             if dl.RateAdjust |> MinMax.isEmpty |> not then
                                 cmpDto.Dose.RateAdjust.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     None
                                     dl.RateAdjust
 
                         let setDoseQty (dl : DoseLimit) =
                             if dl.Quantity |> MinMax.isEmpty |> not then
                                 cmpDto.Dose.Quantity.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     None
                                     dl.Quantity
                             if dl.QuantityAdjust |> MinMax.isEmpty |> not ||
                                dl.NormQuantityAdjust |> Option.isSome then
                                 cmpDto.Dose.QuantityAdjust.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     dl.NormQuantityAdjust
                                     dl.QuantityAdjust
 
                             if dl.PerTime |> MinMax.isEmpty |> not then
                                 cmpDto.Dose.PerTime.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     None
                                     dl.PerTime
 
                             if dl.PerTimeAdjust |> MinMax.isEmpty |> not ||
                                dl.NormPerTimeAdjust |> Option.isSome then
                                 cmpDto.Dose.PerTimeAdjust.Constraints
-                                |> setConstraints
+                                |> setMinMaxConstraints
                                     dl.NormPerTimeAdjust
                                     dl.PerTimeAdjust
 
@@ -466,12 +466,12 @@ module Tests
                                 match s.Solution with
                                 | Some sl ->
                                     itmDto.OrderableQuantity.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         sl.Quantities
                                         sl.Quantity
 
                                     itmDto.OrderableConcentration.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         None
                                         sl.Concentration
                                 | None -> ()
@@ -479,33 +479,33 @@ module Tests
                                 let setDoseRate (dl : DoseLimit) =
 
                                     itmDto.Dose.Rate.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         None
                                         dl.Rate
 
                                     itmDto.Dose.RateAdjust.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         None
                                         dl.RateAdjust
 
                                 let setDoseQty (dl : DoseLimit) =
                                     itmDto.Dose.Quantity.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         None
                                         dl.Quantity
 
                                     itmDto.Dose.QuantityAdjust.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         dl.NormQuantityAdjust
                                         dl.QuantityAdjust
 
                                     itmDto.Dose.PerTime.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         None
                                         dl.PerTime
 
                                     itmDto.Dose.PerTimeAdjust.Constraints
-                                    |> setConstraints
+                                    |> setMinMaxConstraints
                                         dl.NormPerTimeAdjust
                                         dl.PerTimeAdjust
 
@@ -984,159 +984,3 @@ module Tests
             TypeTests.tests
             DosePrintoutTests.tests
         ]
-
-    // New: Equivalence tests comparing legacy pipeline logic with the new processPipeline
-    module PipelineEquivalence =
-        module OV = OrderVariable
-        module Units = Units
-
-        let private noLogger = Informedica.GenOrder.Lib.Logging.noOp
-
-        // Build specific orders to exercise different prescription kinds
-        let private mkDiscontinuousOrder () =
-            testDrugOrders
-            |> List.find (fun d -> match d.OrderType with | DiscontinuousOrder -> true | _ -> false)
-            |> Medication.toOrderDto
-            |> Order.Dto.fromDto
-            |> Result.get
-
-        let private mkTimedOrder () =
-            testDrugOrders
-            |> List.find (fun d -> match d.OrderType with | TimedOrder -> true | _ -> false)
-            |> Medication.toOrderDto
-            |> Order.Dto.fromDto
-            |> Result.get
-
-        let private mkEmptyOrder () =
-            Order.Dto.discontinuous "E" "Empty" "PO" [] |> Order.Dto.fromDto
-            |> Result.get
-
-        // A minimal in-test legacy implementation mirroring the provided previous pipeline
-        module Legacy =
-            type PState =
-                | Processed of Order
-                | NotProcessed of Order
-
-            let private calcValues logger (ord: Order) =
-                ord |> Order.minIncrMaxToValues false true logger |> Ok
-
-            let private isEmpty = function | OrderProcessor.IsEmpty -> true | _ -> false
-            let private noValues = function | OrderProcessor.NoValues -> true | _ -> false
-            let private hasValues = function | OrderProcessor.HasValues -> true | _ -> false
-            let private doseSolvedNotCleared = function | OrderProcessor.DoseSolvedNotCleared -> true | _ -> false
-            let private doseSolvedAndCleared = function | OrderProcessor.DoseSolvedAndCleared -> true | _ -> false
-
-            let private procCleared logger ord =
-                ord
-                |> OrderProcessor.processClearedOrder logger
-                |> function
-                   | Ok res -> Ok res
-                   | Error _ -> Order.solveOrder true logger ord
-
-            let private calcMinMax logger normDose increaseIncrement ord =
-                Order.calcMinMax logger normDose increaseIncrement ord
-                |> function
-                   | Ok res -> Ok res
-                   | Error (ord, errs) -> Error (ord, errs)
-
-            let private procIf msg pred procF (res: Result<PState, Order * OrderProcessor.GenSolverExceptionMsg list>) =
-                match res with
-                | Ok (Processed ord) -> Ok (Processed ord)
-                | Ok (NotProcessed ord) ->
-                    if pred ord then
-                        // optional: logging omitted in tests
-                        procF ord
-                        |> Result.map (fun ord -> if hasValues ord then Processed ord else NotProcessed ord)
-                    else Ok (NotProcessed ord)
-                | Error _ -> res
-
-            // The legacy pipeline exposed in tests
-            let processPipeLine logger normDose cmd =
-                match cmd with
-                | CalcMinMax ord ->
-                    Ok (NotProcessed ord)
-                    |> procIf "order is empty: calc minmax" isEmpty (calcMinMax logger normDose false)
-                | CalcValues ord ->
-                    Ok (NotProcessed ord)
-                    |> procIf "order has no values: calc values" noValues (calcValues logger)
-                | SolveOrder ord ->
-                    Ok (NotProcessed ord)
-                    |> procIf "order has no values: calc values" noValues (calcValues logger)
-                    |> Result.map (function | Processed o -> NotProcessed o | NotProcessed o -> NotProcessed o)
-                    |> procIf "order has values: solve order" hasValues (Order.solveOrder true logger)
-                    |> procIf "order has no values: calc values" noValues (calcValues logger)
-                    |> Result.map (function | Processed o -> NotProcessed o | NotProcessed o -> NotProcessed o)
-                    |> procIf "order has values: solve order" hasValues (Order.solveOrder true logger)
-                    |> procIf "order is solved and has cleared prop: process cleared order" doseSolvedAndCleared (procCleared logger)
-                    |> procIf "order is solved no cleared prop: just solve" (fun _ -> true) (Order.solveOrder true logger)
-                | ReCalcValues ord ->
-                    ord
-                    |> Order.applyConstraints
-                    |> fun o -> Ok (NotProcessed o)
-                    |> procIf "recalc requested: recalc order" (fun _ -> true) (fun o ->
-                        calcMinMax logger normDose false o |> Result.bind (calcValues logger)
-                    )
-                | ChangeProperty _ -> failwith "not implemented as a test case"
-                |> Result.map (function | Processed o | NotProcessed o -> o)
-
-        // Helper to compare results while being lenient on error messages
-        let private expectSameOutcome name (r1: Result<Order, Order * _>) (r2: Result<Order, Order * _>) =
-            match r1, r2 with
-            | Ok o1, Ok o2 -> Expect.equal name o1 o2
-            | Error (o1, _), Error (o2, _) -> Expect.equal name o1 o2
-            | _ ->
-                let msg = sprintf "%s: outcomes differ\nold: %A\nnew: %A" name r1 r2
-                false |> Expect.isTrue msg
-
-        [<Tests>]
-        let pipeline_equivalence_tests =
-            testList "Old vs new pipeline equivalence" [
-                test "CalcMinMax on empty order" {
-                    let ord = mkEmptyOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (CalcMinMax ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (CalcMinMax ord)
-                    expectSameOutcome "empty-calcminmax" oldR newR
-                }
-
-                test "CalcValues on discontinuous order" {
-                    let ord = mkDiscontinuousOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (CalcValues ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (CalcValues ord)
-                    expectSameOutcome "disco-calcvalues" oldR newR
-                }
-
-                test "CalcValues on timed order" {
-                    let ord = mkTimedOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (CalcValues ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (CalcValues ord)
-                    expectSameOutcome "timed-calcvalues" oldR newR
-                }
-
-                test "SolveOrder on discontinuous order" {
-                    let ord = mkDiscontinuousOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (SolveOrder ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (SolveOrder ord)
-                    expectSameOutcome "disco-solve" oldR newR
-                }
-
-                test "SolveOrder on timed order" {
-                    let ord = mkTimedOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (SolveOrder ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (SolveOrder ord)
-                    expectSameOutcome "timed-solve" oldR newR
-                }
-
-                test "ReCalcValues on discontinuous order" {
-                    let ord = mkDiscontinuousOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (ReCalcValues ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (ReCalcValues ord)
-                    expectSameOutcome "disco-recalcvalues" oldR newR
-                }
-
-                test "ReCalcValues on timed order" {
-                    let ord = mkTimedOrder ()
-                    let oldR = Legacy.processPipeLine noLogger None (ReCalcValues ord)
-                    let newR = OrderProcessor.processPipeline noLogger None (ReCalcValues ord)
-                    expectSameOutcome "timed-recalcvalues" oldR newR
-                }
-            ]

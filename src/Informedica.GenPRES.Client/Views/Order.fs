@@ -46,25 +46,35 @@ module Order =
             | UpdateOrderScenario of Order
             | ResetOrderScenario
             // Frequency property commands
-            | DecreaseOrderFrequencyProperty
-            | IncreaseOrderFrequencyProperty
-            | SetMinOrderFrequencyProperty 
-            | SetMaxOrderFrequencyProperty
-            | SetMedianOrderFrequencyProperty
-            // DoseQuantity property commands (cmp = component, ntimes = number of times to adjust)
-            (*
-            | DecreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
-            | IncreaseOrderDoseQuantityProperty of OrderContext * cmp: string * ntimes: int
-            | SetMinOrderDoseQuantityProperty of OrderContext * cmp: string
-            | SetMaxOrderDoseQuantityProperty of OrderContext * cmp: string
-            | SetMedianOrderDoseQuantityProperty of OrderContext * cmp: string
-            // DoseRate property commands
-            *)
-            | DecreaseOrderDoseRateProperty of ntimes: int
-            | IncreaseOrderDoseRateProperty of ntimes: int
-            | SetMinOrderDoseRateProperty
-            | SetMaxOrderDoseRateProperty
-            | SetMedianOrderDoseRateProperty
+            | DecreaseFrequencyProperty
+            | IncreaseFrequencyProperty
+            | SetMinFrequencyProperty 
+            | SetMaxFrequencyProperty
+            | SetMedianFrequencyProperty
+            // Dose Quantity property commands
+            | DecreaseDoseQuantityProperty of ntimes: int
+            | IncreaseDoseQuantityProperty of ntimes: int
+            | SetMinDoseQuantityProperty 
+            | SetMaxDoseQuantityProperty 
+            | SetMedianDoseQuantityProperty
+            // Rate property commands
+            | DecreaseDoseRateProperty of ntimes: int
+            | IncreaseDoseRateProperty of ntimes: int
+            | SetMinDoseRateProperty
+            | SetMaxDoseRateProperty
+            | SetMedianDoseRateProperty
+            // Orderable Quantity property commands
+            | DecreaseOrderableQuantityProperty of ntimes: int
+            | IncreaseOrderableQuantityProperty of ntimes: int
+            | SetMinOrderableQuantityProperty 
+            | SetMaxOrderableQuantityProperty 
+            | SetMedianOrderableQuantityProperty
+            // Component Quantity property commands
+            | DecreaseComponentQuantityProperty of ntimes: int
+            | IncreaseComponentQuantityProperty of ntimes: int
+            | SetMinComponentQuantityProperty
+            | SetMaxComponentQuantityProperty
+            | SetMedianComponentQuantityProperty
 
 
         let init (ctx : Deferred<OrderContext>) =
@@ -138,6 +148,24 @@ module Order =
                     setRateInc : OrderLoader -> unit
                     setRateMax : OrderLoader -> unit
 
+                    setDoseQtyMin : OrderLoader -> unit
+                    setDoseQtyDec : OrderLoader -> unit
+                    setDoseQtyMed : OrderLoader -> unit 
+                    setDoseQtyInc : OrderLoader -> unit
+                    setDoseQtyMax : OrderLoader -> unit
+
+                    setOrderableQtyMin : OrderLoader -> unit
+                    setOrderableQtyDec : OrderLoader -> unit
+                    setOrderableQtyMed : OrderLoader -> unit 
+                    setOrderableQtyInc : OrderLoader -> unit
+                    setOrderableQtyMax : OrderLoader -> unit
+
+                    setComponentQtyMin : OrderLoader -> unit
+                    setComponentQtyDec : OrderLoader -> unit
+                    setComponentQtyMed : OrderLoader -> unit 
+                    setComponentQtyInc : OrderLoader -> unit
+                    setComponentQtyMax : OrderLoader -> unit
+
                 |})
             (msg: Msg)
             (state : State) : State * Cmd<Msg>
@@ -173,14 +201,14 @@ module Order =
                 match state.Order with
                 | None -> state, Cmd.none
                 | Some ord -> 
-                // dispatch to parent
-                OrderLoader.create state.SelectedComponent state.SelectedItem ord
-                |> nav
-                // return awaiting updated order
-                { state with
-                    Order = None
-                }
-                , Cmd.none
+                    // dispatch to parent
+                    OrderLoader.create state.SelectedComponent state.SelectedItem ord
+                    |> nav
+                    // return awaiting updated order
+                    { state with
+                        Order = None
+                    }
+                    , Cmd.none
 
             match msg with
 
@@ -671,18 +699,39 @@ module Order =
                 | _ -> state, Cmd.none
 
             // == Frequency ==
-            | SetMinOrderFrequencyProperty -> handleNav navigate.setFreqMin
-            | DecreaseOrderFrequencyProperty -> handleNav navigate.setFreqDec
-            | SetMedianOrderFrequencyProperty -> handleNav navigate.setFreqMed
-            | IncreaseOrderFrequencyProperty -> handleNav navigate.setFreqInc
-            | SetMaxOrderFrequencyProperty -> handleNav navigate.setFreqMax
+            | SetMinFrequencyProperty -> handleNav navigate.setFreqMin
+            | DecreaseFrequencyProperty -> handleNav navigate.setFreqDec
+            | SetMedianFrequencyProperty -> handleNav navigate.setFreqMed
+            | IncreaseFrequencyProperty -> handleNav navigate.setFreqInc
+            | SetMaxFrequencyProperty -> handleNav navigate.setFreqMax
 
             // == Rate ==
-            | SetMinOrderDoseRateProperty -> handleNav navigate.setRateMin
-            | DecreaseOrderDoseRateProperty _ -> handleNav navigate.setRateDec
-            | SetMedianOrderDoseRateProperty -> handleNav navigate.setRateMed
-            | IncreaseOrderDoseRateProperty _ -> handleNav navigate.setRateInc
-            | SetMaxOrderDoseRateProperty -> handleNav navigate.setRateMax
+            | SetMinDoseRateProperty -> handleNav navigate.setRateMin
+            | DecreaseDoseRateProperty _ -> handleNav navigate.setRateDec
+            | SetMedianDoseRateProperty -> handleNav navigate.setRateMed
+            | IncreaseDoseRateProperty _ -> handleNav navigate.setRateInc
+            | SetMaxDoseRateProperty -> handleNav navigate.setRateMax
+
+            // == DoseQty ==
+            | SetMinDoseQuantityProperty -> handleNav navigate.setDoseQtyMin
+            | DecreaseDoseQuantityProperty _ -> handleNav navigate.setDoseQtyDec
+            | SetMedianDoseQuantityProperty -> handleNav navigate.setDoseQtyMed
+            | IncreaseDoseQuantityProperty _ -> handleNav navigate.setDoseQtyInc
+            | SetMaxDoseQuantityProperty -> handleNav navigate.setDoseQtyMax
+
+            // == OrderableQty ==
+            | SetMinOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMin
+            | DecreaseOrderableQuantityProperty _ -> handleNav navigate.setOrderableQtyDec
+            | SetMedianOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMed
+            | IncreaseOrderableQuantityProperty _ -> handleNav navigate.setOrderableQtyInc
+            | SetMaxOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMax
+
+            // == ComponentQty ==
+            | SetMinComponentQuantityProperty -> handleNav navigate.setComponentQtyMin
+            | DecreaseComponentQuantityProperty _ -> handleNav navigate.setComponentQtyDec
+            | SetMedianComponentQuantityProperty -> handleNav navigate.setComponentQtyMed
+            | IncreaseComponentQuantityProperty _ -> handleNav navigate.setComponentQtyInc
+            | SetMaxComponentQuantityProperty -> handleNav navigate.setComponentQtyMax
 
 
         let showOrderName (ord : Order option) =
@@ -718,6 +767,24 @@ module Order =
                 setMedianRate: OrderContext -> unit
                 incrRate : OrderContext -> unit
                 setMaxRate: OrderContext -> unit
+                // Dose Quantity
+                setMinDoseQty : OrderContext -> unit
+                decrDoseQty : OrderContext * int -> unit
+                setMedianDoseQty: OrderContext  -> unit
+                incrDoseQty : OrderContext * int  -> unit
+                setMaxDoseQty: OrderContext -> unit
+                // Orderable Quantity
+                setMinOrderableQty : OrderContext -> unit
+                decrOrderableQty : OrderContext * int -> unit
+                setMedianOrderableQty: OrderContext  -> unit
+                incrOrderableQty : OrderContext * int  -> unit
+                setMaxOrderableQty: OrderContext -> unit
+                // Component Quantity
+                setMinComponentQty : OrderContext * string -> unit
+                decrComponentQty : OrderContext * string * int -> unit
+                setMedianComponentQty: OrderContext * string -> unit
+                incrComponentQty : OrderContext * string * int  -> unit
+                setMaxComponentQty: OrderContext * string -> unit
             |}
             refreshOrderScenario : OrderContext -> unit
             closeOrder : unit -> unit
@@ -785,25 +852,100 @@ module Order =
 
         let navigate = 
             let create nav =
-                    fun (ol : OrderLoader) ->
-                        match props.orderContext with
-                        | Resolved ctx ->
-                            { ctx with
-                                Scenarios =
-                                    ctx.Scenarios
-                                    |> Array.map (fun sc ->
-                                        if sc.Order.Id <> ol.Order.Id then sc
-                                        else
-                                            {
-                                                sc with
-                                                    Component = ol.Component
-                                                    Item = ol.Item
-                                                    Order = ol.Order
-                                            }
-                                    )
-                            }
-                            |> nav
-                        | _ -> ()
+                fun (ol : OrderLoader) ->
+                    match props.orderContext with
+                    | Resolved ctx ->
+                        { ctx with
+                            Scenarios =
+                                ctx.Scenarios
+                                |> Array.map (fun sc ->
+                                    if sc.Order.Id <> ol.Order.Id then sc
+                                    else
+                                        {
+                                            sc with
+                                                Component = ol.Component
+                                                Item = ol.Item
+                                                Order = ol.Order
+                                        }
+                                )
+                        }
+                        |> nav
+                    | _ -> ()
+
+            let createWithCmp nav =
+                fun (ol : OrderLoader) ->
+                    match props.orderContext with
+                    | Resolved ctx ->
+                        match ol.Component with
+                        | None -> ()
+                        | Some cmp ->
+                            let ctx =
+                                { ctx with
+                                    Scenarios =
+                                        ctx.Scenarios
+                                        |> Array.map (fun sc ->
+                                            if sc.Order.Id <> ol.Order.Id then sc
+                                            else
+                                                {
+                                                    sc with
+                                                        Component = ol.Component
+                                                        Item = ol.Item
+                                                        Order = ol.Order
+                                                }
+                                        )
+                                }
+                            nav (ctx, cmp)
+                    | _ -> ()
+
+            let createWithN nav =
+                fun (ol : OrderLoader) ->
+                    match props.orderContext with
+                    | Resolved ctx ->
+                        match ol.Component with
+                        | None -> ()
+                        | Some cmp ->
+                            let ctx =
+                                { ctx with
+                                    Scenarios =
+                                        ctx.Scenarios
+                                        |> Array.map (fun sc ->
+                                            if sc.Order.Id <> ol.Order.Id then sc
+                                            else
+                                                {
+                                                    sc with
+                                                        Component = ol.Component
+                                                        Item = ol.Item
+                                                        Order = ol.Order
+                                                }
+                                        )
+                                }
+                            nav (ctx, 1)
+                    | _ -> ()
+
+            let createWithCmpN nav =
+                fun (ol : OrderLoader) ->
+                    match props.orderContext with
+                    | Resolved ctx ->
+                        match ol.Component with
+                        | None -> ()
+                        | Some cmp ->
+                            let ctx =
+                                { ctx with
+                                    Scenarios =
+                                        ctx.Scenarios
+                                        |> Array.map (fun sc ->
+                                            if sc.Order.Id <> ol.Order.Id then sc
+                                            else
+                                                {
+                                                    sc with
+                                                        Component = ol.Component
+                                                        Item = ol.Item
+                                                        Order = ol.Order
+                                                }
+                                        )
+                                }
+                            nav (ctx, cmp, 1)
+                    | _ -> ()
 
             {|
                 // Frequency
@@ -812,12 +954,30 @@ module Order =
                 setFreqMed = create props.navigateOrderScenario.setMedianFrequency
                 setFreqInc = create props.navigateOrderScenario.incrFrequency
                 setFreqMax = create props.navigateOrderScenario.setMaxFrequency
-                // Rate
+                // Dose Rate
                 setRateMin = create props.navigateOrderScenario.setMinRate
                 setRateDec = create props.navigateOrderScenario.decrRate
                 setRateMed = create props.navigateOrderScenario.setMedianRate
                 setRateInc = create props.navigateOrderScenario.incrRate
                 setRateMax = create props.navigateOrderScenario.setMaxRate
+                // Dose Quantity
+                setDoseQtyMin = create props.navigateOrderScenario.setMinDoseQty
+                setDoseQtyDec = createWithN props.navigateOrderScenario.decrDoseQty
+                setDoseQtyMed = create props.navigateOrderScenario.setMedianDoseQty
+                setDoseQtyInc = createWithN props.navigateOrderScenario.incrDoseQty
+                setDoseQtyMax = create props.navigateOrderScenario.setMaxDoseQty
+                // Orderable Quantity
+                setOrderableQtyMin = create props.navigateOrderScenario.setMinOrderableQty
+                setOrderableQtyDec = createWithN props.navigateOrderScenario.decrOrderableQty
+                setOrderableQtyMed = create props.navigateOrderScenario.setMedianOrderableQty
+                setOrderableQtyInc = createWithN props.navigateOrderScenario.incrOrderableQty
+                setOrderableQtyMax = create props.navigateOrderScenario.setMaxOrderableQty
+                // Component Quantity
+                setComponentQtyMin = createWithCmp props.navigateOrderScenario.setMinComponentQty
+                setComponentQtyDec = createWithCmpN props.navigateOrderScenario.decrComponentQty
+                setComponentQtyMed = createWithCmp props.navigateOrderScenario.setMedianComponentQty
+                setComponentQtyInc = createWithCmpN props.navigateOrderScenario.incrComponentQty
+                setComponentQtyMax = createWithCmp props.navigateOrderScenario.setMaxComponentQty
             |}
 
         let state, dispatch =
@@ -963,13 +1123,14 @@ module Order =
                         // frequency
                         let navigate =
                             {|
-                                first = fun () -> SetMinOrderFrequencyProperty |> dispatch
-                                decrease = fun () -> DecreaseOrderFrequencyProperty |> dispatch
-                                median = fun () -> SetMedianOrderFrequencyProperty |> dispatch
-                                increase = fun () -> IncreaseOrderFrequencyProperty |> dispatch
-                                last = fun () -> SetMaxOrderFrequencyProperty |> dispatch
+                                first = fun () -> SetMinFrequencyProperty |> dispatch
+                                decrease = fun () -> DecreaseFrequencyProperty |> dispatch
+                                median = fun () -> SetMedianFrequencyProperty |> dispatch
+                                increase = fun () -> IncreaseFrequencyProperty |> dispatch
+                                last = fun () -> SetMaxFrequencyProperty |> dispatch
                             |}
                             |> Some
+
                         match state.Order with
                         | Some ord ->
                             ord.Schedule.Frequency.Variable.Vals
@@ -1081,12 +1242,22 @@ module Order =
                     }
                     {
                         // orderable dose quantity
+                        let navigate =
+                            {|
+                                first = fun () -> SetMinDoseQuantityProperty |> dispatch
+                                decrease = fun () -> 1 |> DecreaseDoseQuantityProperty |> dispatch
+                                median = fun () -> SetMedianDoseQuantityProperty |> dispatch
+                                increase = fun () -> 1 |> IncreaseDoseQuantityProperty |> dispatch
+                                last = fun () -> SetMaxDoseQuantityProperty |> dispatch
+                            |}
+                            |> Some
+
                         match state.Order with
                         | Some ord ->
                             ord.Orderable.Dose.Quantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Toedien Hoeveelheid" None (ChangeOrderableDoseQuantity >> dispatch) None false
+                            |> select false "Toedien Hoeveelheid" None (ChangeOrderableDoseQuantity >> dispatch) navigate false
                         | _ ->
                             [||]
                             |> select true "" None ignore None false
@@ -1163,12 +1334,22 @@ module Order =
                     }
                     {
                         // orderable quantity
+                        let navigate =
+                            {|
+                                first = fun () -> SetMinOrderableQuantityProperty |> dispatch
+                                decrease = fun () -> 1 |> DecreaseOrderableQuantityProperty |> dispatch
+                                median = fun () -> SetMedianOrderableQuantityProperty |> dispatch
+                                increase = fun () -> 1 |> IncreaseOrderableQuantityProperty |> dispatch
+                                last = fun () -> SetMaxOrderableQuantityProperty |> dispatch
+                            |}
+                            |> Some
+
                         match state.Order with
                         | Some ord ->
                             ord.Orderable.OrderableQuantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) None false
+                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) navigate false
                         | _ ->
                             [||]
                             |> select true "" None ignore None false
@@ -1178,11 +1359,11 @@ module Order =
                         // orderable dose rate
                         let navigate =
                             {|
-                                first = fun () -> SetMinOrderDoseRateProperty |> dispatch
-                                decrease = fun () -> 1 |> DecreaseOrderDoseRateProperty |> dispatch
-                                median = fun () -> SetMedianOrderDoseRateProperty |> dispatch
-                                increase = fun () -> 1 |> IncreaseOrderDoseRateProperty |> dispatch
-                                last = fun () -> SetMaxOrderDoseRateProperty |> dispatch
+                                first = fun () -> SetMinDoseRateProperty |> dispatch
+                                decrease = fun () -> 1 |> DecreaseDoseRateProperty |> dispatch
+                                median = fun () -> SetMedianDoseRateProperty |> dispatch
+                                increase = fun () -> 1 |> IncreaseDoseRateProperty |> dispatch
+                                last = fun () -> SetMaxDoseRateProperty |> dispatch
                             |}
                             |> Some
 

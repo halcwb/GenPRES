@@ -66,7 +66,7 @@ module Medication =
     /// <param name="norm">A sequence of big rationals for normalization.</param>
     /// <param name="minMax">The MinMax record containing constraints.</param>
     /// <param name="dto">The Variable dto to apply constraints to.</param>
-    let setConstraints
+    let setMinMaxConstraints
         (norm : ValueUnit option)
         (minMax : MinMax)
         (dto: Informedica.GenSolver.Lib.Variable.Dto.Dto) =
@@ -537,13 +537,13 @@ module Medication =
 
         /// Apply solution constraints to a component
         let setComponentSolutionConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (sl : SolutionLimit) =
-            cmpDto.OrderableQuantity.Constraints |> setConstraints sl.Quantities sl.Quantity
-            cmpDto.OrderableConcentration.Constraints |> setConstraints None sl.Concentration
+            cmpDto.OrderableQuantity.Constraints |> setMinMaxConstraints sl.Quantities sl.Quantity
+            cmpDto.OrderableConcentration.Constraints |> setMinMaxConstraints None sl.Concentration
 
         /// Apply solution constraints to an item
         let setItemSolutionConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (sl : SolutionLimit) =
-            itmDto.OrderableQuantity.Constraints |> setConstraints sl.Quantities sl.Quantity
-            itmDto.OrderableConcentration.Constraints |> setConstraints None sl.Concentration
+            itmDto.OrderableQuantity.Constraints |> setMinMaxConstraints sl.Quantities sl.Quantity
+            itmDto.OrderableConcentration.Constraints |> setMinMaxConstraints None sl.Concentration
 
         /// Set specific constraints for timed orders
         let setTimedOrderConstraints (orbDto : Order.Orderable.Dto.Dto) =
@@ -570,19 +570,19 @@ module Medication =
         /// Set item dose constraints based on order type
         let setItemDoseConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (d : Medication) (s : SubstanceItem) =
             let setDoseRate (dl : DoseLimit) =
-                itmDto.Dose.Rate.Constraints |> setConstraints None dl.Rate
-                itmDto.Dose.RateAdjust.Constraints |> setConstraints None dl.RateAdjust
+                itmDto.Dose.Rate.Constraints |> setMinMaxConstraints None dl.Rate
+                itmDto.Dose.RateAdjust.Constraints |> setMinMaxConstraints None dl.RateAdjust
 
             let setDoseQty (dl : DoseLimit) =
                 let zero = 0N |> createSingleValueUnitDto dl.DoseUnit
 
                 if dl.Quantity |> MinMax.isEmpty then itmDto.Dose.Quantity.Constraints.MinOpt <- zero
                 else
-                    itmDto.Dose.Quantity.Constraints |> setConstraints None dl.Quantity
+                    itmDto.Dose.Quantity.Constraints |> setMinMaxConstraints None dl.Quantity
 
-                itmDto.Dose.QuantityAdjust.Constraints |> setConstraints dl.NormQuantityAdjust dl.QuantityAdjust
-                itmDto.Dose.PerTime.Constraints |> setConstraints None dl.PerTime
-                itmDto.Dose.PerTimeAdjust.Constraints |> setConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
+                itmDto.Dose.QuantityAdjust.Constraints |> setMinMaxConstraints dl.NormQuantityAdjust dl.QuantityAdjust
+                itmDto.Dose.PerTime.Constraints |> setMinMaxConstraints None dl.PerTime
+                itmDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
             match d.OrderType with
             | AnyOrder | ProcessOrder -> ()
@@ -642,24 +642,24 @@ module Medication =
 
             let setDoseRate (dl : DoseLimit) =
                 if dl.Rate |> MinMax.isEmpty |> not then
-                    cmpDto.Dose.Rate.Constraints |> setConstraints None dl.Rate
+                    cmpDto.Dose.Rate.Constraints |> setMinMaxConstraints None dl.Rate
                 if dl.RateAdjust |> MinMax.isEmpty |> not then
-                    cmpDto.Dose.RateAdjust.Constraints |> setConstraints None dl.RateAdjust
+                    cmpDto.Dose.RateAdjust.Constraints |> setMinMaxConstraints None dl.RateAdjust
 
             let setDoseQty (dl : DoseLimit) =
                 if dl.Quantity |> MinMax.isEmpty |> not then
-                    cmpDto.Dose.Quantity.Constraints |> setConstraints None dl.Quantity
+                    cmpDto.Dose.Quantity.Constraints |> setMinMaxConstraints None dl.Quantity
                 else
                     // dose quantities can only add up with the same unit
                     // so this makes sure a dose quantity has a unit and
                     // can be included in to the addition equation
                     cmpDto.Dose.Quantity.Constraints.MinOpt <- zero
                 if dl.QuantityAdjust |> MinMax.isEmpty |> not || dl.NormQuantityAdjust |> Option.isSome then
-                    cmpDto.Dose.QuantityAdjust.Constraints |> setConstraints dl.NormQuantityAdjust dl.QuantityAdjust
+                    cmpDto.Dose.QuantityAdjust.Constraints |> setMinMaxConstraints dl.NormQuantityAdjust dl.QuantityAdjust
                 if dl.PerTime |> MinMax.isEmpty |> not then
-                    cmpDto.Dose.PerTime.Constraints |> setConstraints None dl.PerTime
+                    cmpDto.Dose.PerTime.Constraints |> setMinMaxConstraints None dl.PerTime
                 if dl.PerTimeAdjust |> MinMax.isEmpty |> not || dl.NormPerTimeAdjust |> Option.isSome then
-                    cmpDto.Dose.PerTimeAdjust.Constraints |> setConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
+                    cmpDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
             match d.OrderType with
             | AnyOrder | ProcessOrder -> ()
@@ -703,7 +703,7 @@ module Medication =
                     )
                 )
 
-            orbDto.DoseCount.Constraints |> setConstraints None d.DoseCount
+            orbDto.DoseCount.Constraints |> setMinMaxConstraints None d.DoseCount
 
             match d.Quantities with
             | None ->
@@ -732,6 +732,23 @@ module Medication =
                 | Some [ _; tu ] -> Some tu
                 | _ -> None
 
+            let incr =
+                match orderableUnit with
+                | None -> None
+                | Some ou ->
+                    d.Components
+                    |> List.choose _.Divisible
+                    |> function
+                    | [] -> None
+                    | divs -> 
+                        divs 
+                        |> List.min 
+                        |> fun br -> 1N / br
+                        |> ValueUnit.singleWithUnit ou
+                        |> Some
+                        |> vuToDto
+
+
             let setOrbDoseRate (dl : DoseLimit option) =
 
                 match rateUnit with 
@@ -752,10 +769,13 @@ module Medication =
                 match dl with
                 | None -> ()
                 | Some dl ->
-                    orbDto.Dose.Rate.Constraints |> setConstraints None dl.Rate
-                    orbDto.Dose.RateAdjust.Constraints |> setConstraints None dl.RateAdjust
+                    orbDto.Dose.Rate.Constraints |> setMinMaxConstraints None dl.Rate
+                    orbDto.Dose.RateAdjust.Constraints |> setMinMaxConstraints None dl.RateAdjust
 
             let setOrbDoseQty isOnce (dl : DoseLimit option) =
+                // set a default increment based on the smallest product component increment
+                orbDto.Dose.Quantity.Constraints.IncrOpt <- incr
+
                 match dl with
                 | None ->
                     match orderableUnit with
@@ -773,8 +793,8 @@ module Medication =
                     | _ -> ()
 
                 | Some dl ->
-                    orbDto.Dose.Quantity.Constraints |> setConstraints None dl.Quantity
-                    orbDto.Dose.QuantityAdjust.Constraints |> setConstraints dl.NormQuantityAdjust dl.QuantityAdjust
+                    orbDto.Dose.Quantity.Constraints |> setMinMaxConstraints None dl.Quantity
+                    orbDto.Dose.QuantityAdjust.Constraints |> setMinMaxConstraints dl.NormQuantityAdjust dl.QuantityAdjust
 
                     // make sure that orderable dose quantity has constraints with a unit
                     if dl.Quantity |> MinMax.isEmpty then
@@ -786,7 +806,7 @@ module Medication =
                         | None -> ()
 
                     if not isOnce then
-                        orbDto.Dose.PerTime.Constraints |> setConstraints None dl.PerTime
+                        orbDto.Dose.PerTime.Constraints |> setMinMaxConstraints None dl.PerTime
                         // make sure that orderable dose per time has constraints with a unit
                         if dl.PerTime |> MinMax.isEmpty then
                             match orderableUnit, freqTimeUnit with
@@ -796,7 +816,7 @@ module Medication =
                                 orbDto.Dose.PerTime.Constraints.MinIncl <- false
                             | _ -> ()
 
-                        orbDto.Dose.PerTimeAdjust.Constraints |> setConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
+                        orbDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
             match d.OrderType with
             | AnyOrder | ProcessOrder -> ()
@@ -807,9 +827,6 @@ module Medication =
             | OnceTimedOrder ->
                 d.Dose |> setOrbDoseRate
                 d.Dose |> setOrbDoseQty true
-                // Assume timed order always solution
-                orbDto.Dose.Quantity.Constraints.IncrOpt <-
-                    1N/10N |> createSingleValueUnitDto Units.Volume.milliLiter
             | DiscontinuousOrder ->
                 d.Dose |> setOrbDoseQty false
             | TimedOrder ->
