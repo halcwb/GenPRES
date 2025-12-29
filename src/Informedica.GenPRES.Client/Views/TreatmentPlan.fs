@@ -341,6 +341,24 @@ module TreatmentPlan =
                                 setMedianRate = ignore // Api.SetMedianOrderDoseRateProperty >> props.updateOrderContext
                                 incrRate = ignore // (fun ctx -> (ctx, 1) |> Api.IncreaseOrderDoseRateProperty |> props.updateOrderContext)
                                 setMaxRate = ignore //Api.SetMaxOrderDoseRateProperty >> props.updateOrderContext
+                                // Dose Quantity
+                                setMinDoseQty = ignore //Api.SetMinOrderDoseQuantityProperty >> props.updateOrderContext
+                                decrDoseQty = ignore //Api.DecreaseOrderDoseQuantityProperty >> props.updateOrderContext
+                                setMedianDoseQty = ignore //Api.SetMedianOrderDoseQuantityProperty >> props.updateOrderContext
+                                incrDoseQty = ignore //Api.IncreaseOrderDoseQuantityProperty >> props.updateOrderContext
+                                setMaxDoseQty = ignore //Api.SetMaxOrderDoseQuantityProperty >> props.updateOrderContext
+                                // Orderable Quantity
+                                setMinOrderableQty = ignore //Api.SetMinOrderableQuantityProperty >> props.updateOrderContext
+                                decrOrderableQty = ignore //Api.DecreaseOrderableQuantityProperty >> props.updateOrderContext
+                                setMedianOrderableQty = ignore //Api.SetMedianOrderableQuantityProperty >> props.updateOrderContext
+                                incrOrderableQty = ignore //Api.IncreaseOrderableQuantityProperty >> props.updateOrderContext
+                                setMaxOrderableQty = ignore //Api.SetMaxOrderableQuantityProperty >> props.updateOrderContext
+                                // Component Quantity
+                                setMinComponentQty = ignore //Api.SetMinComponentQuantityProperty >> props.updateOrderContext
+                                decrComponentQty = ignore //Api.DecreaseComponentQuantityProperty >> props.updateOrderContext
+                                setMedianComponentQty = ignore //Api.SetMedianComponentQuantityProperty >> props.updateOrderContext
+                                incrComponentQty = ignore //Api.IncreaseComponentQuantityProperty >> props.updateOrderContext
+                                setMaxComponentQty = ignore //Api.SetMaxComponentQuantityProperty >> props.updateOrderContext
 
                             |}
                             refreshOrderScenario = refreshOrderScenario

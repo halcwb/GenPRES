@@ -815,23 +815,35 @@ module OrderContext =
                 | Api.ResetOrderScenario _ -> ctx |> OrderContext.ResetOrderScenario
                 | Api.ReloadResources _ -> ctx |> OrderContext.ReloadResources
                 // Frequency property commands
-                | Api.DecreaseOrderFrequencyProperty _ -> ctx |> OrderContext.DecreaseOrderFrequencyProperty
-                | Api.IncreaseOrderFrequencyProperty _ -> ctx |> OrderContext.IncreaseOrderFrequencyProperty
-                | Api.SetMinOrderFrequencyProperty _ -> ctx |> OrderContext.SetMinOrderFrequencyProperty
-                | Api.SetMaxOrderFrequencyProperty _ -> ctx |> OrderContext.SetMaxOrderFrequencyProperty
-                | Api.SetMedianOrderFrequencyProperty _ -> ctx |> OrderContext.SetMedianOrderFrequencyProperty
+                | Api.DecreaseScheduleFrequencyProperty _ -> ctx |> OrderContext.DecreaseScheduleFrequencyProperty
+                | Api.IncreaseScheduleFrequencyProperty _ -> ctx |> OrderContext.IncreaseScheduleFrequencyProperty
+                | Api.SetMinScheduleFrequencyProperty _ -> ctx |> OrderContext.SetMinScheduleFrequencyProperty
+                | Api.SetMaxScheduleFrequencyProperty _ -> ctx |> OrderContext.SetMaxScheduleFrequencyProperty
+                | Api.SetMedianScheduleFrequencyProperty _ -> ctx |> OrderContext.SetMedianScheduleFrequencyProperty
                 // DoseQuantity property commands
-                | Api.DecreaseOrderDoseQuantityProperty (_, cmp, ntimes) -> OrderContext.DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
-                | Api.IncreaseOrderDoseQuantityProperty (_, cmp, ntimes) -> OrderContext.IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
-                | Api.SetMinOrderDoseQuantityProperty (_, cmp) -> OrderContext.SetMinOrderDoseQuantityProperty (ctx, cmp)
-                | Api.SetMaxOrderDoseQuantityProperty (_, cmp) -> OrderContext.SetMaxOrderDoseQuantityProperty (ctx, cmp)
-                | Api.SetMedianOrderDoseQuantityProperty (_, cmp) -> OrderContext.SetMedianOrderDoseQuantityProperty (ctx, cmp)
+                | Api.DecreaseOrderableDoseQuantityProperty (_, ntimes) -> OrderContext.DecreaseOrderableDoseQuantityProperty (ctx, ntimes)
+                | Api.IncreaseOrderableDoseQuantityProperty (_, ntimes) -> OrderContext.IncreaseOrderableDoseQuantityProperty (ctx, ntimes)
+                | Api.SetMinOrderableDoseQuantityProperty _ -> OrderContext.SetMinOrderableDoseQuantityProperty ctx
+                | Api.SetMaxOrderableDoseQuantityProperty _ -> OrderContext.SetMaxOrderableDoseQuantityProperty ctx
+                | Api.SetMedianOrderableDoseQuantityProperty _ -> OrderContext.SetMedianOrderableDoseQuantityProperty ctx
                 // DoseRate property commands
-                | Api.DecreaseOrderDoseRateProperty (_, ntimes) -> OrderContext.DecreaseOrderDoseRateProperty (ctx, ntimes)
-                | Api.IncreaseOrderDoseRateProperty (_, ntimes) -> OrderContext.IncreaseOrderDoseRateProperty (ctx, ntimes)
-                | Api.SetMinOrderDoseRateProperty _ -> ctx |> OrderContext.SetMinOrderDoseRateProperty
-                | Api.SetMaxOrderDoseRateProperty _ -> ctx |> OrderContext.SetMaxOrderDoseRateProperty
-                | Api.SetMedianOrderDoseRateProperty _ -> ctx |> OrderContext.SetMedianOrderDoseRateProperty
+                | Api.DecreaseOrderableDoseRateProperty (_, ntimes) -> OrderContext.DecreaseOrderableDoseRateProperty (ctx, ntimes)
+                | Api.IncreaseOrderableDoseRateProperty (_, ntimes) -> OrderContext.IncreaseOrderableDoseRateProperty (ctx, ntimes)
+                | Api.SetMinOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMinOrderableDoseRateProperty
+                | Api.SetMaxOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMaxOrderableDoseRateProperty
+                | Api.SetMedianOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMedianOrderableDoseRateProperty
+                // Orderable Quantity property commands
+                | Api.DecreaseOrderableQuantityProperty (_, ntimes) -> OrderContext.DecreaseOrderableQuantityProperty (ctx, ntimes)
+                | Api.IncreaseOrderableQuantityProperty (_, ntimes) -> OrderContext.IncreaseOrderableQuantityProperty (ctx, ntimes)
+                | Api.SetMinOrderableQuantityProperty _ -> OrderContext.SetMinOrderableQuantityProperty ctx
+                | Api.SetMaxOrderableQuantityProperty _ -> OrderContext.SetMaxOrderableQuantityProperty ctx
+                | Api.SetMedianOrderableQuantityProperty _ -> OrderContext.SetMedianOrderableQuantityProperty ctx
+                // Component Quantity property commands
+                | Api.DecreaseComponentQuantityProperty (_, cmp, ntimes) -> OrderContext.DecreaseComponentQuantityProperty (ctx, cmp, ntimes)
+                | Api.IncreaseComponentQuantityProperty (_, cmp, ntimes) -> OrderContext.IncreaseComponentQuantityProperty (ctx, cmp, ntimes)
+                | Api.SetMinComponentQuantityProperty (_, cmp) -> OrderContext.SetMinComponentQuantityProperty (ctx, cmp)
+                | Api.SetMaxComponentQuantityProperty (_, cmp) -> OrderContext.SetMaxComponentQuantityProperty (ctx, cmp)
+                | Api.SetMedianComponentQuantityProperty (_, cmp) -> OrderContext.SetMedianComponentQuantityProperty (ctx, cmp)
 
             |> OrderContext.logOrderContext logger "start eval"
             |> OrderContext.evaluate logger provider
@@ -845,23 +857,35 @@ module OrderContext =
         | Api.ResetOrderScenario ctx
         | Api.ReloadResources ctx
         // Frequency property commands
-        | Api.DecreaseOrderFrequencyProperty ctx
-        | Api.IncreaseOrderFrequencyProperty ctx
-        | Api.SetMinOrderFrequencyProperty ctx
-        | Api.SetMaxOrderFrequencyProperty ctx
-        | Api.SetMedianOrderFrequencyProperty ctx
+        | Api.DecreaseScheduleFrequencyProperty ctx
+        | Api.IncreaseScheduleFrequencyProperty ctx
+        | Api.SetMinScheduleFrequencyProperty ctx
+        | Api.SetMaxScheduleFrequencyProperty ctx
+        | Api.SetMedianScheduleFrequencyProperty ctx
         // DoseQuantity property commands
-        | Api.DecreaseOrderDoseQuantityProperty (ctx, _, _)
-        | Api.IncreaseOrderDoseQuantityProperty (ctx, _, _)
-        | Api.SetMinOrderDoseQuantityProperty (ctx, _)
-        | Api.SetMaxOrderDoseQuantityProperty (ctx, _)
-        | Api.SetMedianOrderDoseQuantityProperty (ctx, _)
+        | Api.DecreaseOrderableDoseQuantityProperty (ctx, _)
+        | Api.IncreaseOrderableDoseQuantityProperty (ctx, _)
+        | Api.SetMinOrderableDoseQuantityProperty ctx
+        | Api.SetMaxOrderableDoseQuantityProperty ctx
+        | Api.SetMedianOrderableDoseQuantityProperty ctx
         // DoseRate property commands
-        | Api.DecreaseOrderDoseRateProperty (ctx, _)
-        | Api.IncreaseOrderDoseRateProperty (ctx, _)
-        | Api.SetMinOrderDoseRateProperty ctx
-        | Api.SetMaxOrderDoseRateProperty ctx
-        | Api.SetMedianOrderDoseRateProperty ctx
+        | Api.DecreaseOrderableDoseRateProperty (ctx, _)
+        | Api.IncreaseOrderableDoseRateProperty (ctx, _)
+        | Api.SetMinOrderableDoseRateProperty ctx
+        | Api.SetMaxOrderableDoseRateProperty ctx
+        | Api.SetMedianOrderableDoseRateProperty ctx
+        // Orderable Quantity property commands
+        | Api.DecreaseOrderableQuantityProperty (ctx, _)
+        | Api.IncreaseOrderableQuantityProperty (ctx, _)
+        | Api.SetMinOrderableQuantityProperty ctx
+        | Api.SetMaxOrderableQuantityProperty ctx
+        | Api.SetMedianOrderableQuantityProperty ctx
+        // Component Quantity property commands
+        | Api.DecreaseComponentQuantityProperty (ctx, _, _)
+        | Api.IncreaseComponentQuantityProperty (ctx, _, _)
+        | Api.SetMinComponentQuantityProperty (ctx, _)
+        | Api.SetMaxComponentQuantityProperty (ctx, _)
+        | Api.SetMedianComponentQuantityProperty (ctx, _)
          ->
             let map = mapToShared ctx >> updateIntake >> setDemoVersion
 
@@ -881,23 +905,35 @@ module OrderContext =
                     | OrderContext.ResetOrderScenario newCtx -> newCtx |> map
                     | OrderContext.ReloadResources newCtx -> newCtx |> map
                     // Frequency property commands
-                    | OrderContext.DecreaseOrderFrequencyProperty newCtx -> newCtx |> map
-                    | OrderContext.IncreaseOrderFrequencyProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMinOrderFrequencyProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMaxOrderFrequencyProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMedianOrderFrequencyProperty newCtx -> newCtx |> map
+                    | OrderContext.DecreaseScheduleFrequencyProperty newCtx -> newCtx |> map
+                    | OrderContext.IncreaseScheduleFrequencyProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMinScheduleFrequencyProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMaxScheduleFrequencyProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMedianScheduleFrequencyProperty newCtx -> newCtx |> map
                     // DoseQuantity property commands
-                    | OrderContext.DecreaseOrderDoseQuantityProperty (newCtx, _, _) -> newCtx |> map
-                    | OrderContext.IncreaseOrderDoseQuantityProperty (newCtx, _, _) -> newCtx |> map
-                    | OrderContext.SetMinOrderDoseQuantityProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.SetMaxOrderDoseQuantityProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.SetMedianOrderDoseQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.DecreaseOrderableDoseQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.IncreaseOrderableDoseQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.SetMinOrderableDoseQuantityProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMaxOrderableDoseQuantityProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMedianOrderableDoseQuantityProperty newCtx -> newCtx |> map
                     // DoseRate property commands
-                    | OrderContext.DecreaseOrderDoseRateProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.IncreaseOrderDoseRateProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.SetMinOrderDoseRateProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMaxOrderDoseRateProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMedianOrderDoseRateProperty newCtx -> newCtx |> map
+                    | OrderContext.DecreaseOrderableDoseRateProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.IncreaseOrderableDoseRateProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.SetMinOrderableDoseRateProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMaxOrderableDoseRateProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMedianOrderableDoseRateProperty newCtx -> newCtx |> map
+                    // Orderable Quantity property commands
+                    | OrderContext.DecreaseOrderableQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.IncreaseOrderableQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.SetMinOrderableQuantityProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMaxOrderableQuantityProperty newCtx -> newCtx |> map
+                    | OrderContext.SetMedianOrderableQuantityProperty newCtx -> newCtx |> map
+                    // Component Quantity property commands
+                    | OrderContext.DecreaseComponentQuantityProperty (newCtx, _, _) -> newCtx |> map
+                    | OrderContext.IncreaseComponentQuantityProperty (newCtx, _, _) -> newCtx |> map
+                    | OrderContext.SetMinComponentQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.SetMaxComponentQuantityProperty (newCtx, _) -> newCtx |> map
+                    | OrderContext.SetMedianComponentQuantityProperty (newCtx, _) -> newCtx |> map
                 |> Ok
             with
             | e ->

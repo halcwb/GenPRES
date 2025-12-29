@@ -635,17 +635,35 @@ module Prescribe =
                             updateOrderScenario = Api.UpdateOrderScenario >> props.updateOrderContext
                             navigateOrderScenario = {|
                                 // Frequency
-                                setMinFrequency = Api.SetMinOrderFrequencyProperty >> props.updateOrderContext
-                                decrFrequency = Api.DecreaseOrderFrequencyProperty >> props.updateOrderContext
-                                setMedianFrequency = Api.SetMedianOrderFrequencyProperty >> props.updateOrderContext
-                                incrFrequency = Api.IncreaseOrderFrequencyProperty >> props.updateOrderContext
-                                setMaxFrequency = Api.SetMaxOrderFrequencyProperty >> props.updateOrderContext
+                                setMinFrequency = Api.SetMinScheduleFrequencyProperty >> props.updateOrderContext
+                                decrFrequency = Api.DecreaseScheduleFrequencyProperty >> props.updateOrderContext
+                                setMedianFrequency = Api.SetMedianScheduleFrequencyProperty >> props.updateOrderContext
+                                incrFrequency = Api.IncreaseScheduleFrequencyProperty >> props.updateOrderContext
+                                setMaxFrequency = Api.SetMaxScheduleFrequencyProperty >> props.updateOrderContext
                                 // Rate
-                                setMinRate = Api.SetMinOrderDoseRateProperty >> props.updateOrderContext
-                                decrRate = (fun ctx -> (ctx, 1) |> Api.DecreaseOrderDoseRateProperty |> props.updateOrderContext)
-                                setMedianRate = Api.SetMedianOrderDoseRateProperty >> props.updateOrderContext
-                                incrRate = (fun ctx -> (ctx, 1) |> Api.IncreaseOrderDoseRateProperty |> props.updateOrderContext)
-                                setMaxRate = Api.SetMaxOrderDoseRateProperty >> props.updateOrderContext
+                                setMinRate = Api.SetMinOrderableDoseRateProperty >> props.updateOrderContext
+                                decrRate = (fun ctx -> (ctx, 1) |> Api.DecreaseOrderableDoseRateProperty |> props.updateOrderContext)
+                                setMedianRate = Api.SetMedianOrderableDoseRateProperty >> props.updateOrderContext
+                                incrRate = (fun ctx -> (ctx, 1) |> Api.IncreaseOrderableDoseRateProperty |> props.updateOrderContext)
+                                setMaxRate = Api.SetMaxOrderableDoseRateProperty >> props.updateOrderContext
+                                // Dose Quantity
+                                setMinDoseQty = Api.SetMinOrderableDoseQuantityProperty >> props.updateOrderContext
+                                decrDoseQty = Api.DecreaseOrderableDoseQuantityProperty >> props.updateOrderContext
+                                setMedianDoseQty = Api.SetMedianOrderableDoseQuantityProperty >> props.updateOrderContext
+                                incrDoseQty = Api.IncreaseOrderableDoseQuantityProperty >> props.updateOrderContext
+                                setMaxDoseQty = Api.SetMaxOrderableDoseQuantityProperty >> props.updateOrderContext
+                                // Orderable Quantity
+                                setMinOrderableQty = Api.SetMinOrderableQuantityProperty >> props.updateOrderContext
+                                decrOrderableQty = Api.DecreaseOrderableQuantityProperty >> props.updateOrderContext
+                                setMedianOrderableQty = Api.SetMedianOrderableQuantityProperty >> props.updateOrderContext
+                                incrOrderableQty = Api.IncreaseOrderableQuantityProperty >> props.updateOrderContext
+                                setMaxOrderableQty = Api.SetMaxOrderableQuantityProperty >> props.updateOrderContext
+                                // Component Quantity
+                                setMinComponentQty = Api.SetMinComponentQuantityProperty >> props.updateOrderContext
+                                decrComponentQty = Api.DecreaseComponentQuantityProperty >> props.updateOrderContext
+                                setMedianComponentQty = Api.SetMedianComponentQuantityProperty >> props.updateOrderContext
+                                incrComponentQty = Api.IncreaseComponentQuantityProperty >> props.updateOrderContext
+                                setMaxComponentQty = Api.SetMaxComponentQuantityProperty >> props.updateOrderContext
                             |}
                             refreshOrderScenario = Api.ResetOrderScenario >> props.updateOrderContext
                             closeOrder = handleModalClose

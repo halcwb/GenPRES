@@ -192,6 +192,15 @@ module Order =
 
 
             /// <summary>
+            /// Apply only quantity adjust constraints to a Dose
+            /// </summary>
+            let applyQuantityAdjustConstraints dos =
+                { (dos |> inf) with
+                    QuantityAdjust = dos.QuantityAdjust |> QuantityAdjust.applyConstraints
+                }
+
+
+            /// <summary>
             /// Apply per time constraints to a Dose
             /// </summary>
             let applyPerTimeConstraints dos =
@@ -284,12 +293,12 @@ module Order =
             /// </summary>
             /// <param name="set">The function to set the value</param>
             /// <param name="sch">The prescription schedulee</param>
+            /// <param name="setRate">If timed set rate or pertime</param>
             /// <param name="dos">The Dose</param>
             /// <returns>The Dose with the value set</returns>
-            let setDose set sch dos =
+            let setDose set sch setRate dos =
                 match sch with
-                | Once
-                | OnceTimed _ ->
+                | Once ->
                     { (dos |> inf) with
                         Quantity =
                             dos.Quantity
@@ -297,8 +306,24 @@ module Order =
                             |> set
                             |> Quantity
                     }
-                | Discontinuous _
-                | Timed _ ->
+                | OnceTimed _ ->
+                    if setRate then 
+                        { dos with
+                            Rate =
+                                dos.Rate
+                                |> Rate.toOrdVar
+                                |> set
+                                |> Rate
+                        }
+                    else
+                        { (dos |> inf) with
+                            Quantity =
+                                dos.Quantity
+                                |> Quantity.toOrdVar
+                                |> set
+                                |> Quantity
+                        }
+                | Discontinuous _ ->
                     { dos with
                         PerTime =
                             dos.PerTime
@@ -306,6 +331,24 @@ module Order =
                             |> set
                             |> PerTime
                     }
+
+                | Timed _ ->
+                    if setRate then
+                        { dos with
+                            Rate =
+                                dos.Rate
+                                |> Rate.toOrdVar
+                                |> set
+                                |> Rate
+                        }
+                    else
+                        { dos with
+                            PerTime =
+                                dos.PerTime
+                                |> PerTime.toOrdVar
+                                |> set
+                                |> PerTime
+                        }
                 | Continuous _ ->
                     { dos with
                         Rate =

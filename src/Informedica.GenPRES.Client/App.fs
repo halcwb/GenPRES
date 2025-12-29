@@ -66,18 +66,30 @@ module private Elmish =
         | LoadFrequencySetMinPropertyChange of ApiResponse
         | LoadFrequencySetMaxPropertyChange of ApiResponse
         | LoadFrequencySetMedianPropertyChange of ApiResponse
-        // DoseQuantity property change responses
-        | LoadDoseQuantityDecreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
-        | LoadDoseQuantityIncreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
-        | LoadDoseQuantitySetMinPropertyChange of cmp: string * resp: ApiResponse
-        | LoadDoseQuantitySetMaxPropertyChange of cmp: string * resp: ApiResponse
-        | LoadDoseQuantitySetMedianPropertyChange of cmp: string * resp: ApiResponse
-        // DoseRate property change responses
+        // Dose Quantity property change responses
+        | LoadDoseQuantityDecreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadDoseQuantityIncreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadDoseQuantitySetMinPropertyChange of resp: ApiResponse
+        | LoadDoseQuantitySetMaxPropertyChange of resp: ApiResponse
+        | LoadDoseQuantitySetMedianPropertyChange of resp: ApiResponse
+        // Dose Rate property change responses
         | LoadDoseRateDecreasePropertyChange of ntimes: int * resp: ApiResponse
         | LoadDoseRateIncreasePropertyChange of ntimes: int * resp: ApiResponse
         | LoadDoseRateSetMinPropertyChange of ApiResponse
         | LoadDoseRateSetMaxPropertyChange of ApiResponse
         | LoadDoseRateSetMedianPropertyChange of ApiResponse
+        // Orderable Quantity property change responses
+        | LoadOrderableQuantityDecreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadOrderableQuantityIncreasePropertyChange of ntimes: int * resp: ApiResponse
+        | LoadOrderableQuantitySetMinPropertyChange of resp: ApiResponse
+        | LoadOrderableQuantitySetMaxPropertyChange of resp: ApiResponse
+        | LoadOrderableQuantitySetMedianPropertyChange of resp: ApiResponse
+        // Component Quantity property change responses
+        | LoadComponentQuantityDecreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
+        | LoadComponentQuantityIncreasePropertyChange of cmp: string * ntimes: int * resp: ApiResponse
+        | LoadComponentQuantitySetMinPropertyChange of cmp: string * resp: ApiResponse
+        | LoadComponentQuantitySetMaxPropertyChange of cmp: string * resp: ApiResponse
+        | LoadComponentQuantitySetMedianPropertyChange of cmp: string * resp: ApiResponse
 
         | TreatmentPlanCommand of Api.TreatmentPlanCommand
         | LoadUpdatedTreatmentPlan of ApiResponse
@@ -494,29 +506,29 @@ module private Elmish =
 
 
         // DoseQuantity property handlers
-        let decreaseDoseQuantityProperty state (ctx : OrderContext) cmp ntimes =
+        let decreaseDoseQuantityProperty state (ctx : OrderContext) ntimes =
                 { state with OrderContext = Resolved ctx },
-                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, Started)) ]
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityDecreasePropertyChange (ntimes, Started)) ]
 
 
-        let increaseDoseQuantityProperty state (ctx : OrderContext) cmp ntimes =
+        let increaseDoseQuantityProperty state (ctx : OrderContext) ntimes =
                 { state with OrderContext = Resolved ctx },
-                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, Started)) ]
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantityIncreasePropertyChange (ntimes, Started)) ]
 
 
-        let setMinDoseQuantityProperty state (ctx : OrderContext) cmp =
+        let setMinDoseQuantityProperty state (ctx : OrderContext) =
                 { state with OrderContext = Resolved ctx },
-                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMinPropertyChange (cmp, Started)) ]
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMinPropertyChange Started) ]
 
 
-        let setMaxDoseQuantityProperty state (ctx : OrderContext) cmp =
+        let setMaxDoseQuantityProperty state (ctx : OrderContext) =
                 { state with OrderContext = Resolved ctx },
-                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMaxPropertyChange (cmp, Started)) ]
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMaxPropertyChange Started) ]
 
 
-        let setMedianDoseQuantityProperty state (ctx : OrderContext) cmp =
+        let setMedianDoseQuantityProperty state (ctx : OrderContext) =
                 { state with OrderContext = Resolved ctx },
-                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMedianPropertyChange (cmp, Started)) ]
+                Cmd.batch [ Cmd.ofMsg (LoadDoseQuantitySetMedianPropertyChange Started) ]
 
 
         // DoseRate property handlers
@@ -545,6 +557,60 @@ module private Elmish =
                 Cmd.batch [ Cmd.ofMsg (LoadDoseRateSetMedianPropertyChange Started) ]
 
 
+        // Orderable Quantity property handlers
+        let decreaseOrderableQuantityProperty state (ctx : OrderContext) ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadOrderableQuantityDecreasePropertyChange (ntimes, Started)) ]
+
+
+        let increaseOrderableQuantityProperty state (ctx : OrderContext) ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadOrderableQuantityIncreasePropertyChange (ntimes, Started)) ]
+
+
+        let setMinOrderableQuantityProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadOrderableQuantitySetMinPropertyChange Started) ]
+
+
+        let setMaxOrderableQuantityProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadOrderableQuantitySetMaxPropertyChange Started) ]
+
+
+        let setMedianOrderableQuantityProperty state (ctx : OrderContext) =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadOrderableQuantitySetMedianPropertyChange Started) ]
+
+
+        // Component Quantity property handlers
+        let decreaseComponentQuantityProperty state (ctx : OrderContext) cmp ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadComponentQuantityDecreasePropertyChange (cmp, ntimes, Started)) ]
+
+
+        let increaseComponentQuantityProperty state (ctx : OrderContext) cmp ntimes =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadComponentQuantityIncreasePropertyChange (cmp, ntimes, Started)) ]
+
+
+        let setMinComponentQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadComponentQuantitySetMinPropertyChange (cmp, Started)) ]
+
+
+        let setMaxComponentQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadComponentQuantitySetMaxPropertyChange (cmp, Started)) ]
+
+
+        let setMedianComponentQuantityProperty state (ctx : OrderContext) cmp =
+                { state with OrderContext = Resolved ctx },
+                Cmd.batch [ Cmd.ofMsg (LoadComponentQuantitySetMedianPropertyChange (cmp, Started)) ]
+
+
+
+
     let update (msg: Msg) (state: State) =
         let processOk = processApiMsg state
         let processError err (state, cmd) =
@@ -570,13 +636,13 @@ module private Elmish =
         | UpdateLanguage lang ->
             { state with
                 ShowDisclaimer = true
-                Context =  { state.Context with Localization = lang }
+                State.Context.Localization = lang
             }, Cmd.none
 
         | UpdateHospital hosp ->
             { state with
                 ShowDisclaimer = true
-                Context =  { state.Context with Hospital = hosp }
+                State.Context.Hospital = hosp
             }, Cmd.none
 
         | UpdatePage page ->
@@ -654,7 +720,7 @@ module private Elmish =
                         | InProgress -> state.OrderContext
                         | HasNotStartedYet ->
                             OrderContext.empty
-                            |> OrderContext.setMedication m.indication m.medication m.route m.form m.dosetype 
+                            |> OrderContext.setMedication m.indication m.medication m.route m.form m.dosetype
                             |> Resolved
                         | Resolved ctx ->
                             ctx
@@ -798,23 +864,35 @@ module private Elmish =
             | Api.ResetOrderScenario ctx -> ctx |> CommandHandlers.refreshOrderScenario state
             | Api.ReloadResources ctx -> ctx |> CommandHandlers.updateOrderContext state
             // Frequency property commands
-            | Api.DecreaseOrderFrequencyProperty ctx -> ctx |> CommandHandlers.decreaseFrequencyProperty state
-            | Api.IncreaseOrderFrequencyProperty ctx -> ctx |> CommandHandlers.increaseFrequencyProperty state
-            | Api.SetMinOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMinFrequencyProperty state
-            | Api.SetMaxOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMaxFrequencyProperty state
-            | Api.SetMedianOrderFrequencyProperty ctx -> ctx |> CommandHandlers.setMedianFrequencyProperty state
-            // DoseQuantity property commands
-            | Api.DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.decreaseDoseQuantityProperty state ctx cmp ntimes
-            | Api.IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.increaseDoseQuantityProperty state ctx cmp ntimes
-            | Api.SetMinOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMinDoseQuantityProperty state ctx cmp
-            | Api.SetMaxOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMaxDoseQuantityProperty state ctx cmp
-            | Api.SetMedianOrderDoseQuantityProperty (ctx, cmp) -> CommandHandlers.setMedianDoseQuantityProperty state ctx cmp
-            // DoseRate property commands
-            | Api.DecreaseOrderDoseRateProperty (ctx, ntimes) -> CommandHandlers.decreaseDoseRateProperty state ctx ntimes
-            | Api.IncreaseOrderDoseRateProperty (ctx, ntimes) -> CommandHandlers.increaseDoseRateProperty state ctx ntimes
-            | Api.SetMinOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMinDoseRateProperty state
-            | Api.SetMaxOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMaxDoseRateProperty state
-            | Api.SetMedianOrderDoseRateProperty ctx -> ctx |> CommandHandlers.setMedianDoseRateProperty state
+            | Api.DecreaseScheduleFrequencyProperty ctx -> ctx |> CommandHandlers.decreaseFrequencyProperty state
+            | Api.IncreaseScheduleFrequencyProperty ctx -> ctx |> CommandHandlers.increaseFrequencyProperty state
+            | Api.SetMinScheduleFrequencyProperty ctx -> ctx |> CommandHandlers.setMinFrequencyProperty state
+            | Api.SetMaxScheduleFrequencyProperty ctx -> ctx |> CommandHandlers.setMaxFrequencyProperty state
+            | Api.SetMedianScheduleFrequencyProperty ctx -> ctx |> CommandHandlers.setMedianFrequencyProperty state
+            // Dose Quantity property commands
+            | Api.DecreaseOrderableDoseQuantityProperty (ctx, ntimes) -> CommandHandlers.decreaseDoseQuantityProperty state ctx ntimes
+            | Api.IncreaseOrderableDoseQuantityProperty (ctx, ntimes) -> CommandHandlers.increaseDoseQuantityProperty state ctx ntimes
+            | Api.SetMinOrderableDoseQuantityProperty ctx -> CommandHandlers.setMinDoseQuantityProperty state ctx
+            | Api.SetMaxOrderableDoseQuantityProperty ctx -> CommandHandlers.setMaxDoseQuantityProperty state ctx
+            | Api.SetMedianOrderableDoseQuantityProperty ctx -> CommandHandlers.setMedianDoseQuantityProperty state ctx
+            // Dose Rate property commands
+            | Api.DecreaseOrderableDoseRateProperty (ctx, ntimes) -> CommandHandlers.decreaseDoseRateProperty state ctx ntimes
+            | Api.IncreaseOrderableDoseRateProperty (ctx, ntimes) -> CommandHandlers.increaseDoseRateProperty state ctx ntimes
+            | Api.SetMinOrderableDoseRateProperty ctx -> ctx |> CommandHandlers.setMinDoseRateProperty state
+            | Api.SetMaxOrderableDoseRateProperty ctx -> ctx |> CommandHandlers.setMaxDoseRateProperty state
+            | Api.SetMedianOrderableDoseRateProperty ctx -> ctx |> CommandHandlers.setMedianDoseRateProperty state
+            // Orderable Quantity property commands
+            | Api.DecreaseOrderableQuantityProperty (ctx, ntimes) -> CommandHandlers.decreaseOrderableQuantityProperty state ctx ntimes
+            | Api.IncreaseOrderableQuantityProperty (ctx, ntimes) -> CommandHandlers.increaseOrderableQuantityProperty state ctx ntimes
+            | Api.SetMinOrderableQuantityProperty ctx -> CommandHandlers.setMinOrderableQuantityProperty state ctx
+            | Api.SetMaxOrderableQuantityProperty ctx -> CommandHandlers.setMaxOrderableQuantityProperty state ctx
+            | Api.SetMedianOrderableQuantityProperty ctx -> CommandHandlers.setMedianOrderableQuantityProperty state ctx
+            // Component Quantity property commands
+            | Api.DecreaseComponentQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.decreaseComponentQuantityProperty state ctx cmp ntimes
+            | Api.IncreaseComponentQuantityProperty (ctx, cmp, ntimes) -> CommandHandlers.increaseComponentQuantityProperty state ctx cmp ntimes
+            | Api.SetMinComponentQuantityProperty (ctx, cmp) -> CommandHandlers.setMinComponentQuantityProperty state ctx cmp
+            | Api.SetMaxComponentQuantityProperty (ctx, cmp) -> CommandHandlers.setMaxComponentQuantityProperty state ctx cmp
+            | Api.SetMedianComponentQuantityProperty (ctx, cmp) -> CommandHandlers.setMedianComponentQuantityProperty state ctx cmp
 
         | LoadResourcesReloaded Started ->
             match state.Patient with
@@ -925,7 +1003,7 @@ module private Elmish =
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        // Frequency property change handlers
+        // Frequency property change messages
         | LoadFrequencyDecreasePropertyChange Started ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
@@ -933,7 +1011,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.DecreaseOrderFrequencyProperty
+                |> Api.DecreaseScheduleFrequencyProperty
                 |> loadOrderContext LoadFrequencyDecreasePropertyChange
 
         | LoadFrequencyDecreasePropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -949,7 +1027,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.IncreaseOrderFrequencyProperty
+                |> Api.IncreaseScheduleFrequencyProperty
                 |> loadOrderContext LoadFrequencyIncreasePropertyChange
 
         | LoadFrequencyIncreasePropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -965,7 +1043,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMinOrderFrequencyProperty
+                |> Api.SetMinScheduleFrequencyProperty
                 |> loadOrderContext LoadFrequencySetMinPropertyChange
 
         | LoadFrequencySetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -981,7 +1059,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMaxOrderFrequencyProperty
+                |> Api.SetMaxScheduleFrequencyProperty
                 |> loadOrderContext LoadFrequencySetMaxPropertyChange
 
         | LoadFrequencySetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -997,7 +1075,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMedianOrderFrequencyProperty
+                |> Api.SetMedianScheduleFrequencyProperty
                 |> loadOrderContext LoadFrequencySetMedianPropertyChange
 
         | LoadFrequencySetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -1006,90 +1084,90 @@ module private Elmish =
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        // DoseQuantity property change handlers
-        | LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, Started) ->
+        // DoseQuantity property change messages
+        | LoadDoseQuantityDecreasePropertyChange (ntimes, Started) ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.DecreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
-                |> loadOrderContext (fun resp -> LoadDoseQuantityDecreasePropertyChange (cmp, ntimes, resp))
+                Api.DecreaseOrderableDoseQuantityProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseQuantityDecreasePropertyChange (ntimes, resp))
 
-        | LoadDoseQuantityDecreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
-        | LoadDoseQuantityDecreasePropertyChange (_, _, Finished (Error err)) ->
+        | LoadDoseQuantityDecreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantityDecreasePropertyChange (_, Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        | LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, Started) ->
+        | LoadDoseQuantityIncreasePropertyChange (ntimes, Started) ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.IncreaseOrderDoseQuantityProperty (ctx, cmp, ntimes)
-                |> loadOrderContext (fun resp -> LoadDoseQuantityIncreasePropertyChange (cmp, ntimes, resp))
+                Api.IncreaseOrderableDoseQuantityProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadDoseQuantityIncreasePropertyChange (ntimes, resp))
 
-        | LoadDoseQuantityIncreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
-        | LoadDoseQuantityIncreasePropertyChange (_, _, Finished (Error err)) ->
+        | LoadDoseQuantityIncreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantityIncreasePropertyChange (_, Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        | LoadDoseQuantitySetMinPropertyChange (cmp, Started) ->
+        | LoadDoseQuantitySetMinPropertyChange Started ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.SetMinOrderDoseQuantityProperty (ctx, cmp)
-                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMinPropertyChange (cmp, resp))
+                Api.SetMinOrderableDoseQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMinPropertyChange resp)
 
-        | LoadDoseQuantitySetMinPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
-        | LoadDoseQuantitySetMinPropertyChange (_, Finished (Error err)) ->
+        | LoadDoseQuantitySetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMinPropertyChange (Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        | LoadDoseQuantitySetMaxPropertyChange (cmp, Started) ->
+        | LoadDoseQuantitySetMaxPropertyChange Started ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.SetMaxOrderDoseQuantityProperty (ctx, cmp)
-                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMaxPropertyChange (cmp, resp))
+                Api.SetMaxOrderableDoseQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMaxPropertyChange resp)
 
-        | LoadDoseQuantitySetMaxPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
-        | LoadDoseQuantitySetMaxPropertyChange (_, Finished (Error err)) ->
+        | LoadDoseQuantitySetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMaxPropertyChange (Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        | LoadDoseQuantitySetMedianPropertyChange (cmp, Started) ->
+        | LoadDoseQuantitySetMedianPropertyChange Started ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.SetMedianOrderDoseQuantityProperty (ctx, cmp)
-                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMedianPropertyChange (cmp, resp))
+                Api.SetMedianOrderableDoseQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadDoseQuantitySetMedianPropertyChange resp)
 
-        | LoadDoseQuantitySetMedianPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
-        | LoadDoseQuantitySetMedianPropertyChange (_, Finished (Error err)) ->
+        | LoadDoseQuantitySetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadDoseQuantitySetMedianPropertyChange (Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
 
-        // DoseRate property change handlers
+        // DoseRate property change messages
         | LoadDoseRateDecreasePropertyChange (ntimes, Started) ->
             match state.OrderContext with
             | HasNotStartedYet -> state, Cmd.none
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.DecreaseOrderDoseRateProperty (ctx, ntimes)
+                Api.DecreaseOrderableDoseRateProperty (ctx, ntimes)
                 |> loadOrderContext (fun resp -> LoadDoseRateDecreasePropertyChange (ntimes, resp))
 
         | LoadDoseRateDecreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
@@ -1104,7 +1182,7 @@ module private Elmish =
             | InProgress -> state, Cmd.none
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
-                Api.IncreaseOrderDoseRateProperty (ctx, ntimes)
+                Api.IncreaseOrderableDoseRateProperty (ctx, ntimes)
                 |> loadOrderContext (fun resp -> LoadDoseRateIncreasePropertyChange (ntimes, resp))
 
         | LoadDoseRateIncreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
@@ -1120,7 +1198,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMinOrderDoseRateProperty
+                |> Api.SetMinOrderableDoseRateProperty
                 |> loadOrderContext LoadDoseRateSetMinPropertyChange
 
         | LoadDoseRateSetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -1136,7 +1214,7 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMaxOrderDoseRateProperty
+                |> Api.SetMaxOrderableDoseRateProperty
                 |> loadOrderContext LoadDoseRateSetMaxPropertyChange
 
         | LoadDoseRateSetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
@@ -1152,11 +1230,163 @@ module private Elmish =
             | Resolved ctx ->
                 { state with OrderContext = InProgress },
                 ctx
-                |> Api.SetMedianOrderDoseRateProperty
+                |> Api.SetMedianOrderableDoseRateProperty
                 |> loadOrderContext LoadDoseRateSetMedianPropertyChange
 
         | LoadDoseRateSetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
         | LoadDoseRateSetMedianPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        // OrderableQuantity property change messages
+        | LoadOrderableQuantityDecreasePropertyChange (ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.DecreaseOrderableQuantityProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadOrderableQuantityDecreasePropertyChange (ntimes, resp))
+
+        | LoadOrderableQuantityDecreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadOrderableQuantityDecreasePropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadOrderableQuantityIncreasePropertyChange (ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.IncreaseOrderableQuantityProperty (ctx, ntimes)
+                |> loadOrderContext (fun resp -> LoadOrderableQuantityIncreasePropertyChange (ntimes, resp))
+
+        | LoadOrderableQuantityIncreasePropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadOrderableQuantityIncreasePropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadOrderableQuantitySetMinPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMinOrderableQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadOrderableQuantitySetMinPropertyChange resp)
+
+        | LoadOrderableQuantitySetMinPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadOrderableQuantitySetMinPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadOrderableQuantitySetMaxPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMaxOrderableQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadOrderableQuantitySetMaxPropertyChange resp)
+
+        | LoadOrderableQuantitySetMaxPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadOrderableQuantitySetMaxPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadOrderableQuantitySetMedianPropertyChange Started ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMedianOrderableQuantityProperty ctx
+                |> loadOrderContext (fun resp -> LoadOrderableQuantitySetMedianPropertyChange resp)
+
+        | LoadOrderableQuantitySetMedianPropertyChange (Finished (Ok msg)) -> msg |> processOk
+        | LoadOrderableQuantitySetMedianPropertyChange (Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        // ComponentQuantity property change messages
+        | LoadComponentQuantityDecreasePropertyChange (cmp, ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.DecreaseComponentQuantityProperty (ctx, cmp, ntimes)
+                |> loadOrderContext (fun resp -> LoadComponentQuantityDecreasePropertyChange (cmp, ntimes, resp))
+
+        | LoadComponentQuantityDecreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
+        | LoadComponentQuantityDecreasePropertyChange (_, _, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadComponentQuantityIncreasePropertyChange (cmp, ntimes, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.IncreaseComponentQuantityProperty (ctx, cmp, ntimes)
+                |> loadOrderContext (fun resp -> LoadComponentQuantityIncreasePropertyChange (cmp, ntimes, resp))
+
+        | LoadComponentQuantityIncreasePropertyChange (_, _, Finished (Ok msg)) -> msg |> processOk
+        | LoadComponentQuantityIncreasePropertyChange (_, _, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadComponentQuantitySetMinPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMinComponentQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadComponentQuantitySetMinPropertyChange (cmp, resp))
+
+        | LoadComponentQuantitySetMinPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadComponentQuantitySetMinPropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadComponentQuantitySetMaxPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMaxComponentQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadComponentQuantitySetMaxPropertyChange (cmp, resp))
+
+        | LoadComponentQuantitySetMaxPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadComponentQuantitySetMaxPropertyChange (_, Finished (Error err)) ->
+            ({ state with OrderContext = HasNotStartedYet },
+            LoadUpdatedOrderContext Started |> Cmd.ofMsg)
+            |> processError err
+
+        | LoadComponentQuantitySetMedianPropertyChange (cmp, Started) ->
+            match state.OrderContext with
+            | HasNotStartedYet -> state, Cmd.none
+            | InProgress -> state, Cmd.none
+            | Resolved ctx ->
+                { state with OrderContext = InProgress },
+                Api.SetMedianComponentQuantityProperty (ctx, cmp)
+                |> loadOrderContext (fun resp -> LoadComponentQuantitySetMedianPropertyChange (cmp, resp))
+
+        | LoadComponentQuantitySetMedianPropertyChange (_, Finished (Ok msg)) -> msg |> processOk
+        | LoadComponentQuantitySetMedianPropertyChange (_, Finished (Error err)) ->
             ({ state with OrderContext = HasNotStartedYet },
             LoadUpdatedOrderContext Started |> Cmd.ofMsg)
             |> processError err
