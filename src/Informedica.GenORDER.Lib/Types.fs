@@ -302,11 +302,6 @@ module Types =
         | SetMinDoseRate
         | SetMaxDoseRate
         | SetMedianDoseRate
-        | DecreaseOrderableQuantity of ntimes: int
-        | IncreaseOrderableQuantity of ntimes: int
-        | SetMinOrderableQuantity
-        | SetMaxOrderableQuantity
-        | SetMedianOrderableQuantity
         | DecreaseComponentQuantity of cmp: string * ntimes: int
         | IncreaseComponentQuantity of cmp: string * ntimes: int
         | SetMinComponentQuantity of cmp: string

@@ -612,16 +612,16 @@ module Medication =
 
         /// Set basic component-level constraints
         let setComponentQtyConcConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (d : Medication) (p : ProductComponent) =
-            let div = calculateDivisibility p
+            let incr = calculateDivisibility p
 
             cmpDto.ComponentQuantity.Constraints.ValsOpt <- p.Quantities |> vuToDto
-            cmpDto.OrderableQuantity.Constraints.IncrOpt <- div
+            cmpDto.OrderableQuantity.Constraints.IncrOpt <- incr
 
             // Handle single component case
             if d.Components |> List.length = 1 then
                 cmpDto.OrderableConcentration.Constraints.ValsOpt <-
                     1N |> createSingleValueUnitDto Units.Count.times
-                cmpDto.Dose.Quantity.Constraints.IncrOpt <- div
+                cmpDto.Dose.Quantity.Constraints.IncrOpt <- incr
 
             // Apply solution constraints if present
             p.Solution |> Option.iter (setComponentSolutionConstraints cmpDto)
@@ -747,7 +747,9 @@ module Medication =
                         |> ValueUnit.singleWithUnit ou
                         |> Some
                         |> vuToDto
-
+                        
+            // orderable quantity increment defaults to smallest product component increment (based on component divisibility)
+            orbDto.OrderableQuantity.Constraints.IncrOpt <- incr
 
             let setOrbDoseRate (dl : DoseLimit option) =
 

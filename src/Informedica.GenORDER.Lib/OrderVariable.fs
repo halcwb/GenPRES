@@ -918,7 +918,7 @@ module OrderVariable =
 
     /// Check whether the Values of the Variable of an OrderVariable
     /// are empty, i.e., unrestricted, non-zero positive or have an exclusive Minimum of zero
-    let isEmpty (ovar : OrderVariable) =
+    let isConstraintsNotApplied (ovar : OrderVariable) =
         ovar.Variable
         |> Variable.isUnrestricted ||
         ovar.Variable

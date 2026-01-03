@@ -172,6 +172,23 @@ module Order =
 
 
             /// <summary>
+            /// Apply constraints to a Dose
+            /// </summary>
+            /// <param name="dos">The Dose</param>
+            let setNonZeroPositive dos =
+                let qty = (dos |> inf).Quantity |> Quantity.setToNonZeroPositive
+                let ptm = dos.PerTime |> PerTime.setToNonZeroPositive
+                let rte = dos.Rate |> Rate.setToNonZeroPositive
+                let tot = dos.Total |> Total.setToNonZeroPositive
+                let qty_adj = dos.QuantityAdjust |> QuantityAdjust.setToNonZeroPositive
+                let ptm_adj = dos.PerTimeAdjust |> PerTimeAdjust.setToNonZeroPositive
+                let rte_adj = dos.RateAdjust |> RateAdjust.setToNonZeroPositive
+                let tot_adj = dos.TotalAdjust |> TotalAdjust.setToNonZeroPositive
+
+                create qty ptm rte tot qty_adj ptm_adj rte_adj tot_adj
+
+
+            /// <summary>
             /// Apply only max quantity constraints to a Dose
             /// </summary>
             let applyQuantityMaxConstraints dos =
@@ -3083,7 +3100,7 @@ module Order =
 
 
     /// Check whether all OrderVariables in an Order are empty
-    let isEmpty = toOrdVars >> List.forall OrderVariable.isEmpty
+    let areAllConstraintsNotApplied = toOrdVars >> List.forall OrderVariable.isConstraintsNotApplied
 
 
     /// Check whether at least one OrderVariable in an Order has constraints
@@ -3728,8 +3745,7 @@ module Order =
 
 
     let calcMinMax logger (normDose : Option<_>) increaseIncrement =
-        applyConstraints
-        >> solveMinMax true logger
+        solveMinMax true logger
         >> Result.bind (fun ord ->
             if not increaseIncrement || normDose.IsSome then ord |> Ok
             else

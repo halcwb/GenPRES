@@ -832,12 +832,6 @@ module OrderContext =
                 | Api.SetMinOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMinOrderableDoseRateProperty
                 | Api.SetMaxOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMaxOrderableDoseRateProperty
                 | Api.SetMedianOrderableDoseRateProperty _ -> ctx |> OrderContext.SetMedianOrderableDoseRateProperty
-                // Orderable Quantity property commands
-                | Api.DecreaseOrderableQuantityProperty (_, ntimes) -> OrderContext.DecreaseOrderableQuantityProperty (ctx, ntimes)
-                | Api.IncreaseOrderableQuantityProperty (_, ntimes) -> OrderContext.IncreaseOrderableQuantityProperty (ctx, ntimes)
-                | Api.SetMinOrderableQuantityProperty _ -> OrderContext.SetMinOrderableQuantityProperty ctx
-                | Api.SetMaxOrderableQuantityProperty _ -> OrderContext.SetMaxOrderableQuantityProperty ctx
-                | Api.SetMedianOrderableQuantityProperty _ -> OrderContext.SetMedianOrderableQuantityProperty ctx
                 // Component Quantity property commands
                 | Api.DecreaseComponentQuantityProperty (_, cmp, ntimes) -> OrderContext.DecreaseComponentQuantityProperty (ctx, cmp, ntimes)
                 | Api.IncreaseComponentQuantityProperty (_, cmp, ntimes) -> OrderContext.IncreaseComponentQuantityProperty (ctx, cmp, ntimes)
@@ -874,12 +868,6 @@ module OrderContext =
         | Api.SetMinOrderableDoseRateProperty ctx
         | Api.SetMaxOrderableDoseRateProperty ctx
         | Api.SetMedianOrderableDoseRateProperty ctx
-        // Orderable Quantity property commands
-        | Api.DecreaseOrderableQuantityProperty (ctx, _)
-        | Api.IncreaseOrderableQuantityProperty (ctx, _)
-        | Api.SetMinOrderableQuantityProperty ctx
-        | Api.SetMaxOrderableQuantityProperty ctx
-        | Api.SetMedianOrderableQuantityProperty ctx
         // Component Quantity property commands
         | Api.DecreaseComponentQuantityProperty (ctx, _, _)
         | Api.IncreaseComponentQuantityProperty (ctx, _, _)
@@ -922,12 +910,6 @@ module OrderContext =
                     | OrderContext.SetMinOrderableDoseRateProperty newCtx -> newCtx |> map
                     | OrderContext.SetMaxOrderableDoseRateProperty newCtx -> newCtx |> map
                     | OrderContext.SetMedianOrderableDoseRateProperty newCtx -> newCtx |> map
-                    // Orderable Quantity property commands
-                    | OrderContext.DecreaseOrderableQuantityProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.IncreaseOrderableQuantityProperty (newCtx, _) -> newCtx |> map
-                    | OrderContext.SetMinOrderableQuantityProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMaxOrderableQuantityProperty newCtx -> newCtx |> map
-                    | OrderContext.SetMedianOrderableQuantityProperty newCtx -> newCtx |> map
                     // Component Quantity property commands
                     | OrderContext.DecreaseComponentQuantityProperty (newCtx, _, _) -> newCtx |> map
                     | OrderContext.IncreaseComponentQuantityProperty (newCtx, _, _) -> newCtx |> map

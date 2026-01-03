@@ -247,12 +247,6 @@ module OrderContext =
         | SetMinOrderableDoseRateProperty of OrderContext
         | SetMaxOrderableDoseRateProperty of OrderContext
         | SetMedianOrderableDoseRateProperty of OrderContext
-        // Orderable Quantity property commands (ntimes = number of times to adjust)
-        | DecreaseOrderableQuantityProperty of OrderContext * ntimes: int
-        | IncreaseOrderableQuantityProperty of OrderContext * ntimes: int
-        | SetMinOrderableQuantityProperty of OrderContext
-        | SetMaxOrderableQuantityProperty of OrderContext
-        | SetMedianOrderableQuantityProperty of OrderContext
         // Component Quantity property commands (cmp = component, ntimes = number of times to adjust)
         | DecreaseComponentQuantityProperty of OrderContext * cmp: string * ntimes: int
         | IncreaseComponentQuantityProperty of OrderContext * cmp: string * ntimes: int
@@ -287,12 +281,6 @@ module OrderContext =
             | SetMinOrderableDoseRateProperty ctx -> ctx
             | SetMaxOrderableDoseRateProperty ctx -> ctx
             | SetMedianOrderableDoseRateProperty ctx -> ctx
-            // Orderable Quantity property commands
-            | DecreaseOrderableQuantityProperty (ctx, _) -> ctx
-            | IncreaseOrderableQuantityProperty (ctx, _) -> ctx
-            | SetMinOrderableQuantityProperty ctx -> ctx
-            | SetMaxOrderableQuantityProperty ctx -> ctx
-            | SetMedianOrderableQuantityProperty ctx -> ctx
             // Component Quantity property commands
             | DecreaseComponentQuantityProperty (ctx, _, _) -> ctx
             | IncreaseComponentQuantityProperty (ctx, _, _) -> ctx
@@ -301,8 +289,33 @@ module OrderContext =
             | SetMedianComponentQuantityProperty (ctx, _) -> ctx
 
 
-        let toString (cmd : Command) = $"{cmd}"
-
+        let toString (cmd : Command) =
+            match cmd with
+            | UpdateOrderContext _ -> "UpdateOrderContext"
+            | SelectOrderScenario _ -> "SelectOrderScenario"
+            | UpdateOrderScenario _ -> "UpdateOrderScenario"
+            | ResetOrderScenario _ -> "ResetOrderScenario"
+            | ReloadResources _ -> "ReloadResources"
+            | DecreaseScheduleFrequencyProperty _ -> "DecreaseScheduleFrequencyProperty"
+            | IncreaseScheduleFrequencyProperty _ -> "IncreaseScheduleFrequencyProperty"
+            | SetMinScheduleFrequencyProperty _ -> "SetMinScheduleFrequencyProperty"
+            | SetMaxScheduleFrequencyProperty _ -> "SetMaxScheduleFrequencyProperty"
+            | SetMedianScheduleFrequencyProperty _ -> "SetMedianScheduleFrequencyProperty"
+            | DecreaseOrderableDoseQuantityProperty (_, ntimes) -> $"DecreaseOrderableDoseQuantityProperty ntimes={ntimes}"
+            | IncreaseOrderableDoseQuantityProperty (_, ntimes) -> $"IncreaseOrderableDoseQuantityProperty ntimes={ntimes}"
+            | SetMinOrderableDoseQuantityProperty _ -> "SetMinOrderableDoseQuantityProperty"
+            | SetMaxOrderableDoseQuantityProperty _ -> "SetMaxOrderableDoseQuantityProperty"
+            | SetMedianOrderableDoseQuantityProperty _ -> "SetMedianOrderableDoseQuantityProperty"
+            | DecreaseOrderableDoseRateProperty (_, ntimes) -> $"DecreaseOrderableDoseRateProperty ntimes={ntimes}"
+            | IncreaseOrderableDoseRateProperty (_, ntimes) -> $"IncreaseOrderableDoseRateProperty ntimes={ntimes}"
+            | SetMinOrderableDoseRateProperty _ -> "SetMinOrderableDoseRateProperty"
+            | SetMaxOrderableDoseRateProperty _ -> "SetMaxOrderableDoseRateProperty"
+            | SetMedianOrderableDoseRateProperty _ -> "SetMedianOrderableDoseRateProperty"
+            | DecreaseComponentQuantityProperty (_, cmp, ntimes) -> $"DecreaseComponentQuantityProperty cmp={cmp} ntimes={ntimes}"
+            | IncreaseComponentQuantityProperty (_, cmp, ntimes) -> $"IncreaseComponentQuantityProperty cmp={cmp} ntimes={ntimes}"
+            | SetMinComponentQuantityProperty (_, cmp) -> $"SetMinComponentQuantityProperty cmp={cmp}"
+            | SetMaxComponentQuantityProperty (_, cmp) -> $"SetMaxComponentQuantityProperty cmp={cmp}"
+            | SetMedianComponentQuantityProperty (_, cmp) -> $"SetMedianComponentQuantityProperty cmp={cmp}"
 
 
     module Helpers =
@@ -942,12 +955,6 @@ Scenarios: {scenarios}
         | SetMinOrderableDoseRateProperty ctx -> processPropertyCmd ctx SetMinDoseRate SetMinOrderableDoseRateProperty
         | SetMaxOrderableDoseRateProperty ctx -> processPropertyCmd ctx SetMaxDoseRate SetMaxOrderableDoseRateProperty
         | SetMedianOrderableDoseRateProperty ctx -> processPropertyCmd ctx SetMedianDoseRate SetMedianOrderableDoseRateProperty
-        // Orderable Quantity property commands
-        | DecreaseOrderableQuantityProperty (ctx, ntimes) -> processPropertyCmd ctx (DecreaseOrderableQuantity ntimes) (fun ctx -> DecreaseOrderableQuantityProperty (ctx, ntimes))
-        | IncreaseOrderableQuantityProperty (ctx, ntimes) -> processPropertyCmd ctx (IncreaseOrderableQuantity ntimes) (fun ctx -> IncreaseOrderableQuantityProperty (ctx, ntimes))
-        | SetMinOrderableQuantityProperty ctx -> processPropertyCmd ctx SetMinOrderableQuantity SetMinOrderableQuantityProperty
-        | SetMaxOrderableQuantityProperty ctx -> processPropertyCmd ctx SetMaxOrderableQuantity SetMaxOrderableQuantityProperty
-        | SetMedianOrderableQuantityProperty ctx -> processPropertyCmd ctx SetMedianOrderableQuantity SetMedianOrderableQuantityProperty
         // Component Quantity property commands
         | DecreaseComponentQuantityProperty (ctx, cmp, ntimes) -> processPropertyCmd ctx (DecreaseComponentQuantity (cmp, ntimes)) (fun ctx -> DecreaseComponentQuantityProperty (ctx, cmp, ntimes))
         | IncreaseComponentQuantityProperty (ctx, cmp, ntimes) -> processPropertyCmd ctx (IncreaseComponentQuantity (cmp, ntimes)) (fun ctx -> IncreaseComponentQuantityProperty (ctx, cmp, ntimes))
@@ -969,7 +976,7 @@ Scenarios: {scenarios}
         match ctx.Scenarios |> Array.tryExactlyOne with
         | Some sc ->
             [
-                $"Order is empty: {sc.Order |> Order.isEmpty}"
+                $"Order is empty: {sc.Order |> Order.areAllConstraintsNotApplied}"
                 $"Order has constraints: {sc.Order |> Order.hasConstraints}"
                 $"Order within constraints: {sc.Order |> Order.isWithinConstraints}"
                 ""
