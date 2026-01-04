@@ -145,14 +145,21 @@ module PrescriptionRule =
                     |> SolutionRule.filter routeMapping solFilter
                     |> Array.map (fun sr ->
                         { sr with
-                            Products =
-                                sr.Products
-                                |> Array.filter (fun sr_p ->
-                                    dr.ComponentLimits
-                                    |> Array.collect _.Products
-                                    |> Array.exists (fun dr_p ->
-                                        sr_p.GPK = dr_p.GPK
-                                    )
+                            SolutionLimits =
+                                sr.SolutionLimits
+                                |> Array.map (fun sl ->
+                                    { sl with
+                                        Products =
+                                            sl.Products
+                                            |> Array.filter (fun sr_p ->
+                                                dr.ComponentLimits
+                                                |> Array.collect _.Products
+                                                |> Array.exists (fun dr_p ->
+                                                    sr_p.GPK = dr_p.GPK
+                                                )
+                                            )
+                                    
+                                    }
                                 )
                         }
                     )

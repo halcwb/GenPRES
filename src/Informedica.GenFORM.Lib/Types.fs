@@ -467,10 +467,14 @@ module Types =
             SolutionLimitTarget : LimitTarget
             // The MinMax Quantity of the Substance for the SolutionLimit
             Quantity : MinMax
+            // The MinMax Quantity Adjust of the Substance for the SolutionLimit
+            QuantityAdj : MinMax
             // A list of possible Quantities of the Substance for the SolutionLimit
             Quantities : ValueUnit option
             // The Minmax Concentration of the Substance for the SolutionLimit
             Concentration : MinMax
+            // The Products the SolutionRule applies to
+            Products : Product []
         }
 
 
@@ -492,8 +496,6 @@ module Types =
             PatientCategory : PatientCategory
             // The MinMax Dose range of the SolutionRule
             Dose : MinMax
-            // The Products the SolutionRule applies to
-            Products : Product []
             // The possible Solutions to use
             Diluents : Product []
             // The possible Volumes to use

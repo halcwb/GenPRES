@@ -71,11 +71,14 @@ module SolutionRule =
                         MinPerc = get "MinPerc" |> toBrOpt
                         MaxPerc = get "MaxPerc" |> toBrOpt
                         // solution limit section
+                        Component = get "Component"
                         Substance = get "Substance"
                         Unit = get "Unit"
                         Quantities = get "Quantities" |> BigRational.toBrs
                         MinQty = get "MinQty" |> toBrOpt
                         MaxQty = get "MaxQty" |> toBrOpt
+                        MinQtyAdj = get "MinQtyAdj" |> toBrOpt
+                        MaxQtyAdj = get "MaxQtyAdj" |> toBrOpt
                         MinDrip = get "MinDrip" |> toBrOpt
                         MaxDrip = get "MaxDrip" |> toBrOpt
                         MinConc = get "MinConc" |> toBrOpt
@@ -145,7 +148,6 @@ module SolutionRule =
                         DosePerc =
                             (r.MinPerc, r.MaxPerc)
                             |> fromTupleInclIncl (Some Units.Count.times)
-                        Products = [||]
                         SolutionLimits = [||]
                     }
                 )
@@ -155,13 +157,19 @@ module SolutionRule =
                             rs
                             |> Array.map (fun l ->
                                 let u = l.Unit |> Units.fromString
+                                let au = u |> Option.map (Units.per Units.Weight.kiloGram)
                                 {
-                                    SolutionLimitTarget =
-                                        if l.Substance |> String.isNullOrWhiteSpace then OrderableLimitTarget
-                                        else l.Substance |> SubstanceLimitTarget
+                                    SolutionLimitTarget =   
+                                        match l.Substance, l.Component with
+                                        | s, _ when s |> String.isNullOrWhiteSpace |> not -> s |> SubstanceLimitTarget
+                                        | _, c when c |> String.isNullOrWhiteSpace |> not -> c |> ComponentLimitTarget
+                                        | _ -> OrderableLimitTarget
                                     Quantity =
                                         (l.MinQty, l.MaxQty)
                                         |> fromTupleInclIncl u
+                                    QuantityAdj =
+                                        (l.MinQtyAdj, l.MaxQtyAdj)
+                                        |> fromTupleInclIncl au
                                     Quantities =
                                         if l.Quantities |> Array.isEmpty then None
                                         else
@@ -177,25 +185,27 @@ module SolutionRule =
                                             |> Option.map (Units.per Units.Volume.milliLiter)
                                         (l.MinConc, l.MaxConc)
                                         |> fromTupleInclIncl u
+                                    Products =
+                                        products
+                                        |> Array.filter (fun p ->
+                                            p.Generic = l.Component &&
+                                            sr.Form
+                                            |> Option.map (fun s ->
+                                                s |> String.equalsCapInsens p.Form
+                                            )
+                                            |> Option.defaultValue true &&
+                                            p.Routes
+                                            |> Array.exists (Mapping.eqsRoute routeMapping (Some sr.Route))
+                                        )
                                 }
                             )
+                            // filter out solution limits that are empty
                             |> Array.filter (fun sl ->
                                 (sl.Concentration |> MinMax.isEmpty &&
                                 sl.Quantities |> Option.isNone &&
+                                sl.QuantityAdj |> MinMax.isEmpty &&
                                 sl.Quantity |> MinMax.isEmpty)
                                 |> not
-                            )
-                        Products =
-                            products
-                            |> Array.filter (fun p ->
-                                p.Generic = sr.Generic &&
-                                sr.Form
-                                |> Option.map (fun s ->
-                                    s |> String.equalsCapInsens p.Form
-                                )
-                                |> Option.defaultValue true &&
-                                p.Routes
-                                |> Array.exists (Mapping.eqsRoute routeMapping (Some sr.Route))
                             )
 
                     }
@@ -397,6 +407,7 @@ module SolutionRule =
             ||> Array.fold (fun acc (generic, rs) ->
                 let prods =
                     rs
+                    |> Array.collect _.SolutionLimits
                     |> Array.collect _.Products
                     |> Array.sortBy (fun p ->
                         p.Substances

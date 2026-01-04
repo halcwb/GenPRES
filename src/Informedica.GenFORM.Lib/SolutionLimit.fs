@@ -10,8 +10,10 @@ module SolutionLimit =
         {
             SolutionLimitTarget = NoLimitTarget
             Quantity = MinMax.empty
+            QuantityAdj = MinMax.empty
             Quantities = None
             Concentration = MinMax.empty
+            Products = [||]
         }
 
 
