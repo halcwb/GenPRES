@@ -73,24 +73,29 @@ module DoseType =
 
 
     /// Get a string representation of a dose type.
-    let toDescription doseType =
+    let getText doseType =
         match doseType with
         | OnceTimed s
         | Once s
         | Timed s
         | Discontinuous s
-        | Continuous s ->
-            if s |> String.notEmpty then s
-            else
-                match doseType with
-                | OnceTimed _
-                | Once _ -> "eenmalig"
-                | Timed _
-                | Discontinuous _ -> "onderhoud"
-                | Continuous _ -> "continu"
-                | NoDoseType -> ""
-
+        | Continuous s -> s
         | NoDoseType -> ""
+
+
+    /// Get a string representation of a dose type.
+    let toDescription doseType =
+        let s = getText doseType
+
+        if s |> String.notEmpty then s
+        else
+            match doseType with
+            | OnceTimed _
+            | Once _ -> "eenmalig"
+            | Timed _
+            | Discontinuous _ -> "onderhoud"
+            | Continuous _ -> "continu"
+            | NoDoseType -> ""
 
 
     let setDescription descr = function

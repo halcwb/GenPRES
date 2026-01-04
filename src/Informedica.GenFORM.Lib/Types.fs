@@ -309,61 +309,108 @@ module Types =
             (fun (p : Patient) -> p.Location), (fun l (p : Patient) -> { p with Location = l})
 
 
-    type DoseRuleData = {
-        AdjustUnit: string
-        Brand: string
-        Component: string
-        Department: string
-        DoseText: string
-        DoseType: string
-        DoseUnit: string
-        DurUnit: string
-        FreqUnit: string
-        Frequencies: BigRational array
-        GPKs: string array
-        Gender: Gender
-        Generic: string
-        Indication: string
-        IntervalUnit: string
-        MaxAge: BigRational option
-        MaxBSA: BigRational option
-        MaxDur: BigRational option
-        MaxGestAge: BigRational option
-        MaxInterval: BigRational option
-        MaxPMAge: BigRational option
-        MaxPerTime: BigRational option
-        MaxPerTimeAdj: BigRational option
-        MaxQty: BigRational option
-        MaxQtyAdj: BigRational option
-        MaxRate: BigRational option
-        MaxRateAdj: BigRational option
-        MaxTime: BigRational option
-        MaxWeight: BigRational option
-        MinAge: BigRational option
-        MinBSA: BigRational option
-        MinDur: BigRational option
-        MinGestAge: BigRational option
-        MinInterval: BigRational option
-        MinPMAge: BigRational option
-        MinPerTime: BigRational option
-        MinPerTimeAdj: BigRational option
-        MinQty: BigRational option
-        MinQtyAdj: BigRational option
-        MinRate: BigRational option
-        MinRateAdj: BigRational option
-        MinTime: BigRational option
-        MinWeight: BigRational option
-        NormPerTimeAdj: BigRational option
-        NormQtyAdj: BigRational option
-        RateUnit: string
-        Route: string
-        ScheduleText: string
-        Form: string
-        Source: string
-        Substance: string
-        TimeUnit: string
-        Products : Product []
-    }
+    type DoseRuleData = 
+        {
+            AdjustUnit: string
+            Brand: string
+            Component: string
+            Department: string
+            DoseText: string
+            DoseType: string
+            DoseUnit: string
+            DurUnit: string
+            FreqUnit: string
+            Frequencies: BigRational array
+            GPKs: string array
+            Gender: Gender
+            Generic: string
+            Indication: string
+            IntervalUnit: string
+            MaxAge: BigRational option
+            MaxBSA: BigRational option
+            MaxDur: BigRational option
+            MaxGestAge: BigRational option
+            MaxInterval: BigRational option
+            MaxPMAge: BigRational option
+            MaxPerTime: BigRational option
+            MaxPerTimeAdj: BigRational option
+            MaxQty: BigRational option
+            MaxQtyAdj: BigRational option
+            MaxRate: BigRational option
+            MaxRateAdj: BigRational option
+            MaxTime: BigRational option
+            MaxWeight: BigRational option
+            MinAge: BigRational option
+            MinBSA: BigRational option
+            MinDur: BigRational option
+            MinGestAge: BigRational option
+            MinInterval: BigRational option
+            MinPMAge: BigRational option
+            MinPerTime: BigRational option
+            MinPerTimeAdj: BigRational option
+            MinQty: BigRational option
+            MinQtyAdj: BigRational option
+            MinRate: BigRational option
+            MinRateAdj: BigRational option
+            MinTime: BigRational option
+            MinWeight: BigRational option
+            NormPerTimeAdj: BigRational option
+            NormQtyAdj: BigRational option
+            RateUnit: string
+            Route: string
+            ScheduleText: string
+            Form: string
+            Source: string
+            Substance: string
+            TimeUnit: string
+            Products : Product []
+        }
+
+
+    type SolutionRuleData =
+        {
+            // solution rule section
+            Generic: string
+            Form: string
+            Route: string
+            Indication: string
+            Location: string option
+            Department: string option
+            CVL: string
+            PVL: string
+            MinAge: BigRational option
+            MaxAge: BigRational option
+            MinWeight: BigRational option
+            MaxWeight: BigRational option
+            MinGestAge: BigRational option
+            MaxGestAge: BigRational option
+            MinDose: BigRational option
+            MaxDose: BigRational option
+            DoseType: string
+            DoseText: string
+            Solutions: string list
+            Div: BigRational option
+            Volumes: BigRational array
+            MinVol: BigRational option
+            MaxVol: BigRational option
+            MinVolAdj: BigRational option
+            MaxVolAdj: BigRational option
+            MinPerc: BigRational option
+            MaxPerc: BigRational option
+            // solution limit section
+            Component: string
+            Substance: string
+            Unit: string
+            Quantities: BigRational array
+            MinQty: BigRational option
+            MaxQty: BigRational option
+            MinQtyAdj: BigRational option
+            MaxQtyAdj: BigRational option
+            MinDrip: BigRational option
+            MaxDrip: BigRational option
+            MinConc: BigRational option
+            MaxConc: BigRational option
+        }
 
 
     type RenalRuleData =
@@ -467,10 +514,14 @@ module Types =
             SolutionLimitTarget : LimitTarget
             // The MinMax Quantity of the Substance for the SolutionLimit
             Quantity : MinMax
+            // The MinMax Quantity Adjust of the Substance for the SolutionLimit
+            QuantityAdj : MinMax
             // A list of possible Quantities of the Substance for the SolutionLimit
             Quantities : ValueUnit option
             // The Minmax Concentration of the Substance for the SolutionLimit
             Concentration : MinMax
+            // The Products the SolutionRule applies to
+            Products : Product []
         }
 
 
@@ -492,10 +543,10 @@ module Types =
             PatientCategory : PatientCategory
             // The MinMax Dose range of the SolutionRule
             Dose : MinMax
-            // The Products the SolutionRule applies to
-            Products : Product []
             // The possible Solutions to use
             Diluents : Product []
+            // An optional dividability option
+            Div : BigRational option
             // The possible Volumes to use
             Volumes : ValueUnit option
             // A MinMax Volume range to use

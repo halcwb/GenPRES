@@ -652,12 +652,6 @@ module Prescribe =
                                 setMedianDoseQty = Api.SetMedianOrderableDoseQuantityProperty >> props.updateOrderContext
                                 incrDoseQty = Api.IncreaseOrderableDoseQuantityProperty >> props.updateOrderContext
                                 setMaxDoseQty = Api.SetMaxOrderableDoseQuantityProperty >> props.updateOrderContext
-                                // Orderable Quantity
-                                setMinOrderableQty = Api.SetMinOrderableQuantityProperty >> props.updateOrderContext
-                                decrOrderableQty = Api.DecreaseOrderableQuantityProperty >> props.updateOrderContext
-                                setMedianOrderableQty = Api.SetMedianOrderableQuantityProperty >> props.updateOrderContext
-                                incrOrderableQty = Api.IncreaseOrderableQuantityProperty >> props.updateOrderContext
-                                setMaxOrderableQty = Api.SetMaxOrderableQuantityProperty >> props.updateOrderContext
                                 // Component Quantity
                                 setMinComponentQty = Api.SetMinComponentQuantityProperty >> props.updateOrderContext
                                 decrComponentQty = Api.DecreaseComponentQuantityProperty >> props.updateOrderContext

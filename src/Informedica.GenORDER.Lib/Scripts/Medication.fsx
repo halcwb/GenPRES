@@ -52,7 +52,7 @@ let morfCont =
     let cu = su |> Units.per fu
     let ru = fu |> Units.per Units.Time.hour
 
-    { Medication.order with
+    { Medication.template with
         Id = "1"
         Name = "morfin pump"
         Route = "INTRAVENEUS"
@@ -144,7 +144,7 @@ let pcmDrink =
     let cu = su |> Units.per fu
     let tu = Units.Time.day
 
-    { Medication.order with
+    { Medication.template with
         Id = "pcm-drank"
         Name = "paracetamol drank"
         Components =
@@ -214,7 +214,7 @@ pcmDrink
 )
 |> printOrderTable
 |> Result.bind (fun o -> 
-    (o, SetMaxDoseQuantity "paracetamol") 
+    (o, SetMaxDoseQuantity) 
     |> ChangeProperty
     |> OrderProcessor.processPipeline OrderLogging.noOp None
 )
@@ -230,7 +230,7 @@ let cotrim =
     let tu = Units.Time.day
 
     {
-        Medication.order with
+        Medication.template with
             Id = "1"
             Name = "cotrimoxazol"
             Components =
@@ -325,7 +325,7 @@ cotrim
 |> ignore
 
 let tpnComplete =
-    { Medication.order with
+    { Medication.template with
         Id = "f1adf475-919b-4b7d-9e26-6cc502b88e42"
         Name = "samenstelling c"
         Route = "INTRAVENEUS"
@@ -668,7 +668,7 @@ let tpnComplete =
 
 
 let tpn =
-    { Medication.order with
+    { Medication.template with
         Id = "f1adf475-919b-4b7d-9e26-6cc502b88e42"
         Name = "samenstelling c"
         Route = "INTRAVENEUS"
@@ -1071,3 +1071,29 @@ tpn
 |> run 50 0 5 0
 |> ignore
 
+
+
+let dataUrlId = "1JHOrasAZ_2fcVApYpt1qT2lZBsqrAxN-9SvBisXkbsM"
+
+
+let provider : Resources.IResourceProvider =
+        Api.getCachedProviderWithDataUrlId
+            FormLogging.noOp
+            dataUrlId
+
+
+{ Filter.doseFilter with
+    Generic = Some "Samenstelling C"
+    DoseType = DoseType.Timed "dag 1" |> Some
+    DoseFilter.Patient.Department = Some "ICK"
+    DoseFilter.Patient.Weight = 
+        10N
+        |> ValueUnit.singleWithUnit Units.Weight.kiloGram
+        |> Some
+
+}
+|> Api.filterPrescriptionRules provider
+|> Utils.GenFormResult.map (Array.collect (Medication.fromRule Logging.noOp))
+|> Utils.GenFormResult.map (Array.skip 1)
+|> Utils.GenFormResult.map (Array.map Medication.toString)
+|> Utils.GenFormResult.map (Array.map print)

@@ -76,7 +76,7 @@ module SimpleSelect =
         |}
 
         let navigation = 
-            if props.navigate.IsSome && not isClear then
+            if props.navigate.IsSome then
                 JSX.jsx
                     $"""
                 import IconButton from "@mui/material/IconButton";

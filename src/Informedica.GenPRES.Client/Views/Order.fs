@@ -27,6 +27,7 @@ module Order =
 
         type Msg =
             | ChangeComponent of string option
+            | ChangeComponentOrderableQuantity of string option
             | ChangeComponentDoseQuantity of string option
             | ChangeItem of string option
             | ChangeFrequency of string option
@@ -63,12 +64,6 @@ module Order =
             | SetMinDoseRateProperty
             | SetMaxDoseRateProperty
             | SetMedianDoseRateProperty
-            // Orderable Quantity property commands
-            | DecreaseOrderableQuantityProperty of ntimes: int
-            | IncreaseOrderableQuantityProperty of ntimes: int
-            | SetMinOrderableQuantityProperty 
-            | SetMaxOrderableQuantityProperty 
-            | SetMedianOrderableQuantityProperty
             // Component Quantity property commands
             | DecreaseComponentQuantityProperty of ntimes: int
             | IncreaseComponentQuantityProperty of ntimes: int
@@ -154,12 +149,6 @@ module Order =
                     setDoseQtyInc : OrderLoader -> unit
                     setDoseQtyMax : OrderLoader -> unit
 
-                    setOrderableQtyMin : OrderLoader -> unit
-                    setOrderableQtyDec : OrderLoader -> unit
-                    setOrderableQtyMed : OrderLoader -> unit 
-                    setOrderableQtyInc : OrderLoader -> unit
-                    setOrderableQtyMax : OrderLoader -> unit
-
                     setComponentQtyMin : OrderLoader -> unit
                     setComponentQtyDec : OrderLoader -> unit
                     setComponentQtyMed : OrderLoader -> unit 
@@ -244,6 +233,31 @@ module Order =
                             if state.SelectedComponent = cmp then state.SelectedItem
                             else None
                     }, Cmd.none
+
+            | ChangeComponentOrderableQuantity s ->
+                match state.Order with
+                | Some ord ->
+                    let msg =
+                        { ord with
+                            Orderable =
+                                { ord.Orderable with
+                                    Components =
+                                        ord.Orderable.Components
+                                        |> Array.map (fun cmp ->
+                                            match state.SelectedComponent with
+                                            | Some c when cmp.Name = c ->
+                                                { cmp with
+                                                    OrderableQuantity =
+                                                        cmp.OrderableQuantity |> setOvar s
+                                                }
+                                            | _ -> cmp
+                                        )
+                                }
+                        }
+                        |> UpdateOrderScenario
+
+                    { state with Order = None }, Cmd.ofMsg msg
+                | _ -> state, Cmd.none
 
             | ChangeComponentDoseQuantity s ->
                 match state.Order with
@@ -704,28 +718,18 @@ module Order =
             | SetMedianFrequencyProperty -> handleNav navigate.setFreqMed
             | IncreaseFrequencyProperty -> handleNav navigate.setFreqInc
             | SetMaxFrequencyProperty -> handleNav navigate.setFreqMax
-
             // == Rate ==
             | SetMinDoseRateProperty -> handleNav navigate.setRateMin
             | DecreaseDoseRateProperty _ -> handleNav navigate.setRateDec
             | SetMedianDoseRateProperty -> handleNav navigate.setRateMed
             | IncreaseDoseRateProperty _ -> handleNav navigate.setRateInc
             | SetMaxDoseRateProperty -> handleNav navigate.setRateMax
-
             // == DoseQty ==
             | SetMinDoseQuantityProperty -> handleNav navigate.setDoseQtyMin
             | DecreaseDoseQuantityProperty _ -> handleNav navigate.setDoseQtyDec
             | SetMedianDoseQuantityProperty -> handleNav navigate.setDoseQtyMed
             | IncreaseDoseQuantityProperty _ -> handleNav navigate.setDoseQtyInc
             | SetMaxDoseQuantityProperty -> handleNav navigate.setDoseQtyMax
-
-            // == OrderableQty ==
-            | SetMinOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMin
-            | DecreaseOrderableQuantityProperty _ -> handleNav navigate.setOrderableQtyDec
-            | SetMedianOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMed
-            | IncreaseOrderableQuantityProperty _ -> handleNav navigate.setOrderableQtyInc
-            | SetMaxOrderableQuantityProperty -> handleNav navigate.setOrderableQtyMax
-
             // == ComponentQty ==
             | SetMinComponentQuantityProperty -> handleNav navigate.setComponentQtyMin
             | DecreaseComponentQuantityProperty _ -> handleNav navigate.setComponentQtyDec
@@ -773,12 +777,6 @@ module Order =
                 setMedianDoseQty: OrderContext  -> unit
                 incrDoseQty : OrderContext * int  -> unit
                 setMaxDoseQty: OrderContext -> unit
-                // Orderable Quantity
-                setMinOrderableQty : OrderContext -> unit
-                decrOrderableQty : OrderContext * int -> unit
-                setMedianOrderableQty: OrderContext  -> unit
-                incrOrderableQty : OrderContext * int  -> unit
-                setMaxOrderableQty: OrderContext -> unit
                 // Component Quantity
                 setMinComponentQty : OrderContext * string -> unit
                 decrComponentQty : OrderContext * string * int -> unit
@@ -966,12 +964,6 @@ module Order =
                 setDoseQtyMed = create props.navigateOrderScenario.setMedianDoseQty
                 setDoseQtyInc = createWithN props.navigateOrderScenario.incrDoseQty
                 setDoseQtyMax = create props.navigateOrderScenario.setMaxDoseQty
-                // Orderable Quantity
-                setOrderableQtyMin = create props.navigateOrderScenario.setMinOrderableQty
-                setOrderableQtyDec = createWithN props.navigateOrderScenario.decrOrderableQty
-                setOrderableQtyMed = create props.navigateOrderScenario.setMedianOrderableQty
-                setOrderableQtyInc = createWithN props.navigateOrderScenario.incrOrderableQty
-                setOrderableQtyMax = create props.navigateOrderScenario.setMaxOrderableQty
                 // Component Quantity
                 setComponentQtyMin = createWithCmp props.navigateOrderScenario.setMinComponentQty
                 setComponentQtyDec = createWithCmpN props.navigateOrderScenario.decrComponentQty
@@ -1090,16 +1082,41 @@ module Order =
                             |> select true "" None ignore None false
                     }
                     {
+                        // component orderable quantity
+                        match state.Order with
+                        | Some ord when ord.Orderable.Components |> Array.length > 1 ->
+                            let navigate =
+                                {|
+                                    first = fun () -> SetMinComponentQuantityProperty |> dispatch
+                                    decrease = fun () -> 1 |> DecreaseComponentQuantityProperty |> dispatch
+                                    median = fun () -> SetMedianComponentQuantityProperty |> dispatch
+                                    increase = fun () -> 1 |> IncreaseComponentQuantityProperty |> dispatch
+                                    last = fun () -> SetMaxComponentQuantityProperty |> dispatch
+                                |}
+                                |> Some
+
+                            ord.Orderable.Components
+                            |> Array.tryFind (fun c -> state.SelectedComponent.IsNone || c.Name = state.SelectedComponent.Value)
+                            |> Option.bind _.OrderableQuantity.Variable.Vals
+                            |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
+                            |> Option.defaultValue [||]
+                            |> select false "Bereiding Hoeveelheid" None (ChangeComponentOrderableQuantity >> dispatch) navigate false
+                        | _ ->
+                            [||]
+                            |> select true "" None ignore None false
+                    }
+                    {
                         // component dose quantity
                         match state.Order with
-                        | Some ord when ord.Orderable.Components |> Array.length > 1 &&
+                        | Some ord when ord.Schedule.IsContinuous |> not &&
+                                        ord.Orderable.Components |> Array.length > 1 &&
                                         itms |> Array.isEmpty ->
                             ord.Orderable.Components
                             |> Array.tryFind (fun c -> state.SelectedComponent.IsNone || c.Name = state.SelectedComponent.Value)
                             |> Option.bind _.Dose.Quantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Quantity`` |> getTerm "Hoeveelheid") None (ChangeComponentDoseQuantity >> dispatch) None false
+                            |> select false "Keer Dosering" None (ChangeComponentDoseQuantity >> dispatch) None false
                         | _ ->
                             [||]
                             |> select true "" None ignore None false
@@ -1121,22 +1138,25 @@ module Order =
                     }
                     {
                         // frequency
-                        let navigate =
-                            {|
-                                first = fun () -> SetMinFrequencyProperty |> dispatch
-                                decrease = fun () -> DecreaseFrequencyProperty |> dispatch
-                                median = fun () -> SetMedianFrequencyProperty |> dispatch
-                                increase = fun () -> IncreaseFrequencyProperty |> dispatch
-                                last = fun () -> SetMaxFrequencyProperty |> dispatch
-                            |}
-                            |> Some
-
                         match state.Order with
                         | Some ord ->
-                            ord.Schedule.Frequency.Variable.Vals
-                            |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
-                            |> Option.defaultValue [||]
-                            |> select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch) navigate true
+                            let xs =
+                                ord.Schedule.Frequency.Variable.Vals
+                                |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
+                                |> Option.defaultValue [||]
+
+                            let navigate =
+                                if xs |> Array.length <> 1 then None
+                                else
+                                    {|
+                                        first = fun () -> SetMinFrequencyProperty |> dispatch
+                                        decrease = fun () -> DecreaseFrequencyProperty |> dispatch
+                                        median = fun () -> SetMedianFrequencyProperty |> dispatch
+                                        increase = fun () -> IncreaseFrequencyProperty |> dispatch
+                                        last = fun () -> SetMaxFrequencyProperty |> dispatch
+                                    |}
+                                    |> Some
+                            select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch) navigate true xs
                         | _ ->
                             [||]
                             |> select true "" None ignore None false
@@ -1242,18 +1262,18 @@ module Order =
                     }
                     {
                         // orderable dose quantity
-                        let navigate =
-                            {|
-                                first = fun () -> SetMinDoseQuantityProperty |> dispatch
-                                decrease = fun () -> 1 |> DecreaseDoseQuantityProperty |> dispatch
-                                median = fun () -> SetMedianDoseQuantityProperty |> dispatch
-                                increase = fun () -> 1 |> IncreaseDoseQuantityProperty |> dispatch
-                                last = fun () -> SetMaxDoseQuantityProperty |> dispatch
-                            |}
-                            |> Some
-
                         match state.Order with
-                        | Some ord ->
+                        | Some ord when ord.Schedule.IsContinuous |> not ->
+                            let navigate =
+                                {|
+                                    first = fun () -> SetMinDoseQuantityProperty |> dispatch
+                                    decrease = fun () -> 1 |> DecreaseDoseQuantityProperty |> dispatch
+                                    median = fun () -> SetMedianDoseQuantityProperty |> dispatch
+                                    increase = fun () -> 1 |> IncreaseDoseQuantityProperty |> dispatch
+                                    last = fun () -> SetMaxDoseQuantityProperty |> dispatch
+                                |}
+                                |> Some
+
                             ord.Orderable.Dose.Quantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d} {v.Unit}"))
                             |> Option.defaultValue [||]
@@ -1334,22 +1354,12 @@ module Order =
                     }
                     {
                         // orderable quantity
-                        let navigate =
-                            {|
-                                first = fun () -> SetMinOrderableQuantityProperty |> dispatch
-                                decrease = fun () -> 1 |> DecreaseOrderableQuantityProperty |> dispatch
-                                median = fun () -> SetMedianOrderableQuantityProperty |> dispatch
-                                increase = fun () -> 1 |> IncreaseOrderableQuantityProperty |> dispatch
-                                last = fun () -> SetMaxOrderableQuantityProperty |> dispatch
-                            |}
-                            |> Some
-
                         match state.Order with
                         | Some ord ->
                             ord.Orderable.OrderableQuantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) navigate false
+                            |> select false "Totale Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) None false
                         | _ ->
                             [||]
                             |> select true "" None ignore None false

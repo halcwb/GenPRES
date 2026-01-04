@@ -10,8 +10,10 @@ module SolutionLimit =
         {
             SolutionLimitTarget = NoLimitTarget
             Quantity = MinMax.empty
+            QuantityAdj = MinMax.empty
             Quantities = None
             Concentration = MinMax.empty
+            Products = [||]
         }
 
 
@@ -29,5 +31,6 @@ module SolutionLimit =
     let toString (sl: SolutionLimit) =
         [
             sl.Quantity |> minMaxToString
+            sl.QuantityAdj |> minMaxToString
             sl.Concentration |> minMaxToString
         ]

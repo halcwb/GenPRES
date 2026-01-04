@@ -81,7 +81,7 @@ let dr =
         { Filter.doseFilter with
             Patient =
                 { Patient.patient with
-                    Locations =  [ CVL ]
+                    Access =  [ CVL ]
                     Department = Some "ICK"
                     Age =
                         Units.Time.year
@@ -159,7 +159,7 @@ pr.SolutionRules
 
 
 { Patient.patient with
-    Locations =  [ CVL ]
+    Access =  [ CVL ]
     Department = Some "ICK"
     Age =
         Units.Time.year
