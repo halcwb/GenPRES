@@ -16,7 +16,7 @@ module Tests
 
     // Original test data used by several tests below
     let testDrugOrders = [
-        { Medication.order with
+        { Medication.template with
             Id = "DO1"
             Name = "Test Drug Order 1"
             OrderType = DiscontinuousOrder
@@ -53,7 +53,7 @@ module Tests
                 }
             ]
         }
-        { Medication.order with
+        { Medication.template with
             Id = "DO2"
             Name = "Test Drug Order 2"
             OrderType = TimedOrder
@@ -593,7 +593,7 @@ module Tests
 
         let tests = testList "DrugOrder" [
             test "drugOrder default values" {
-                let drugOrder = Medication.order
+                let drugOrder = Medication.template
                 drugOrder.Id |> Expect.equal "should be empty" ""
                 drugOrder.Name |> Expect.equal "should be empty" ""
                 drugOrder.Components |> Expect.isEmpty "should be empty"
@@ -676,7 +676,7 @@ module Tests
         /// Helper to create a test order with configurable dose constraints
         let private createTestOrderWithConstraints hasQuantityConstraints hasQuantityAdjustConstraints adjustUnit =
             let drugOrder =
-                { Medication.order with
+                { Medication.template with
                     Id = "DOSE_TEST"
                     Name = "Dose Printout Test Order"
                     OrderType = DiscontinuousOrder
@@ -897,7 +897,7 @@ module Tests
                 test "Once order with useAdj=true shows QuantityAdjust constraints correctly" {
                     let un = Units.Mass.milliGram |> Units.per Units.Weight.kiloGram
                     let drugOrder =
-                        { Medication.order with
+                        { Medication.template with
                             Id = "ONCE_TEST"
                             Name = "Once Order Test"
                             OrderType = OnceOrder

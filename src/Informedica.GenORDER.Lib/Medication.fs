@@ -211,12 +211,13 @@ module Medication =
             prodCmp.Substances |> List.map SubstanceItem.toString
 
 
-    /// An empty DrugOrder record.
-    let order =
+    /// An empty medication record.
+    let template =
         {
             Id = ""
             Name = ""
             Components = []
+            Quantity = MinMax.empty
             Quantities = None
             Route = ""
             OrderType = AnyOrder
@@ -224,6 +225,7 @@ module Medication =
             Frequencies = None
             Time = MinMax.empty
             Dose = None
+            Div = None
             DoseCount = MinMax.empty
             Adjust = None
         }
@@ -314,16 +316,7 @@ module Medication =
                     lim.Products
                     |> Array.choose _.Divisible
                     |> Array.tryHead
-                Solution =
-                    match solutionRule with
-                    | None -> None
-                    | Some r ->
-                        r.SolutionLimits
-                        |> Array.tryFind (fun sl ->
-                            match sl.SolutionLimitTarget with
-                            | OrderableLimitTarget -> true
-                            | _ -> false
-                        )
+                Solution = None
                 Dose = lim.Limit
                 Substances =
                     lim.Products
@@ -385,22 +378,22 @@ module Medication =
 
 
     /// Add an optional solution rule to a DrugOrder
-    let addSolution sr dro =
+    let addSolution (pat: Patient) sr med =
         match sr with
-        | None -> dro
+        | None -> med
         | Some sr ->
-            { dro with
+            { med with
                 Dose =
                     { DoseLimit.limit with
                         Rate = sr.DripRate
-                        Quantity  = sr.Volume
-                        QuantityAdjust = sr.VolumeAdjust
                         DoseUnit = Units.Volume.milliLiter
                     } |> Some
+                Quantity = sr.Volume
                 Quantities =
-                    if sr.Volumes.IsNone then dro.Quantities
+                    if sr.Volumes.IsNone then med.Quantities
                     else
                         sr.Volumes
+                Div = sr.Div
                 DoseCount =
                     // Change percentage to count!
                     { MinMax.empty with
@@ -409,12 +402,12 @@ module Medication =
                     }
                 Components =
                     let ps =
-                        dro.Components
-                        |> List.map (fun p ->
-                            { p with
-                                Form = p.Form
+                        med.Components
+                        |> List.map (fun pc ->
+                            { pc with
+                                Form = pc.Form
                                 Substances =
-                                    p.Substances
+                                    pc.Substances
                                     |> setSolutionLimit sr.SolutionLimits
                             }
                         )
@@ -437,12 +430,41 @@ module Medication =
                     | None ->
                         writeWarningMessage "No diluents available"
                         ps
+                    |> List.map (fun pc ->
+                        { pc with
+                            Solution =
+                                sr.SolutionLimits
+                                |> Array.tryFind (fun sl ->
+                                    match sl.SolutionLimitTarget with
+                                    | ComponentLimitTarget c -> 
+                                        c |> String.equalsCapInsens pc.Name
+                                    | _ -> false
+                                )
+                                |> Option.map (fun sol ->
+                                    { sol with
+                                        Quantity =
+                                            match pat.Weight with
+                                            | None -> sol.Quantity
+                                            | Some w ->
+                                                match sol.Quantity |> MinMax.isEmpty, sol.QuantityAdj |> MinMax.isEmpty with
+                                                | true, false -> sol.QuantityAdj |> MinMax.apply (( * ) w) 
+                                                | true, true -> 
+                                                    [
+                                                        sol.Quantity
+                                                        sol.QuantityAdj |> MinMax.apply (( * ) w) 
+                                                    ]
+                                                    |> MinMax.foldMinimize true true
+                                                | _ -> sol.Quantity
+                                    }
+                                )
+                        }
+                    )
             }
 
 
     /// Create a Medication Order from patient information and dose rules
     let create (pat : Patient) au dose (dr : DoseRule) (sr: SolutionRule option) =
-        { order with
+        { template with
             Id = Guid.NewGuid().ToString()
             Name = dr.Generic |> String.toLower
             Components =
@@ -474,7 +496,7 @@ module Medication =
                 else pat |> Patient.calcBSA
             //AdjustUnit = Some au
         }
-        |> addSolution sr
+        |> addSolution pat sr
 
 
     /// <summary>
@@ -517,23 +539,45 @@ module Medication =
         let limToDto = Option.map Limit.getValueUnit >> vuToDto
 
         /// Create the base Order DTO based on order type
-        let createBaseOrderDto (d : Medication) =
-            match d.OrderType with
+        let createBaseOrderDto (med : Medication) =
+            match med.OrderType with
             | AnyOrder -> failwith "Not implemented yet, the order type cannot be 'Any'"
             | ProcessOrder -> failwith "Not implemented yet, the order type cannot be 'Process'"
-            | OnceOrder -> Order.Dto.once d.Id d.Name d.Route []
-            | OnceTimedOrder -> Order.Dto.onceTimed d.Id d.Name d.Route []
-            | ContinuousOrder -> Order.Dto.continuous d.Id d.Name d.Route []
-            | DiscontinuousOrder -> Order.Dto.discontinuous d.Id d.Name d.Route []
-            | TimedOrder -> Order.Dto.timed d.Id d.Name d.Route []
+            | OnceOrder -> Order.Dto.once med.Id med.Name med.Route []
+            | OnceTimedOrder -> Order.Dto.onceTimed med.Id med.Name med.Route []
+            | ContinuousOrder -> Order.Dto.continuous med.Id med.Name med.Route []
+            | DiscontinuousOrder -> Order.Dto.discontinuous med.Id med.Name med.Route []
+            | TimedOrder -> Order.Dto.timed med.Id med.Name med.Route []
+
+
+        let getOrderableUnit (med : Medication) =
+            med.Components
+            |> List.tryHead
+            |> Option.bind (fun p ->
+                p.Quantities
+                |> Option.map ValueUnit.getUnit
+            )
+
 
         /// Calculate divisibility increment for a component
-        let calculateDivisibility (p : ProductComponent) =
-            p.Divisible
-            |> Option.bind (fun d ->
-                let ou = p.Quantities |> Option.map ValueUnit.getUnit |> Option.defaultValue NoUnit
-                1N / d |> createSingleValueUnitDto ou
-            )
+        let calculateDivisibility (med: Medication) =
+            let ou = med |> getOrderableUnit
+            match ou, med.Div with
+            | None, _ -> None
+            | Some ou, Some br -> 1N / br |> createSingleValueUnitDto ou
+            | Some ou, None ->
+                let incrs =
+                    med.Components
+                    |> List.choose (fun pc ->
+                        pc.Divisible |> Option.map (fun d -> 1N / d)
+                    )
+
+                if incrs |> List.isEmpty then None
+                else 
+                    incrs
+                    |> List.max
+                    |> createSingleValueUnitDto ou
+
 
         /// Apply solution constraints to a component
         let setComponentSolutionConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (sl : SolutionLimit) =
@@ -546,29 +590,27 @@ module Medication =
             itmDto.OrderableConcentration.Constraints |> setMinMaxConstraints None sl.Concentration
 
         /// Set specific constraints for timed orders
-        let setTimedOrderConstraints (orbDto : Order.Orderable.Dto.Dto) =
+        let setTimedOrderConstraints (med: Medication) (orbDto : Order.Orderable.Dto.Dto) =
             // Assume timed order always solution
             if orbDto.Dose.Quantity.Constraints.ValsOpt.IsNone then
-                orbDto.Dose.Quantity.Constraints.IncrOpt <-
-                    1N/10N |> createSingleValueUnitDto Units.Volume.milliLiter
+                orbDto.Dose.Quantity.Constraints.IncrOpt <- med |> calculateDivisibility
 
             if orbDto.OrderableQuantity.Constraints.ValsOpt.IsNone then
-                orbDto.OrderableQuantity.Constraints.IncrOpt <-
-                    1N/10N |> createSingleValueUnitDto Units.Volume.milliLiter
+                orbDto.OrderableQuantity.Constraints.IncrOpt <- med |> calculateDivisibility
 
         /// Set basic item-level constraints
-        let setItemQtyConcConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (d : Medication) (s : SubstanceItem) =
-            itmDto.ComponentConcentration.Constraints.ValsOpt <- s.Concentrations |> vuToDto
+        let setItemQtyConcConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (med : Medication) (si : SubstanceItem) =
+            itmDto.ComponentConcentration.Constraints.ValsOpt <- si.Concentrations |> vuToDto
 
             // Handle single component case
-            if d.Components |> List.length = 1 then
+            if med.Components |> List.length = 1 then
                 itmDto.OrderableConcentration.Constraints.ValsOpt <- itmDto.ComponentConcentration.Constraints.ValsOpt
 
             // Apply solution constraints if present
-            s.Solution |> Option.iter (setItemSolutionConstraints itmDto)
+            si.Solution |> Option.iter (setItemSolutionConstraints itmDto)
 
         /// Set item dose constraints based on order type
-        let setItemDoseConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (d : Medication) (s : SubstanceItem) =
+        let setItemDoseConstraints (itmDto : Order.Orderable.Item.Dto.Dto) (med : Medication) (si : SubstanceItem) =
             let setDoseRate (dl : DoseLimit) =
                 itmDto.Dose.Rate.Constraints |> setMinMaxConstraints None dl.Rate
                 itmDto.Dose.RateAdjust.Constraints |> setMinMaxConstraints None dl.RateAdjust
@@ -584,52 +626,59 @@ module Medication =
                 itmDto.Dose.PerTime.Constraints |> setMinMaxConstraints None dl.PerTime
                 itmDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
-            match d.OrderType with
+            match med.OrderType with
             | AnyOrder | ProcessOrder -> ()
-            | ContinuousOrder -> s.Dose |> Option.iter setDoseRate
-            | OnceOrder | DiscontinuousOrder -> s.Dose |> Option.iter setDoseQty
+            | ContinuousOrder -> si.Dose |> Option.iter setDoseRate
+            | OnceOrder | DiscontinuousOrder -> si.Dose |> Option.iter setDoseQty
             | OnceTimedOrder | TimedOrder ->
-                s.Dose |> Option.iter (fun dl ->
+                si.Dose |> Option.iter (fun dl ->
                     setDoseRate dl
                     setDoseQty dl
                 )
 
         /// Create a single item DTO with all its constraints
-        let createSingleItemDto (d : Medication) (p : ProductComponent) (s : SubstanceItem) =
-            let itmDto = Order.Orderable.Item.Dto.dto d.Id d.Name p.Name s.Name
+        let createSingleItemDto (med : Medication) (pc : ProductComponent) (si : SubstanceItem) =
+            let itmDto = Order.Orderable.Item.Dto.dto med.Id med.Name pc.Name si.Name
 
             // Set basic item constraints
-            setItemQtyConcConstraints itmDto d s
+            setItemQtyConcConstraints itmDto med si
 
             // Set item dose constraints based on order type
-            setItemDoseConstraints itmDto d s
+            setItemDoseConstraints itmDto med si
 
             itmDto
 
         /// Create item DTOs for a component
-        let createItemDtos (d : Medication) (p : ProductComponent) =
-            [ for s in p.Substances -> createSingleItemDto d p s ]
+        let createItemDtos (med : Medication) (p : ProductComponent) =
+            [ for s in p.Substances -> createSingleItemDto med p s ]
 
         /// Set basic component-level constraints
-        let setComponentQtyConcConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (d : Medication) (p : ProductComponent) =
-            let incr = calculateDivisibility p
+        let setComponentQtyConcConstraints (med : Medication) (pc : ProductComponent) (cmpDto : Order.Orderable.Component.Dto.Dto) =
+            let incr = med |> calculateDivisibility
 
-            cmpDto.ComponentQuantity.Constraints.ValsOpt <- p.Quantities |> vuToDto
+            cmpDto.ComponentQuantity.Constraints.ValsOpt <- pc.Quantities |> vuToDto
+
             cmpDto.OrderableQuantity.Constraints.IncrOpt <- incr
 
+            match pc.Solution with
+            | None -> ()
+            | Some sol ->
+                cmpDto.OrderableQuantity.Constraints.ValsOpt <- sol.Quantities |> vuToDto
+                cmpDto.OrderableQuantity.Constraints |> setMinMaxConstraints None sol.Quantity
+
             // Handle single component case
-            if d.Components |> List.length = 1 then
+            if med.Components |> List.length = 1 then
                 cmpDto.OrderableConcentration.Constraints.ValsOpt <-
                     1N |> createSingleValueUnitDto Units.Count.times
                 cmpDto.Dose.Quantity.Constraints.IncrOpt <- incr
 
             // Apply solution constraints if present
-            p.Solution |> Option.iter (setComponentSolutionConstraints cmpDto)
+            pc.Solution |> Option.iter (setComponentSolutionConstraints cmpDto)
 
         /// Set component dose constraints based on order type
-        let setComponentDoseConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (d : Medication) (p : ProductComponent) =
+        let setComponentDoseConstraints (cmpDto : Order.Orderable.Component.Dto.Dto) (med : Medication) (pc : ProductComponent) =
             let zero =
-                d.Components
+                med.Components
                 |> List.tryHead
                 |> Option.bind (fun p ->
                     p.Quantities
@@ -638,7 +687,6 @@ module Medication =
                         0N |> createSingleValueUnitDto u
                     )
                 )
-
 
             let setDoseRate (dl : DoseLimit) =
                 if dl.Rate |> MinMax.isEmpty |> not then
@@ -661,39 +709,39 @@ module Medication =
                 if dl.PerTimeAdjust |> MinMax.isEmpty |> not || dl.NormPerTimeAdjust |> Option.isSome then
                     cmpDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
-            match d.OrderType with
+            match med.OrderType with
             | AnyOrder | ProcessOrder -> ()
-            | ContinuousOrder -> p.Dose |> Option.iter setDoseRate
-            | OnceOrder | DiscontinuousOrder -> p.Dose |> Option.iter setDoseQty
+            | ContinuousOrder -> pc.Dose |> Option.iter setDoseRate
+            | OnceOrder | DiscontinuousOrder -> pc.Dose |> Option.iter setDoseQty
             | OnceTimedOrder | TimedOrder ->
-                p.Dose |> Option.iter (fun dl ->
+                pc.Dose |> Option.iter (fun dl ->
                     setDoseRate dl
                     setDoseQty dl
                 )
 
         /// Create a single component DTO with all its constraints and items
-        let createSingleComponentDto (d : Medication) (p : ProductComponent) =
-            let cmpDto = Order.Orderable.Component.Dto.dto d.Id d.Name p.Name p.Form
+        let createSingleComponentDto (med : Medication) (pc : ProductComponent) =
+            let cmpDto = Order.Orderable.Component.Dto.dto med.Id med.Name pc.Name pc.Form
 
             // Set basic component constraints
-            setComponentQtyConcConstraints cmpDto d p
+            cmpDto |> setComponentQtyConcConstraints med pc
 
             // Set component dose constraints based on order type
-            setComponentDoseConstraints cmpDto d p
+            setComponentDoseConstraints cmpDto med pc
 
             // Create and set item DTOs
-            cmpDto.Items <- createItemDtos d p
+            cmpDto.Items <- createItemDtos med pc
 
             cmpDto
 
         /// Create component DTOs from DrugOrder components
-        let createComponentDtos (d : Medication) =
-            [ for p in d.Components -> createSingleComponentDto d p ]
+        let createComponentDtos (med : Medication) =
+            [ for pc in med.Components -> createSingleComponentDto med pc ]
 
         /// Set basic orderable-level constraints
-        let setOrderableConstraints (orbDto : Order.Orderable.Dto.Dto) (d : Medication) =
+        let setOrderableConstraints (orbDto : Order.Orderable.Dto.Dto) (med : Medication) =
             let zero =
-                d.Components
+                med.Components
                 |> List.tryHead
                 |> Option.bind (fun p ->
                     p.Quantities
@@ -703,20 +751,20 @@ module Medication =
                     )
                 )
 
-            orbDto.DoseCount.Constraints |> setMinMaxConstraints None d.DoseCount
+            orbDto.DoseCount.Constraints |> setMinMaxConstraints None med.DoseCount
 
-            match d.Quantities with
+            match med.Quantities with
             | None ->
                 orbDto.OrderableQuantity.Constraints.MinOpt <- zero
                 orbDto.OrderableQuantity.Constraints.MinIncl <- false
 
             | Some _ ->
-                orbDto.OrderableQuantity.Constraints.ValsOpt <- d.Quantities |> vuToDto
+                orbDto.OrderableQuantity.Constraints.ValsOpt <- med.Quantities |> vuToDto
 
         /// Set dose-constraints on orderable based on order-type
-        let setOrderableDoseConstraints (orbDto : Order.Orderable.Dto.Dto) (d : Medication) =
+        let setOrderableDoseConstraints (orbDto : Order.Orderable.Dto.Dto) (med : Medication) =
             let orderableUnit =
-                d.Components
+                med.Components
                 |> List.tryHead
                 |> Option.bind (fun p ->
                     p.Quantities
@@ -726,27 +774,13 @@ module Medication =
             let rateUnit = orderableUnit |> Option.map (Units.per Units.Time.hour)
 
             let freqTimeUnit =
-                d.Frequencies
+                med.Frequencies
                 |> Option.map (ValueUnit.getUnit >> ValueUnit.getUnits)
                 |> function
                 | Some [ _; tu ] -> Some tu
                 | _ -> None
 
-            let incr =
-                match orderableUnit with
-                | None -> None
-                | Some ou ->
-                    d.Components
-                    |> List.choose _.Divisible
-                    |> function
-                    | [] -> None
-                    | divs -> 
-                        divs 
-                        |> List.min 
-                        |> fun br -> 1N / br
-                        |> ValueUnit.singleWithUnit ou
-                        |> Some
-                        |> vuToDto
+            let incr = med |> calculateDivisibility
                         
             // orderable quantity increment defaults to smallest product component increment (based on component divisibility)
             orbDto.OrderableQuantity.Constraints.IncrOpt <- incr
@@ -820,55 +854,55 @@ module Medication =
 
                         orbDto.Dose.PerTimeAdjust.Constraints |> setMinMaxConstraints dl.NormPerTimeAdjust dl.PerTimeAdjust
 
-            match d.OrderType with
+            match med.OrderType with
             | AnyOrder | ProcessOrder -> ()
             | ContinuousOrder ->
-                d.Dose |> setOrbDoseRate
+                med.Dose |> setOrbDoseRate
             | OnceOrder ->
-                d.Dose |> setOrbDoseQty true
+                med.Dose |> setOrbDoseQty true
             | OnceTimedOrder ->
-                d.Dose |> setOrbDoseRate
-                d.Dose |> setOrbDoseQty true
+                med.Dose |> setOrbDoseRate
+                med.Dose |> setOrbDoseQty true
             | DiscontinuousOrder ->
-                d.Dose |> setOrbDoseQty false
+                med.Dose |> setOrbDoseQty false
             | TimedOrder ->
-                setTimedOrderConstraints orbDto
-                d.Dose |> setOrbDoseRate
-                d.Dose |> setOrbDoseQty false
+                orbDto |> setTimedOrderConstraints med
+                med.Dose |> setOrbDoseRate
+                med.Dose |> setOrbDoseQty false
 
         /// Create and configure the Orderable DTO with all constraints
-        let createOrderableDto (d : Medication) =
-            let orbDto = Order.Orderable.Dto.dto d.Id d.Name
+        let createOrderableDto (med : Medication) =
+            let orbDto = Order.Orderable.Dto.dto med.Id med.Name
 
             // Set basic orderable constraints
-            setOrderableConstraints orbDto d
+            setOrderableConstraints orbDto med
 
             // Set dose-constraints based on order-type
-            setOrderableDoseConstraints orbDto d
+            setOrderableDoseConstraints orbDto med
 
             // Create and set component DTOs
-            orbDto.Components <- createComponentDtos d
+            orbDto.Components <- createComponentDtos med
 
             orbDto
 
         /// Set prescription-level constraints (frequency and time)
-        let setPrescriptionConstraints (dto : Order.Dto.Dto) (d : Medication) =
-            dto.Schedule.Frequency.Constraints.ValsOpt <- d.Frequencies |> vuToDto
-            match d.Frequencies with
+        let setPrescriptionConstraints (dto : Order.Dto.Dto) (med : Medication) =
+            dto.Schedule.Frequency.Constraints.ValsOpt <- med.Frequencies |> vuToDto
+            match med.Frequencies with
             | None -> ()
             | Some fu -> // frequency increment always defaults to 1
                 let freqUnit = fu |> ValueUnit.getUnit
                 let incr = 1N |> createSingleValueUnitDto freqUnit
                 dto.Schedule.Frequency.Constraints.IncrOpt <- incr
 
-            dto.Schedule.Time.Constraints.MinIncl <- d.Time.Min.IsSome
-            dto.Schedule.Time.Constraints.MinOpt <- d.Time.Min |> limToDto
-            dto.Schedule.Time.Constraints.MaxIncl <- d.Time.Max.IsSome
-            dto.Schedule.Time.Constraints.MaxOpt <- d.Time.Max |> limToDto
+            dto.Schedule.Time.Constraints.MinIncl <- med.Time.Min.IsSome
+            dto.Schedule.Time.Constraints.MinOpt <- med.Time.Min |> limToDto
+            dto.Schedule.Time.Constraints.MaxIncl <- med.Time.Max.IsSome
+            dto.Schedule.Time.Constraints.MaxOpt <- med.Time.Max |> limToDto
 
         /// Set patient adjustment constraints (weight/BSA based)
-        let setAdjustmentConstraints (dto : Order.Dto.Dto) (d : Medication) =
-            match d.Adjust with
+        let setAdjustmentConstraints (dto : Order.Dto.Dto) (med : Medication) =
+            match med.Adjust with
             | None -> ()
             | Some vu ->
                 let adjustUnit = vu |> ValueUnit.getUnit
@@ -879,25 +913,25 @@ module Medication =
                     dto.Adjust.Constraints.MaxOpt <- 150N |> createSingleValueUnitDto adjustUnit
 
             // TODO: add constraints for BSA
-            dto.Adjust.Constraints.ValsOpt <- d.Adjust |> vuToDto
+            dto.Adjust.Constraints.ValsOpt <- med.Adjust |> vuToDto
 
 
     /// <summary>
     /// Convert a Medication order to an Order DTO for the solver system
     /// </summary>
-    /// <param name="d">The Medication order to convert</param>
-    let toOrderDto (d : Medication) =
+    /// <param name="med">The Medication order to convert</param>
+    let toOrderDto (med : Medication) =
         // Create the base DTO structure
-        let dto = OrderDtoHelpers.createBaseOrderDto d
+        let dto = OrderDtoHelpers.createBaseOrderDto med
 
         // Set up the orderable with all its constraints
-        let orbDto = OrderDtoHelpers.createOrderableDto d
+        let orbDto = OrderDtoHelpers.createOrderableDto med
         dto.Orderable <- orbDto
 
         // Apply prescription constraints
-        OrderDtoHelpers.setPrescriptionConstraints dto d
+        OrderDtoHelpers.setPrescriptionConstraints dto med
 
         // Apply patient adjustment constraints
-        OrderDtoHelpers.setAdjustmentConstraints dto d
+        OrderDtoHelpers.setAdjustmentConstraints dto med
 
         dto

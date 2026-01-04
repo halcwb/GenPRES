@@ -215,6 +215,7 @@ module OrderProcessor =
         |> OrderPropertyChange.proc 
             [
                 OrderableQuantity Quantity.setToNonZeroPositive
+                ComponentOrderableQuantity (cmp, Quantity.setToNonZeroPositive)
                 ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
 
                 OrderableDoseCount OrderVariable.Count.setToNonZeroPositive

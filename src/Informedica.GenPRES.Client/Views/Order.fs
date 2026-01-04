@@ -1359,7 +1359,7 @@ module Order =
                             ord.Orderable.OrderableQuantity.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]
-                            |> select false "Bereiding Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) None false
+                            |> select false "Totale Hoeveelheid" None (ChangeOrderableQuantity >> dispatch) None false
                         | _ ->
                             [||]
                             |> select true "" None ignore None false

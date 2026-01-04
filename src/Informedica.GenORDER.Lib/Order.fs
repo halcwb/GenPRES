@@ -714,7 +714,7 @@ module Order =
 
 
                 let doseQuantityConstraints =
-                    fun dos -> dos.Quantity |> Quantity.toOrdVar
+                    fun (dos : Dose) -> dos.Quantity |> Quantity.toOrdVar
                     |> doseConstraints
 
 

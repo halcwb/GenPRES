@@ -332,6 +332,8 @@ module Types =
             Name : string
             // The list of drug products that can be used for the order
             Components : ProductComponent list
+            // The min max quantity
+            Quantity : MinMax
             // The quantities of the drug order
             Quantities :  ValueUnit option
             // The route by which the order is applied
@@ -348,6 +350,8 @@ module Types =
             Dose : DoseLimit option
             // The amount of orderable that will be given each time
             DoseCount : MinMax
+            // Dividability option
+            Div: BigRational option
             // The adjust quantity for the adjusted dose calculations
             Adjust : ValueUnit option
         }

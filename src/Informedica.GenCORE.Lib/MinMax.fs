@@ -489,6 +489,17 @@ module MinMax =
     let create min max = { Min = min; Max = max }
 
 
+    let apply f (mm: MinMax) = 
+        { mm with
+            Min = 
+                mm.Min
+                |> Option.map (Limit.apply f f) 
+            Max = 
+                mm.Max
+                |> Option.map (Limit.apply f f) 
+        }
+
+
     let validate { Min = min; Max = max } =
         let getGroup =
             Limit.getValueUnit >> ValueUnit.getGroup

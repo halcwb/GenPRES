@@ -94,6 +94,36 @@ module PrescriptionRule =
                 | _ -> dl
 
 
+    let adjustSolutionRuleToPatient (pat: Patient) (sr: SolutionRule) =
+        match pat.Weight with
+        | None -> sr
+        | Some w ->
+            { sr with
+                Volume = 
+                    if sr.VolumeAdjust |> MinMax.isEmpty then sr.Volume
+                    else
+                        [
+                            sr.VolumeAdjust |> MinMax.apply  (( * ) w)
+                            sr.Volume
+                        ]
+                        |> MinMax.foldMinimize true true
+                SolutionLimits =
+                    sr.SolutionLimits
+                    |> Array.map (fun sl ->
+                        if sl.QuantityAdj |> MinMax.isEmpty then sl
+                        else
+                            { sl with
+                                Quantity = 
+                                    [ 
+                                        sl.QuantityAdj |> MinMax.apply (( * ) w)
+                                        sl.Quantity
+                                    ]
+                                    |> MinMax.foldMinimize true true
+                            }
+                    )
+            }
+
+
     /// Use a Filter to get matching PrescriptionRules.
     let filter
         doseRules
@@ -219,7 +249,10 @@ module PrescriptionRule =
                                             |> Array.map (adjustDoseLimitToPatient freq filter.Patient)
                                     }
                                 )
-                    }
+                        }
+                    SolutionRules =
+                        pr.SolutionRules
+                        |> Array.map (adjustSolutionRuleToPatient filter.Patient)
                 }
         )
         // Recalculate the dose rule according to a renal rules

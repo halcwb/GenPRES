@@ -30,6 +30,22 @@ module Utils =
     module GenFormResult =
 
 
+        let inline map f r : GenFormResult<_> = 
+            match r with
+            | Ok (x, msgs) -> (x |> f, msgs) |> Ok
+            | Error msgs -> msgs |> Error
+
+
+        let inline bind (f : 'a -> GenFormResult<'b>) (r : GenFormResult<'a>) : GenFormResult<'b> =
+            match r with
+            | Ok (x, msgs1) ->
+                match x |> f with
+                | Ok (x, msgs2) -> Ok (x, msgs1 @ msgs2)
+                | Error msgs2 -> Error (msgs1 @ msgs2)
+            | Error msgs -> msgs |> Error
+
+
+
         let createError source exn : GenFormResult<_> = [ Message.createExnMsg source exn ] |> Error
 
 

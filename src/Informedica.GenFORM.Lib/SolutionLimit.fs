@@ -31,5 +31,6 @@ module SolutionLimit =
     let toString (sl: SolutionLimit) =
         [
             sl.Quantity |> minMaxToString
+            sl.QuantityAdj |> minMaxToString
             sl.Concentration |> minMaxToString
         ]
