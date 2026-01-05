@@ -78,6 +78,7 @@ module OrderProcessor =
                 OrderableDose Dose.setRateAdjustToNonZeroPositive
                 ComponentDose ("", Dose.setRateToNonZeroPositive)
                 ItemDose ("", "", Dose.setRateToNonZeroPositive)
+
             ]
         // increase or decrease
         |> OrderPropertyChange.proc [ OrderableDose step ]
@@ -88,20 +89,19 @@ module OrderProcessor =
         // clear dose rates and dependent properties
         |> OrderPropertyChange.proc
             [
-                ScheduleTime Time.setToNonZeroPositive
+                if ord.Schedule.IsContinuous then
+                    ScheduleTime Time.setToNonZeroPositive
 
-                OrderableDose Dose.setRateAdjustToNonZeroPositive
-                ComponentDose ("", Dose.setRateToNonZeroPositive)
-                ItemDose ("", "", Dose.setRateToNonZeroPositive)
+                    OrderableDose Dose.applyConstraints
+                    ComponentDose ("", Dose.applyConstraints)
+                    ItemDose ("", "", Dose.applyConstraints)
+                else
+                    ScheduleTime Time.applyConstraints
+                    
+                    OrderableDose Dose.applyConstraints
+                    ComponentDose ("", Dose.setRateToNonZeroPositive)
+                    ItemDose ("", "", Dose.setRateToNonZeroPositive)
             ]
-        // re-apply constraints
-        |> OrderPropertyChange.proc [
-            ScheduleTime Time.applyConstraints
-
-            OrderableDose Dose.applyConstraints
-            ComponentDose ("", Dose.applyConstraints)
-            ItemDose ("", "", Dose.applyConstraints)
-        ]
         // re-calc the min max
         |> solveMinMax printErr logger
         // step to a min, median or max rate
@@ -189,64 +189,117 @@ module OrderProcessor =
     
     // == Property Change Component Quantity
 
+    /// <summary>
+    /// Increase or decrease a specific component's orderable quantity by an increment.
+    /// The new value may fall outside min/max constraints—this is intentional to allow
+    /// the user to explore boundary values. All dependent variables are cleared
+    /// (set to non-zero positive) to accept the propagated out-of-bounds values.
+    /// Key relationships maintained:
+    /// - orb_qty = sum(cmp_orb_qty): orderable quantity is recalculated from components
+    /// - cmp_orb_qty = orb_dos_cnt * cmp_dos_qty: dose count stays constant
+    /// - itm_orb_cnc = itm_orb_qty / orb_qty: item concentrations update for all components
+    /// For timed schedules, rate is kept constant while time adjusts.
+    /// </summary>
+    /// <param name="step">The function to apply (increase or decrease) to the component quantity</param>
+    /// <param name="cmp">The name of the component to modify</param>
+    /// <param name="ord">The order to process</param>
     let orderPropertyIncrOrDecrComponentQuantity step cmp ord =
         ord
         |> OrderPropertyChange.proc
             [
+                // for timed schedules: keep rate constant, clear time to absorb quantity change
+                if ord.Schedule |> Schedule.hasTime then
+                    ScheduleTime Time.setToNonZeroPositive
+                // orderable quantity is recalculated from component sum (eq 57: orb_qty = sum(cmp_orb_qty))
+                // clear to accept any positive value since component may be out of bounds
                 OrderableQuantity Quantity.setToNonZeroPositive
-
+                // component counts and concentrations change when component quantities change
+                // clear to allow recalculation with potentially out-of-bounds values
                 ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
                 ComponentOrderableConcentration ("", Concentration.setToNonZeroPositive)
+                // dose count (orb_dos_cnt) stays constant, so component dose quantity
+                // is recalculated via: cmp_orb_qty = orb_dos_cnt * cmp_dos_qty
+                // if cmp_orb_qty is out of bounds, cmp_dos_qty will also be out of bounds
                 ComponentDose ("", Dose.setQuantityToNonZeroPositive)
-
+                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
+                ItemDose ("", "", Dose.setToNonZeroPositive)
+                // item orderable quantities change only for the modified component
+                // (item quantities in other components are unaffected by their component's quantity)
                 ItemOrderableQuantity (cmp, "", Quantity.setToNonZeroPositive)
+                // all item orderable concentrations change because total orb_qty changes
+                // (eq 4: itm_orb_cnc = itm_orb_qty / orb_qty)
                 ItemOrderableConcentration ("", "", Concentration.setToNonZeroPositive)
-
-                OrderableDose Dose.setNonZeroPositive
-                ComponentDose ("", Dose.setNonZeroPositive)
-                ItemDose ("", "", Dose.setNonZeroPositive)
+                // orderable doses are derived from component doses
+                // clear to accept propagated out-of-bounds values
+                OrderableDose Dose.setQuantityToNonZeroPositive
+                OrderableDose Dose.setPerTimeToNonZeroPositive
             ]
         |> OrderPropertyChange.proc [ ComponentOrderableQuantity (cmp, step)]
 
 
+    /// <summary>
+    /// Set a specific component's orderable quantity to a min, max, or median value
+    /// based on the min/incr/max constraints. Key relationships maintained:
+    /// - orb_qty = sum(cmp_orb_qty): orderable quantity is recalculated from components
+    /// - cmp_orb_qty = orb_dos_cnt * cmp_dos_qty: dose count stays constant
+    /// - itm_orb_cnc = itm_orb_qty / orb_qty: item concentrations update for all components
+    /// For timed schedules, rate is kept constant while time adjusts.
+    /// Components with already-solved quantities have doses recalculated;
+    /// unsolved components have full constraints applied.
+    /// </summary>
+    /// <param name="printErr">Whether to print errors</param>
+    /// <param name="logger">The logger for diagnostics</param>
+    /// <param name="step">The function to set the value (setMinValue, setMaxValue, or setMedianValue)</param>
+    /// <param name="cmp">The name of the component to modify</param>
+    /// <param name="ord">The order to process</param>
     let orderPropertySetComponentQuantity printErr logger step cmp ord =
         ord
-        // clear dose quantity and dependent properties
+        // apply constraints and prepare for min/max calculation
         |> OrderPropertyChange.proc 
             [
-                OrderableQuantity Quantity.setToNonZeroPositive
-                ComponentOrderableQuantity (cmp, Quantity.setToNonZeroPositive)
-                ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
-
-                OrderableDoseCount OrderVariable.Count.setToNonZeroPositive
-                ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
-
-                ComponentOrderableConcentration ("", Concentration.setToNonZeroPositive)
-                ComponentDose ("", Dose.setQuantityToNonZeroPositive)
-
-                ItemOrderableConcentration ("", "", Concentration.setToNonZeroPositive)
-                ItemDose ("", "", Dose.setQuantityToNonZeroPositive)
-
-                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
-                ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
-            ]
-        // re-apply constraints
-        |> OrderPropertyChange.proc 
-            [
+                // keep rate constant and only change time
                 if ord.Schedule |> Schedule.hasTime then
-                    ScheduleTime Time.applyConstraints
-
+                    if ord.Schedule |> Schedule.isTimeSolved |> not then
+                        ScheduleTime Time.applyConstraints
+                    else
+                        ScheduleTime Time.setToNonZeroPositive
+                        
+                // orderable quantity is calculated by adding component quantities
                 OrderableQuantity Quantity.applyConstraints
+                // the component that has to be set to a min, max or median value
+                // first has to be set to the min, incr, max constraints for that component
                 ComponentOrderableQuantity (cmp, Quantity.applyConstraints)
                 ItemOrderableQuantity (cmp, "", Quantity.applyConstraints)
 
-                ComponentOrderableCount("", OrderVariable.Count.applyConstraints)
+                // keep orderable dose rate constant but change the 
+                // orderable dose
+                OrderableDose Dose.setQuantityToNonZeroPositive
+                OrderableDose Dose.setPerTimeToNonZeroPositive
 
-                OrderableDose Dose.applyConstraints
-                ComponentDose ("", Dose.applyConstraints)
-                ItemDose ("", "", Dose.applyConstraints)
+                for c in ord.Orderable.Components do
+                    let cn = c.Name |> Name.toString
+                    if c.ComponentQuantity |> Quantity.isSolved |> not then
+                        // the relative contribution of each component quantity changes
+                        ComponentOrderableCount ("", OrderVariable.Count.applyConstraints)
+                        ItemOrderableConcentration ("", "", Concentration.applyConstraints)
+                        // component quantity is not set to a specific value
+                        // set the dose to the constraints that apply to that
+                        // component
+                        ComponentDose (cn, Dose.applyConstraints)
+                        ItemDose (cn, "", Dose.applyConstraints)
+                        ComponentOrderableConcentration ("", Concentration.applyConstraints)
+                        ItemOrderableConcentration (cn, "", Concentration.applyConstraints)
+                    else 
+                        // the relative contribution of each component quantity changes
+                        ComponentOrderableCount ("", OrderVariable.Count.applyConstraints)
+                        ItemOrderableConcentration ("", "", Concentration.applyConstraints)
+                        // component quantity is already set, so only 
+                        // recalculate the dose
+                        ComponentDose (cn, Dose.setToNonZeroPositive)
+                        ItemDose (cn, "", Dose.setToNonZeroPositive)
+                        ComponentOrderableConcentration ("", Concentration.setToNonZeroPositive)
+                        ItemOrderableConcentration ("", "", Concentration.setToNonZeroPositive)
 
-                OrderableDoseCount OrderVariable.Count.applyConstraints
             ]
         // re-calc min max
         |> solveMinMax printErr logger
@@ -554,7 +607,6 @@ module OrderProcessor =
                 |> Events.OrderScenario
                 |> Logging.logInfo logger
 
-                ord |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
                 step.Run ord
                 |> function
                 | Ok ord ->
@@ -580,7 +632,7 @@ module OrderProcessor =
                 o |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
                 Error (o, errs)
 
-        let calcValuesStep ord = ord |> minIncrMaxToValues false true logger |> Ok
+        let calcValuesStep useAll ord = ord |> minIncrMaxToValues useAll true logger |> Ok
 
         let solveStep ord = solveOrder true logger ord
 
@@ -601,13 +653,13 @@ module OrderProcessor =
 
         | CalcValues ord ->
             [ 
-                { Name = "calc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep } 
+                { Name = "calc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep false} 
             ]
             |> runPipeline ord
 
         | SolveOrder ord ->
             [
-                { Name = "solve-order: ensure-values-1"; Guard = (fun s -> s.HasValues |> not); Run = calcValuesStep };
+                { Name = "solve-order: ensure-values-1"; Guard = (fun s -> s.HasValues |> not); Run = calcValuesStep (ord.Orderable.Components |> List.length <= 2)};
                 { Name = "solve-order: solve-1"; Guard = (fun s -> s.HasValues); Run = solveStep };
                 { Name = "solve-order: process-cleared"; Guard = (fun s -> s.DoseIsSolved && s.IsCleared); Run = processClearedStep };
                 { Name = "solve-order: final-solve"; Guard = (fun s -> s.OrderIsSolved |> not); Run = solveStep }
@@ -618,7 +670,7 @@ module OrderProcessor =
             [
                 { Name = "recalc-values: apply-constraints"; Guard = (fun _ -> true); Run = applyConstraintsStep };
                 { Name = "recalc-values: calc-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep false };
-                { Name = "recalc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep }
+                { Name = "recalc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep (ord.Orderable.Components |> List.length <= 2) }
             ]
             |> runPipeline ord
 

@@ -171,11 +171,17 @@ module Order =
                 create qty ptm rte tot qty_adj ptm_adj rte_adj tot_adj
 
 
+            let isWithinConstraints dos =
+                dos
+                |> toOrdVars
+                |> List.forall OrderVariable.isWithinConstraints
+
+
             /// <summary>
             /// Apply constraints to a Dose
             /// </summary>
             /// <param name="dos">The Dose</param>
-            let setNonZeroPositive dos =
+            let setToNonZeroPositive dos =
                 let qty = (dos |> inf).Quantity |> Quantity.setToNonZeroPositive
                 let ptm = dos.PerTime |> PerTime.setToNonZeroPositive
                 let rte = dos.Rate |> Rate.setToNonZeroPositive
@@ -208,6 +214,11 @@ module Order =
                 }
 
 
+            let isQuantityWithinConstraints dos =
+                (dos |> inf).Quantity |> Quantity.isWithinConstraints &&
+                dos.QuantityAdjust |> QuantityAdjust.isWithinConstraints
+
+
             /// <summary>
             /// Apply only quantity adjust constraints to a Dose
             /// </summary>
@@ -227,6 +238,11 @@ module Order =
                 }
 
 
+            let isPerTimeWithinConstraints dos =
+                (dos |> inf).PerTime |> PerTime.isWithinConstraints &&
+                dos.PerTimeAdjust |> PerTimeAdjust.isWithinConstraints
+
+
             /// <summary>
             /// Set the rate constraints for a Dose
             /// </summary>
@@ -237,6 +253,11 @@ module Order =
                 { (dos |> inf) with
                     Rate = dos.Rate |> Rate.setConstraints cons
                 }
+
+
+            let isRateWithinConstraints dos =
+                (dos |> inf).Rate |> Rate.isWithinConstraints &&
+                dos.RateAdjust |> RateAdjust.isWithinConstraints
 
 
             /// <summary>
@@ -2418,7 +2439,7 @@ module Order =
                 | None, None -> true
 
 
-        let frequencyIsSolved schedule =
+        let isFrequencySolved schedule =
             schedule
             |> toOrdVars
             |> function
@@ -2426,11 +2447,27 @@ module Order =
                 | _ -> true
 
 
-        let timeIsSolved schedule =
+        let isFrequencyWithinConstraints schedule =
+            schedule
+            |> toOrdVars
+            |> function
+                | Some ovar, _ -> ovar |> OrderVariable.isWithinConstraints
+                | _ -> true
+
+
+        let isTimeSolved schedule =
             schedule
             |> toOrdVars
             |> function
                 | _, Some ovar -> ovar |> OrderVariable.isSolved
+                | _ -> true
+
+
+        let isTimeWithinConstraints schedule =
+            schedule
+            |> toOrdVars
+            |> function
+                | _, Some ovar -> ovar |> OrderVariable.isWithinConstraints
                 | _ -> true
 
 
@@ -3459,6 +3496,8 @@ module Order =
     /// <returns>A Result with the Order or a list error messages</returns>
     /// <raises>Any exception raised by the solver</raises>
     let rec solve minMax printErr logger (ord: Order) =
+        ord |> stringTable |> Events.OrderScenario |> Logging.logInfo logger
+
         // TODO figure out when parallel solving is
         // feasible and more efficient
         // for now restrict to continuous calculations

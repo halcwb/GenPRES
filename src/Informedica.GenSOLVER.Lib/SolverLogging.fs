@@ -40,7 +40,7 @@ module SolverLogging =
         "An equation should at least contain one variable"
 
     | Exceptions.SolverInvalidEquations eqs ->
-        $"The following equations are invalid {eqs |> eqsToStr} "
+        $"The following equations are invalid:\n {eqs |> eqsToStr} "
 
     | Exceptions.ValueRangeMinLargerThanMax (min, max) ->
         $"{min} is larger than {max}"
@@ -126,8 +126,9 @@ module SolverLogging =
         | EquationCouldNotBeSolved eq ->
             $"=== Cannot solve Equation ===\n{eq |> Equation.toString false}"
 
-        | SolverStartSolving eqs ->
-            $"=== Solver Start Solving ===\n{eqs |> eqsToStr}"
+        | SolverStartSolving (minmax, eqs) ->
+            let minmax = if minmax then " Only MinIncrMax" else ""
+            $"=== Solver Start Solving{minmax}===\n{eqs |> eqsToStr}"
 
         | SolverLoopedQue (n, eqs) ->
             $"solver looped que {n} times with {eqs |> List.length} equations"

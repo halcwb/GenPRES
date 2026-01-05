@@ -359,7 +359,7 @@ module Solver =
                 match rpl with
                 | [] -> eqs |> Ok
                 | _  ->
-                    rpl
+                    (onlyMinIncrMax, rpl)
                     |> Events.SolverStartSolving
                     |> Logger.logInfo log
 
