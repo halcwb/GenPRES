@@ -259,10 +259,7 @@ module OrderProcessor =
             [
                 // keep rate constant and only change time
                 if ord.Schedule |> Schedule.hasTime then
-                    if ord.Schedule |> Schedule.isTimeSolved |> not then
-                        ScheduleTime Time.applyConstraints
-                    else
-                        ScheduleTime Time.setToNonZeroPositive
+                    ScheduleTime Time.setToNonZeroPositive
                         
                 // orderable quantity is calculated by adding component quantities
                 OrderableQuantity Quantity.applyConstraints
@@ -278,28 +275,24 @@ module OrderProcessor =
 
                 for c in ord.Orderable.Components do
                     let cn = c.Name |> Name.toString
-                    if c.ComponentQuantity |> Quantity.isSolved |> not then
-                        // the relative contribution of each component quantity changes
-                        ComponentOrderableCount ("", OrderVariable.Count.applyConstraints)
-                        ItemOrderableConcentration ("", "", Concentration.applyConstraints)
+                    // the relative contribution of each component quantity changes
+                    ComponentOrderableCount (cn, OrderVariable.Count.setToNonZeroPositive)
+
+                    if c.OrderableQuantity |> Quantity.isSolved |> not then
                         // component quantity is not set to a specific value
-                        // set the dose to the constraints that apply to that
+                        // set the dose and concentration to the constraints that apply to that
                         // component
                         ComponentDose (cn, Dose.applyConstraints)
                         ItemDose (cn, "", Dose.applyConstraints)
-                        ComponentOrderableConcentration ("", Concentration.applyConstraints)
+                        ComponentOrderableConcentration (cn, Concentration.applyConstraints)
                         ItemOrderableConcentration (cn, "", Concentration.applyConstraints)
                     else 
-                        // the relative contribution of each component quantity changes
-                        ComponentOrderableCount ("", OrderVariable.Count.applyConstraints)
-                        ItemOrderableConcentration ("", "", Concentration.applyConstraints)
                         // component quantity is already set, so only 
                         // recalculate the dose
                         ComponentDose (cn, Dose.setToNonZeroPositive)
                         ItemDose (cn, "", Dose.setToNonZeroPositive)
-                        ComponentOrderableConcentration ("", Concentration.setToNonZeroPositive)
-                        ItemOrderableConcentration ("", "", Concentration.setToNonZeroPositive)
-
+                        ComponentOrderableConcentration (cn, Concentration.setToNonZeroPositive)
+                        ItemOrderableConcentration (cn, "", Concentration.setToNonZeroPositive)
             ]
         // re-calc min max
         |> solveMinMax printErr logger

@@ -26,6 +26,12 @@ let ovar2 =
         (Name.fromString "ovar2")
         Units.Count.times
 
+{ ovar2 with
+    OrderVariable.Constraints.Min = None
+}
+|> OrderVariable.applyConstraints
+
+
 let dto1 = ovar1 |> OrderVariable.Dto.toDto
 let dto2 = ovar2 |> OrderVariable.Dto.toDto
 

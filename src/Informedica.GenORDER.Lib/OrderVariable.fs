@@ -224,9 +224,12 @@ module OrderVariable =
 
         /// Check whether a `Constraints` record is empty
         let isEmpty (cs: Constraints) =
+            cs.Min 
+            |> Option.map (Minimum.toValueUnit >> ValueUnit.isZero) 
+            |> Option.defaultValue true
+            &&
             cs.Incr.IsNone &&
             cs.Max.IsNone &&
-            cs.Min.IsNone &&
             cs.Values.IsNone
 
 
@@ -264,13 +267,6 @@ module OrderVariable =
                 |> ValueRange.setOptMin cs.Min
                 |> ValueRange.setOptMax cs.Max
                 |> ValueRange.setOptIncr cs.Incr
-            (*
-            // only set a ValueSet if there is no increment
-            |> fun vr ->
-                if cs.Incr.IsSome then vr
-                else
-                    vr
-            *)
 
 
         /// Get the string representation of a `ValueRange` from a `Constraints` record
@@ -505,7 +501,6 @@ module OrderVariable =
         }
 
 
-
     /// <summary>
     /// Apply the constraints of an OrderVariable to the Variable
     /// of the OrderVariable.
@@ -521,8 +516,13 @@ module OrderVariable =
                 if ovar.Constraints |> Constraints.isEmpty then
                     { ovar.Variable with
                         Values =
-                            ValueRange.unrestricted
-                            |> ValueRange.nonZeroAndPositive
+                            match ovar.Variable.Values |> ValueRange.getUnit with
+                            | None -> ValueRange.nonZeroPositive
+                            | Some u ->
+                                u
+                                |> ValueUnit.zero
+                                |> Minimum.create false
+                                |> Min
                     }
                 else
                     { ovar.Variable with
@@ -865,11 +865,6 @@ module OrderVariable =
                     |> ValueUnit.zero
                     |> Minimum.create false
                     |> Min
-
-            (* this doesn't work when not empty?
-            Variable = Variable
-                ovar.Variable |> Variable.setNonZeroAndPositive
-            *)
         }
 
 
