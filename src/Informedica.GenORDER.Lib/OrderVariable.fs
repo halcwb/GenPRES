@@ -222,17 +222,6 @@ module OrderVariable =
             cs.Values
 
 
-        /// Check whether a `Constraints` record is empty
-        let isEmpty (cs: Constraints) =
-            cs.Min 
-            |> Option.map (Minimum.toValueUnit >> ValueUnit.isZero) 
-            |> Option.defaultValue true
-            &&
-            cs.Incr.IsNone &&
-            cs.Max.IsNone &&
-            cs.Values.IsNone
-
-
         /// Check whether a `Constraints` record is non-zero positive
         let isNonZeroPositive (cs: Constraints) =
             cs.Max.IsNone &&
@@ -241,6 +230,14 @@ module OrderVariable =
             cs.Min
             |> Option.map Minimum.isNonZeroPositive
             |> Option.defaultValue false
+
+
+        /// Check whether a `Constraints` record is empty
+        let isEmpty (cs: Constraints) = 
+            cs.Min.IsNone &&
+            cs.Incr.IsNone &&
+            cs.Max.IsNone &&
+            cs.Values.IsNone
 
 
         /// <summary>
@@ -491,7 +488,7 @@ module OrderVariable =
     let applyOnlyMaxConstraints (ovar : OrderVariable) =
         { ovar with
             Variable =
-                if ovar.Constraints |> Constraints.isEmpty then
+                if ovar |> hasConstraints |> not then
                     ovar.Variable
                     |> Variable.setNonZeroAndPositive
                 else
@@ -513,7 +510,7 @@ module OrderVariable =
     let applyConstraints (ovar : OrderVariable) =
         { ovar with
             Variable =
-                if ovar.Constraints |> Constraints.isEmpty then
+                if ovar |> hasConstraints |> not then
                     { ovar.Variable with
                         Values =
                             match ovar.Variable.Values |> ValueRange.getUnit with
