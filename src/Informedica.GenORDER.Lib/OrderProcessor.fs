@@ -109,6 +109,7 @@ module OrderProcessor =
     // == Property Change Dose Quantity
 
     let orderPropertyIncrOrDecrDoseQuantity step ord =
+        
         ord
         // clear order quantities
         |> OrderPropertyChange.proc
@@ -254,7 +255,7 @@ module OrderProcessor =
                     // the relative contribution of each component quantity changes
                     ComponentOrderableCount (cn, OrderVariable.Count.setToNonZeroPositive)
 
-                    if c.OrderableQuantity |> Quantity.isSolved |> not then
+                    if c.OrderableQuantity |> Quantity.isSolved |> not || cmp = cn then
                         // component quantity is not set to a specific value
                         // set the dose and concentration to the constraints that apply to that
                         // component
