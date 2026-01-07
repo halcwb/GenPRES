@@ -171,6 +171,7 @@ module OrderScenario =
                 pr.SolutionRules
                 |> Array.collect _.Diluents
                 |> Array.map _.Generic
+                |> Array.distinct
 
         let dil =
             // look if the order has a diluent

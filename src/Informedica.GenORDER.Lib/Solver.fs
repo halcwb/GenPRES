@@ -50,7 +50,7 @@ module Solver =
             { v with
                 Variable =
                     vars
-                    |> List.find (Variable.getName >> ((=) v.Variable.Name))
+                    |> List.find (Variable.getName >> (=) v.Variable.Name)
             }
         ordEqs
         |> List.map (fun eq ->

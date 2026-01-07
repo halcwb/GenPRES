@@ -222,14 +222,6 @@ module OrderVariable =
             cs.Values
 
 
-        /// Check whether a `Constraints` record is empty
-        let isEmpty (cs: Constraints) =
-            cs.Incr.IsNone &&
-            cs.Max.IsNone &&
-            cs.Min.IsNone &&
-            cs.Values.IsNone
-
-
         /// Check whether a `Constraints` record is non-zero positive
         let isNonZeroPositive (cs: Constraints) =
             cs.Max.IsNone &&
@@ -238,6 +230,14 @@ module OrderVariable =
             cs.Min
             |> Option.map Minimum.isNonZeroPositive
             |> Option.defaultValue false
+
+
+        /// Check whether a `Constraints` record is empty
+        let isEmpty (cs: Constraints) = 
+            cs.Min.IsNone &&
+            cs.Incr.IsNone &&
+            cs.Max.IsNone &&
+            cs.Values.IsNone
 
 
         /// <summary>
@@ -264,13 +264,6 @@ module OrderVariable =
                 |> ValueRange.setOptMin cs.Min
                 |> ValueRange.setOptMax cs.Max
                 |> ValueRange.setOptIncr cs.Incr
-            (*
-            // only set a ValueSet if there is no increment
-            |> fun vr ->
-                if cs.Incr.IsSome then vr
-                else
-                    vr
-            *)
 
 
         /// Get the string representation of a `ValueRange` from a `Constraints` record
@@ -495,7 +488,7 @@ module OrderVariable =
     let applyOnlyMaxConstraints (ovar : OrderVariable) =
         { ovar with
             Variable =
-                if ovar.Constraints |> Constraints.isEmpty then
+                if ovar |> hasConstraints |> not then
                     ovar.Variable
                     |> Variable.setNonZeroAndPositive
                 else
@@ -503,7 +496,6 @@ module OrderVariable =
                         Values = ovar.Constraints |> Constraints.toIncrMaxRange
                     }
         }
-
 
 
     /// <summary>
@@ -518,11 +510,16 @@ module OrderVariable =
     let applyConstraints (ovar : OrderVariable) =
         { ovar with
             Variable =
-                if ovar.Constraints |> Constraints.isEmpty then
+                if ovar |> hasConstraints |> not then
                     { ovar.Variable with
                         Values =
-                            ValueRange.unrestricted
-                            |> ValueRange.nonZeroAndPositive
+                            match ovar.Variable.Values |> ValueRange.getUnit with
+                            | None -> ValueRange.nonZeroPositive
+                            | Some u ->
+                                u
+                                |> ValueUnit.zero
+                                |> Minimum.create false
+                                |> Min
                     }
                 else
                     { ovar.Variable with
@@ -865,11 +862,6 @@ module OrderVariable =
                     |> ValueUnit.zero
                     |> Minimum.create false
                     |> Min
-
-            (* this doesn't work when not empty?
-            Variable = Variable
-                ovar.Variable |> Variable.setNonZeroAndPositive
-            *)
         }
 
 
@@ -1285,6 +1277,28 @@ module OrderVariable =
 
         /// Set a Count to non-zero positive values
         let setToNonZeroPositive = toOrdVar >> setToNonZeroPositive >> count
+
+
+        let setToOne = 
+            toOrdVar
+            >> (fun ovar -> 
+                { ovar with
+                    OrderVariable.Variable.Values = 
+                        Units.Count.times |> ValueUnit.one |> ValueSet.create |> ValSet
+                }
+            ) 
+            >> count
+
+
+        let setToMinIsOne = 
+            toOrdVar
+            >> (fun ovar -> 
+                { ovar with
+                    OrderVariable.Variable.Values = 
+                        Units.Count.times |> ValueUnit.one |> Minimum.create true |> Min
+                }
+            ) 
+            >> count
 
 
     /// Type and functions that represent a time

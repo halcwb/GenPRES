@@ -867,8 +867,8 @@ module TypoGraphy =
             let items, color =
                 match tb with
                 | Valid items -> items, Colors.Green.``700``
-                | Caution items -> items, Colors.Blue.``700``
-                | Warning items -> items, Colors.Orange.``900``
+                | Caution items -> items, Colors.Blue.``600``
+                | Warning items -> items, Colors.Orange.``700``
                 | Alert items -> items, Colors.Red.``700``
 
             items 

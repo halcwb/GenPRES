@@ -107,6 +107,9 @@ module Solver =
     /// Solve equations in parallel.
     /// Still an experimental feature.
     /// Parallel distribution is cyclic
+    (*
+    Doesn't work (yet) due to conflicting parallel changes
+    *)
     let parallelLoop onlyMinIncrMax log sortQue n rpl rst =
 
         let solveE n eqs eq =
@@ -200,7 +203,8 @@ module Solver =
                         let rpl, vars =
                             rpl
                             |> List.unzip
-
+                        // TODO: this needs probably to account for changes in the same variable
+                        // with different values!!
                         let vars =
                             vars
                             |> List.choose (function
@@ -359,10 +363,12 @@ module Solver =
                 match rpl with
                 | [] -> eqs |> Ok
                 | _  ->
-                    rpl
+                    (onlyMinIncrMax, rpl)
                     |> Events.SolverStartSolving
                     |> Logger.logInfo log
 
+                    loop 0 rpl (Ok rst)
+                    (*
                     // switch to different mechanism to either
                     // sequential solve equations or in parallel
                     if onlyMinIncrMax (* || not useParallel*) then
@@ -371,6 +377,7 @@ module Solver =
                     else
                         // more efficient with longer running calculations
                         parallelLoop onlyMinIncrMax log sortQue 0 rpl (Ok rst)
+                    *)
             with
             | Exceptions.SolverException errs  ->
                  Error (rpl @ rst, errs)
