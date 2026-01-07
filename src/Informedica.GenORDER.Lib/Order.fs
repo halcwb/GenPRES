@@ -363,11 +363,11 @@ module Order =
                         }
                 | Discontinuous _ ->
                     { dos with
-                        PerTime =
-                            dos.PerTime
-                            |> PerTime.toOrdVar
+                        Quantity =
+                            dos.Quantity
+                            |> Quantity.toOrdVar
                             |> set
-                            |> PerTime
+                            |> Quantity
                     }
 
                 | Timed _ ->
@@ -381,12 +381,12 @@ module Order =
                         }
                     else
                         { dos with
-                            PerTime =
-                                dos.PerTime
-                                |> PerTime.toOrdVar
+                            Quantity =
+                                dos.Quantity
+                                |> Quantity.toOrdVar
                                 |> set
-                                |> PerTime
-                        }
+                                |> Quantity
+                            }
                 | Continuous _ ->
                     { dos with
                         Rate =

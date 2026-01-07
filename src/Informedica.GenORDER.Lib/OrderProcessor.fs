@@ -52,14 +52,12 @@ module OrderProcessor =
         // clear frequency and dependent properties
         |> OrderPropertyChange.proc
             [
-                ScheduleFrequency Frequency.setToNonZeroPositive
+                ScheduleFrequency Frequency.applyConstraints
                 OrderableDose Dose.setPerTimeToNonZeroPositive
                 ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
                 ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
 
             ]
-        // re-apply constraints
-        |> OrderPropertyChange.proc [ ScheduleFrequency Frequency.applyConstraints ]
         // re-calc min max
         |> solveMinMax printErr logger
         // step to a min, median or max value
@@ -117,7 +115,15 @@ module OrderProcessor =
             [
                 if ord.Schedule |> Schedule.hasTime then
                     ScheduleTime Time.setToNonZeroPositive
-                    OrderableDose Dose.setRateToNonZeroPositive
+
+                if ord.Orderable.Components |> List.length > 1 then
+                    OrderableDoseCount OrderVariable.Count.setToMinIsOne
+                else
+                    OrderableDoseCount OrderVariable.Count.setToOne
+                    OrderableQuantity Quantity.setToNonZeroPositive
+                    ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
+                    ComponentOrderableQuantity ("", Quantity.setToNonZeroPositive)
+                    ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
 
                 OrderableDose Dose.setQuantityAdjustToNonZeroPositive
                 ComponentDose ("", Dose.setQuantityToNonZeroPositive)
@@ -126,8 +132,6 @@ module OrderProcessor =
                 OrderableDose Dose.setPerTimeToNonZeroPositive
                 ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
                 ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
-
-                OrderableDoseCount OrderVariable.Count.setToNonZeroPositive
             ]
         // decrease or increase
         |> OrderPropertyChange.proc [ OrderableDose step ]
@@ -140,45 +144,17 @@ module OrderProcessor =
             [
                 if ord.Schedule |> Schedule.hasTime then
                     ScheduleTime Time.setToNonZeroPositive
-                    OrderableDose Dose.setRateToNonZeroPositive
+                    OrderableDose Dose.applyConstraints
 
-                OrderableQuantity Quantity.setToNonZeroPositive
-                ComponentOrderableQuantity ("", Quantity.setToNonZeroPositive)
-                ItemOrderableQuantity ("", "", Quantity.setToNonZeroPositive)
-
-                OrderableDose Dose.setQuantityToNonZeroPositive
-                ComponentDose ("", Dose.setQuantityToNonZeroPositive)
-                ItemDose ("", "", Dose.setQuantityToNonZeroPositive)
-
-                OrderableDose Dose.setPerTimeToNonZeroPositive
-                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
-                ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
-
-                OrderableDoseCount OrderVariable.Count.setToNonZeroPositive
+                OrderableQuantity Quantity.applyConstraints
+                ComponentOrderableQuantity ("", Quantity.applyConstraints)
                 ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
-
-            ]
-        // re-apply constraints
-        |> OrderPropertyChange.proc
-            [
-                if ord.Schedule |> Schedule.hasTime then
-                    ScheduleTime Time.applyConstraints
-                    OrderableDose Dose.setStandardRateConstraints
+                ItemOrderableQuantity ("", "", Quantity.applyConstraints)
 
                 OrderableDose Dose.applyConstraints
                 ComponentDose ("", Dose.applyConstraints)
                 ItemDose ("", "", Dose.applyConstraints)
 
-                // if the orderable doesn't have a max constraint, then
-                // use the per-time constraints
-                if ord.Orderable |> Orderable.hasMaxDoseQuantityConstraint |> not then
-                    OrderableDose Dose.applyPerTimeConstraints
-                    ComponentDose ("", Dose.applyPerTimeConstraints)
-                    ItemDose ("", "", Dose.applyPerTimeConstraints)
-
-                OrderableQuantity Quantity.applyConstraints
-                ComponentOrderableQuantity ("", Quantity.applyConstraints)
-                ItemOrderableQuantity ("", "", Quantity.applyConstraints)
                 OrderableDoseCount OrderVariable.Count.applyConstraints
             ]
         // re-calc min max

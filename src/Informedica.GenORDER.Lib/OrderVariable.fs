@@ -1279,6 +1279,28 @@ module OrderVariable =
         let setToNonZeroPositive = toOrdVar >> setToNonZeroPositive >> count
 
 
+        let setToOne = 
+            toOrdVar
+            >> (fun ovar -> 
+                { ovar with
+                    OrderVariable.Variable.Values = 
+                        Units.Count.times |> ValueUnit.one |> ValueSet.create |> ValSet
+                }
+            ) 
+            >> count
+
+
+        let setToMinIsOne = 
+            toOrdVar
+            >> (fun ovar -> 
+                { ovar with
+                    OrderVariable.Variable.Values = 
+                        Units.Count.times |> ValueUnit.one |> Minimum.create true |> Min
+                }
+            ) 
+            >> count
+
+
     /// Type and functions that represent a time
     module Time =
 
