@@ -205,6 +205,16 @@ module Order =
 
 
             /// <summary>
+            /// Apply only min incr quantity constraints to a Dose
+            /// </summary>
+            let applyQuantityMinIncrConstraints dos =
+                { (dos |> inf) with
+                    Quantity = dos.Quantity |> Quantity.applyOnlyMinIncrConstraints
+                    QuantityAdjust = dos.QuantityAdjust |> QuantityAdjust.setToNonZeroPositive
+                }
+
+
+            /// <summary>
             /// Apply quantity constraints to a Dose
             /// </summary>
             let applyQuantityConstraints dos =
@@ -345,7 +355,7 @@ module Order =
                             |> Quantity
                     }
                 | OnceTimed _ ->
-                    if setRate then 
+                    if setRate then
                         { dos with
                             Rate =
                                 dos.Rate
@@ -479,7 +489,7 @@ module Order =
 
 
 
-            /// Decrease the rate of a Dose 
+            /// Decrease the rate of a Dose
             let decreaseRate n dos =
                 { (dos |> inf) with
                     Rate = dos.Rate |> Rate.decrease n
@@ -542,7 +552,7 @@ module Order =
                 }
 
 
-            /// Decrease the quantity of a Dose 
+            /// Decrease the quantity of a Dose
             let decreaseQuantity n dos =
                 { (dos |> inf) with
                     Quantity = dos.Quantity |> Quantity.decrease n
@@ -4107,11 +4117,11 @@ module Order =
                         let cmpQty =
                             c
                             |> Orderable.Component.Print.componentOrderableQuantityTo printMd -1
-                            |> wrap Caution 
-                                [ 
+                            |> wrap Caution
+                                [
                                     yield! c.Items |> List.map (_.OrderableConcentration >> Concentration.toOrdVar)
                                     c.OrderableConcentration |> Concentration.toOrdVar
-                                    c.OrderableQuantity |> Quantity.toOrdVar 
+                                    c.OrderableQuantity |> Quantity.toOrdVar
                                 ]
 
                         let cItms =
@@ -4144,10 +4154,10 @@ module Order =
                                                 c.Form |> Valid
 
                                                 c |> Orderable.Component.Print.componentOrderableQuantityTo printMd -1
-                                                |> wrap Warning 
-                                                    [ 
+                                                |> wrap Warning
+                                                    [
                                                         itm.OrderableConcentration |> Concentration.toOrdVar
-                                                        c.OrderableQuantity |> Quantity.toOrdVar 
+                                                        c.OrderableQuantity |> Quantity.toOrdVar
                                                     ]
                                             else
                                                 "" |> Valid

@@ -131,7 +131,18 @@ module SolverLogging =
             $"=== Solver Start Solving{minmax}===\n{eqs |> eqsToStr}"
 
         | SolverLoopedQue (n, eqs) ->
-            $"solver looped que {n} times with {eqs |> List.length} equations"
+            let eqsStr () =
+                eqs
+                |> List.map (fun (n, eq)  ->
+                    $"{n} - {eq |> Equation.toStringShort}"
+                )
+                |> String.concat "\n"
+            [
+                $"solver looped que {n} times with {eqs |> List.length} equations"
+                // uncomment tot get the full ordered que list
+                //$"=== Solver Que===\n{eqsStr ()}"
+            ]
+            |> String.concat "\n"
 
         | SolverFinishedSolving eqs ->
             $"=== Solver Finished Solving ===\n{eqs |> eqsToStr}"
@@ -167,7 +178,7 @@ module SolverLogging =
         let formatter = MessageFormatter.create [
             typeof<SolverMessage>, formatSolverMessage
         ]
-        
+
         match baseLogger with
         | Some logger -> logger
         | None -> Logging.createConsole formatter
@@ -191,20 +202,20 @@ module SolverLogging =
 
     /// Convenience functions for logging solver events
     let logSolverEvent (logger: Logger) (event: Events.Event) =
-        event 
-        |> SolverEventMessage 
+        event
+        |> SolverEventMessage
         |> Logging.logInfo logger
 
 
     let logSolverWarning (logger: Logger) (event: Events.Event) =
-        event 
-        |> SolverEventMessage 
+        event
+        |> SolverEventMessage
         |> Logging.logWarning logger
 
 
     let logSolverException (logger: Logger) (ex: Exceptions.Message) =
-        ex 
-        |> ExceptionMessage 
+        ex
+        |> ExceptionMessage
         |> Logging.logError logger
 
 
@@ -213,7 +224,7 @@ module SolverLogging =
         let formatter = MessageFormatter.create [
             typeof<SolverMessage>, formatSolverMessage
         ]
-        
+
         {
             Log = fun event ->
                 event.Message

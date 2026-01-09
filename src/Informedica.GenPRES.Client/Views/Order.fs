@@ -1008,7 +1008,7 @@ module Order =
             | Some i -> Some i
 
         let select isLoading lbl selected updateSelected navigate hasClear xs =
-            if xs |> Array.isEmpty then
+            if xs |> Array.isEmpty && navigate |> Option.isNone then
                 JSX.jsx $"<></>"
             else
                 Components.SimpleSelect.View({|

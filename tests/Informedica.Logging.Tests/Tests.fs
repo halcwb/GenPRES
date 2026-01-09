@@ -486,8 +486,7 @@ module Tests =
                 testAsync "createConsole should work with default config" {
                     let logger = AgentLogging.createConsole()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log a message
                     let msg = createTestMessage "agent test"
@@ -506,8 +505,7 @@ module Tests =
                             async {
                                 let logger = AgentLogging.createDebug()
 
-                                let! result = logger.StartAsync (Some tempFile) Level.Informative
-                                Expect.isOk result "Start should succeed"
+                                logger.Start (Some tempFile) Level.Informative
 
                                 // Log several messages
                                 for i in 1..5 do
@@ -536,8 +534,7 @@ module Tests =
                     }
                     let logger = AgentLogging.createAgentLogger config
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log more messages than the limit
                     for i in 1..10 do
@@ -563,8 +560,7 @@ module Tests =
                 testAsync "should handle high throughput" {
                     let logger = AgentLogging.createHighPerformance()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log many messages quickly
                     let messageCount = 1000
@@ -591,8 +587,7 @@ module Tests =
                 testAsync "should handle level filtering" {
                     let logger = AgentLogging.createProduction() // Only logs errors
 
-                    let! result = logger.StartAsync None Level.Error
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Error
 
                     // Log messages at different levels
                     let infoMsg = createTestMessage "info"
@@ -622,8 +617,7 @@ module Tests =
                             async {
                                 let logger = AgentLogging.createDebug()
 
-                                let! result = logger.StartAsync None Level.Informative
-                                Expect.isOk result "Start should succeed"
+                                logger.Start None Level.Informative
 
                                 // Log some messages
                                 for i in 1..3 do
@@ -650,17 +644,18 @@ module Tests =
                 testAsync "should handle disposal correctly" {
                     let logger = AgentLogging.createConsole()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Test IDisposable
                     (logger :> IDisposable).Dispose()
 
                     // Should not be able to use after disposal
                     Expect.throws (fun () ->
-                        logger.StartAsync None Level.Informative
-                        |> Async.RunSynchronously
-                        |> ignore) "Should throw after disposal"
+                        try
+                            logger.Start None Level.Informative
+                        with
+                        | exn -> "should throw and exception" |> failwith
+                    ) "should throw an exception"
                 }
 
             ]
@@ -672,8 +667,7 @@ module Tests =
                 testAsync "should handle concurrent logging" {
                     let logger = AgentLogging.createHighPerformance()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Create multiple tasks logging concurrently
                     let tasks = [
@@ -715,8 +709,7 @@ module Tests =
 
                     let logger = AgentLogging.createAgentLogger config
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed even with bad formatter"
+                    logger.Start None Level.Informative
 
                     // This should not crash the logger
                     let msg = createTestMessage "test"
@@ -739,8 +732,7 @@ module Tests =
                 testAsync "createConsole with use binding should auto-dispose" {
                     use logger = AgentLogging.createConsole()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log a message
                     let msg = createTestMessage "auto-dispose test"
@@ -756,8 +748,7 @@ module Tests =
                 testAsync "createDebug with use binding should handle quick operations" {
                     use logger = AgentLogging.createDebug()
 
-                    let! result = logger.StartAsync None Level.Debug
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Debug
 
                     // Log a few messages quickly
                     for i in 1..3 do
@@ -777,8 +768,7 @@ module Tests =
                 testAsync "createHighPerformance with use binding should handle batch logging" {
                     use logger = AgentLogging.createHighPerformance()
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log batch of messages
                     for i in 1..50 do
@@ -803,8 +793,7 @@ module Tests =
                     }
                     use logger = AgentLogging.createAgentLogger config
 
-                    let! result = logger.StartAsync None Level.Informative
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Informative
 
                     // Log more messages than limit
                     for i in 1..5 do
@@ -824,8 +813,7 @@ module Tests =
                 testAsync "level filtering with use binding should work correctly" {
                     use logger = AgentLogging.createProduction() // Error level only
 
-                    let! result = logger.StartAsync None Level.Error
-                    Expect.isOk result "Start should succeed"
+                    logger.Start None Level.Error
 
                     // Log at different levels
                     let infoMsg = createTestMessage "info-level"
@@ -851,8 +839,7 @@ module Tests =
                             async {
                                 use logger = AgentLogging.createDebug()
 
-                                let! result = logger.StartAsync None Level.Informative
-                                Expect.isOk result "Start should succeed"
+                                logger.Start None Level.Informative
 
                                 // Log a few messages
                                 for i in 1..3 do
@@ -880,11 +867,8 @@ module Tests =
                     use logger1 = AgentLogging.createConsole()
                     use logger2 = AgentLogging.createDebug()
 
-                    let! result1 = logger1.StartAsync None Level.Informative
-                    let! result2 = logger2.StartAsync None Level.Debug
-
-                    Expect.isOk result1 "Logger1 start should succeed"
-                    Expect.isOk result2 "Logger2 start should succeed"
+                    logger1.Start None Level.Informative
+                    logger2.Start None Level.Debug
 
                     // Log to both
                     let msg1 = createTestMessage "logger1-msg"

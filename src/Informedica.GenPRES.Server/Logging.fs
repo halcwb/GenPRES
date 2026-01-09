@@ -109,9 +109,10 @@ module Logging
         AgentLogging.AgentLoggerDefaults.config
         |> AgentLogging.AgentLoggerDefaults.withLevel Level.Informative
         |> AgentLogging.AgentLoggerDefaults.withMaxMessages (Some 10_000)
-        |> AgentLogging.AgentLoggerDefaults.withFlushInterval (TimeSpan.FromSeconds 5.)
+        |> AgentLogging.AgentLoggerDefaults.withFlushInterval (TimeSpan.FromSeconds 10.)
         |> AgentLogging.AgentLoggerDefaults.withMinFlushInterval (TimeSpan.FromSeconds 1.)
-        |> AgentLogging.AgentLoggerDefaults.withMaxFlushInterval (TimeSpan.FromSeconds 60.)
+        |> AgentLogging.AgentLoggerDefaults.withMaxFlushInterval (TimeSpan.FromSeconds 20.)
+        |> AgentLogging.AgentLoggerDefaults.withFlushThreshold 1_000
 
 
     type Loggers =
@@ -163,14 +164,7 @@ module Logging
                 | Error s -> writeErrorMessage $"❌ Log path prune errored with: {s}\n"
                 dirAgent |> Agent.dispose
 
-                let! started = logger.StartAsync (Some path) config.DefaultLevel
-
-                started
-                |> function
-                | Ok _->
-                    writeDebugMessage $"💾 Logger for {componentName} activated - Writing to: {path}\n"
-                    //| None -> printfn "🖥️ Logger activated - Console only"
-                | Error s -> writeErrorMessage $"❌ Logger for {componentName} could not be activated:\n{s}\n"
+                logger.Start (Some path) config.DefaultLevel
             }
 
         else async { () }

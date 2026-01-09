@@ -4,6 +4,7 @@ namespace Informedica.GenOrder.Lib
 module OrderProcessor =
 
     open Informedica.Utils.Lib
+    open Informedica.Utils.Lib.BCL
     open ConsoleWriter.NewLineNoTime
     open Order
 
@@ -38,7 +39,7 @@ module OrderProcessor =
 
     let orderPropertyIncrOrDecrFrequency step ord =
         ord
-        |> OrderPropertyChange.proc 
+        |> OrderPropertyChange.proc
             [
                 OrderableDose Dose.setPerTimeToNonZeroPositive
                 ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
@@ -95,7 +96,7 @@ module OrderProcessor =
                     ItemDose ("", "", Dose.applyConstraints)
                 else
                     ScheduleTime Time.applyConstraints
-                    
+
                     OrderableDose Dose.applyConstraints
                     ComponentDose ("", Dose.setRateToNonZeroPositive)
                     ItemDose ("", "", Dose.setRateToNonZeroPositive)
@@ -109,6 +110,7 @@ module OrderProcessor =
     // == Property Change Dose Quantity
 
     let orderPropertyIncrOrDecrDoseQuantity step ord =
+
         ord
         // clear order quantities
         |> OrderPropertyChange.proc
@@ -162,7 +164,7 @@ module OrderProcessor =
         // step to a min, median or max dose quantity
         |> Result.map (OrderPropertyChange.proc [ OrderableDose step ])
 
-    
+
     // == Property Change Component Quantity
 
     /// <summary>
@@ -188,17 +190,23 @@ module OrderProcessor =
                     ScheduleTime Time.setToNonZeroPositive
                 // orderable quantity is recalculated from component sum (eq 57: orb_qty = sum(cmp_orb_qty))
                 // clear to accept any positive value since component may be out of bounds
-                OrderableQuantity Quantity.setToNonZeroPositive
+                OrderableQuantity Quantity.applyOnlyMinIncrConstraints
                 // component counts and concentrations change when component quantities change
                 // clear to allow recalculation with potentially out-of-bounds values
-                ComponentOrderableCount ("", OrderVariable.Count.setToNonZeroPositive)
+                ComponentOrderableCount (cmp, OrderVariable.Count.setToNonZeroPositive)
                 ComponentOrderableConcentration ("", Concentration.setToNonZeroPositive)
                 // dose count (orb_dos_cnt) stays constant, so component dose quantity
                 // is recalculated via: cmp_orb_qty = orb_dos_cnt * cmp_dos_qty
                 // if cmp_orb_qty is out of bounds, cmp_dos_qty will also be out of bounds
-                ComponentDose ("", Dose.setQuantityToNonZeroPositive)
-                ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
-                ItemDose ("", "", Dose.setToNonZeroPositive)
+                ComponentDose (cmp, Dose.setQuantityToNonZeroPositive)
+                ItemDose (cmp, "", Dose.setQuantityToNonZeroPositive)
+                // in addition to work with non-continuous as well
+                ComponentDose (cmp, Dose.setPerTimeToNonZeroPositive)
+                ItemDose (cmp, "", Dose.setPerTimeToNonZeroPositive)
+                // dose rate changes for all components as this is
+                // relative to concentration with a fixed orderable dose rate
+                ComponentDose ("", Dose.setRateToNonZeroPositive)
+                ItemDose ("", "", Dose.setRateToNonZeroPositive)
                 // item orderable quantities change only for the modified component
                 // (item quantities in other components are unaffected by their component's quantity)
                 ItemOrderableQuantity (cmp, "", Quantity.setToNonZeroPositive)
@@ -207,10 +215,14 @@ module OrderProcessor =
                 ItemOrderableConcentration ("", "", Concentration.setToNonZeroPositive)
                 // orderable doses are derived from component doses
                 // clear to accept propagated out-of-bounds values
-                OrderableDose Dose.setQuantityToNonZeroPositive
+                OrderableDose Dose.applyQuantityMinIncrConstraints
                 OrderableDose Dose.setPerTimeToNonZeroPositive
             ]
-        |> OrderPropertyChange.proc [ ComponentOrderableQuantity (cmp, step)]
+        // recalc
+        // |> solveMinMax printErr logger
+        // increment or decrement the component orderable quantity
+        // |> Result.map (OrderPropertyChange.proc [ ComponentOrderableQuantity (cmp, step) ])
+        |> OrderPropertyChange.proc [ ComponentOrderableQuantity (cmp, step) ]
 
 
     /// <summary>
@@ -231,12 +243,12 @@ module OrderProcessor =
     let orderPropertySetComponentQuantity printErr logger step cmp ord =
         ord
         // apply constraints and prepare for min/max calculation
-        |> OrderPropertyChange.proc 
+        |> OrderPropertyChange.proc
             [
                 // keep rate constant and only change time
                 if ord.Schedule |> Schedule.hasTime then
                     ScheduleTime Time.setToNonZeroPositive
-                        
+
                 // orderable quantity is calculated by adding component quantities
                 OrderableQuantity Quantity.applyConstraints
                 // the component that has to be set to a min, max or median value
@@ -244,9 +256,9 @@ module OrderProcessor =
                 ComponentOrderableQuantity (cmp, Quantity.applyConstraints)
                 ItemOrderableQuantity (cmp, "", Quantity.applyConstraints)
 
-                // keep orderable dose rate constant but change the 
-                // orderable dose
-                OrderableDose Dose.setQuantityToNonZeroPositive
+                // keep the orderable dose rate constant but change the
+                // orderable dose, need to keep the dose quantity incr!
+                OrderableDose Dose.applyQuantityMinIncrConstraints
                 OrderableDose Dose.setPerTimeToNonZeroPositive
 
                 for c in ord.Orderable.Components do
@@ -254,7 +266,7 @@ module OrderProcessor =
                     // the relative contribution of each component quantity changes
                     ComponentOrderableCount (cn, OrderVariable.Count.setToNonZeroPositive)
 
-                    if c.OrderableQuantity |> Quantity.isSolved |> not then
+                    if c.OrderableQuantity |> Quantity.isSolved |> not || cmp = cn then
                         // component quantity is not set to a specific value
                         // set the dose and concentration to the constraints that apply to that
                         // component
@@ -262,15 +274,15 @@ module OrderProcessor =
                         ItemDose (cn, "", Dose.applyConstraints)
                         ComponentOrderableConcentration (cn, Concentration.applyConstraints)
                         ItemOrderableConcentration (cn, "", Concentration.applyConstraints)
-                    else 
-                        // component quantity is already set, so only 
+                    else
+                        // component quantity is already set, so only
                         // recalculate the dose
                         ComponentDose (cn, Dose.setToNonZeroPositive)
                         ItemDose (cn, "", Dose.setToNonZeroPositive)
                         ComponentOrderableConcentration (cn, Concentration.setToNonZeroPositive)
                         ItemOrderableConcentration (cn, "", Concentration.setToNonZeroPositive)
             ]
-        // re-calc min max
+        // recalc
         |> solveMinMax printErr logger
         // step to a min, median or max dose quantity
         |> Result.map (OrderPropertyChange.proc [ ComponentOrderableQuantity (cmp, step) ])
@@ -323,7 +335,7 @@ module OrderProcessor =
                 if ord.Schedule |> Schedule.hasTime then
                     ScheduleTime Time.setToNonZeroPositive
                     OrderableDose Dose.setRateToNonZeroPositive
-                
+
                 OrderableDose Dose.setPerTimeToNonZeroPositive
                 ComponentDose ("", Dose.setPerTimeToNonZeroPositive)
                 ItemDose ("", "", Dose.setPerTimeToNonZeroPositive)
@@ -614,15 +626,15 @@ module OrderProcessor =
 
         match cmd with
         | CalcMinMax ord ->
-            [ 
+            [
                 { Name = "calc-minmax: apply-constraints"; Guard = (fun _ -> true); Run = applyConstraintsStep };
-                { Name = "calc-minmax: calc-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep true } 
+                { Name = "calc-minmax: calc-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep true }
             ]
             |> runPipeline ord
 
         | CalcValues ord ->
-            [ 
-                { Name = "calc-values: calc-values"; Guard = (fun _ -> true); Run = calcValuesStep false} 
+            [
+                { Name = "calc-values: calc-values"; Guard = (fun _ -> ord.Orderable.Components |> List.length <= 2); Run = calcValuesStep false}
             ]
             |> runPipeline ord
 
@@ -646,6 +658,6 @@ module OrderProcessor =
         | ChangeProperty (ord, cmd) -> //ord |> processChangeProperty cmd |> Ok
             [
                 { Name = $"change-property: {cmd}"; Guard = (fun _ -> true); Run = processChangeProperty false logger cmd }
-                { Name = "change-property: solve-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep true }
+                { Name = "change-property: solve-minmax"; Guard = (fun _ -> true); Run = calcMinMaxStep false }
             ]
             |> runPipeline ord

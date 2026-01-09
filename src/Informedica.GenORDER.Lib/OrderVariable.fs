@@ -233,7 +233,7 @@ module OrderVariable =
 
 
         /// Check whether a `Constraints` record is empty
-        let isEmpty (cs: Constraints) = 
+        let isEmpty (cs: Constraints) =
             cs.Min.IsNone &&
             cs.Incr.IsNone &&
             cs.Max.IsNone &&
@@ -247,6 +247,16 @@ module OrderVariable =
         let toIncrMaxRange (cs : Constraints) =
             ValueRange.unrestricted
             |> ValueRange.setOptMax cs.Max
+            |> ValueRange.setOptIncr cs.Incr
+
+
+        /// <summary>
+        /// Create a `ValueRange` from a `Constraints` record
+        /// that only has an Increment and a Minimum
+        /// </summary>
+        let toMinIncrRange (cs : Constraints) =
+            ValueRange.unrestricted
+            |> ValueRange.setOptMin cs.Min
             |> ValueRange.setOptIncr cs.Incr
 
 
@@ -489,11 +499,43 @@ module OrderVariable =
         { ovar with
             Variable =
                 if ovar |> hasConstraints |> not then
-                    ovar.Variable
-                    |> Variable.setNonZeroAndPositive
+                    { ovar.Variable with
+                        Values =
+                            match ovar.Variable.Values |> ValueRange.getUnit with
+                            | None -> ValueRange.nonZeroPositive
+                            | Some u ->
+                                u
+                                |> ValueUnit.zero
+                                |> Minimum.create false
+                                |> Min
+                    }
                 else
                     { ovar.Variable with
                         Values = ovar.Constraints |> Constraints.toIncrMaxRange
+                    }
+        }
+
+
+    /// Apply only the maximum constraints of an OrderVariable
+    /// If there are no constraints, then the Variable is set to
+    /// non-zero positive
+    let applyOnlyMinIncrConstraints (ovar : OrderVariable) =
+        { ovar with
+            Variable =
+                if ovar |> hasConstraints |> not then
+                    { ovar.Variable with
+                        Values =
+                            match ovar.Variable.Values |> ValueRange.getUnit with
+                            | None -> ValueRange.nonZeroPositive
+                            | Some u ->
+                                u
+                                |> ValueUnit.zero
+                                |> Minimum.create false
+                                |> Min
+                    }
+                else
+                    { ovar.Variable with
+                        Values = ovar.Constraints |> Constraints.toMinIncrRange
                     }
         }
 
@@ -964,7 +1006,7 @@ module OrderVariable =
             let incr = ovar.Constraints.Incr.Value |> Increment.toValueUnit
 
             let calcIncr n incr =
-                if n <= 0 then 
+                if n <= 0 then
                     (0 |> BigRational.fromInt |> ValueUnit.singleWithUnit Units.Count.times) * incr
                 elif n = 1 then incr
                 else
@@ -975,7 +1017,7 @@ module OrderVariable =
                 // Increase: there is both a min and max
                 | true, Some minVal, Some maxVal ->
                     // A specific value has been set, increase that value
-                    if minVal = maxVal then 
+                    if minVal = maxVal then
                         minVal + (incr |> calcIncr n)
                     else
                         // No specific value has been set, start with the min value
@@ -989,13 +1031,13 @@ module OrderVariable =
                 | true, None, Some maxVal ->
                     maxVal + (incr |> calcIncr (n - 1))
                 // Fallback when no min or max: use incr as the base value
-                | true, _, _ -> 
+                | true, _, _ ->
                     printfn $"calculated incr + incr |> calcIncr (n - 1): {incr + incr |> calcIncr (n - 1)}"
                     incr + incr |> calcIncr (n - 1)
                 // Decrease: there is both a min and a max
                 | false, Some minVal, Some maxVal ->
                     // A specific value has been set, decrease that value
-                    if minVal = maxVal then 
+                    if minVal = maxVal then
                         let vu = minVal - (incr |> calcIncr n)
                         if vu <? incr then incr else vu
                     else
@@ -1279,25 +1321,25 @@ module OrderVariable =
         let setToNonZeroPositive = toOrdVar >> setToNonZeroPositive >> count
 
 
-        let setToOne = 
+        let setToOne =
             toOrdVar
-            >> (fun ovar -> 
+            >> (fun ovar ->
                 { ovar with
-                    OrderVariable.Variable.Values = 
+                    OrderVariable.Variable.Values =
                         Units.Count.times |> ValueUnit.one |> ValueSet.create |> ValSet
                 }
-            ) 
+            )
             >> count
 
 
-        let setToMinIsOne = 
+        let setToMinIsOne =
             toOrdVar
-            >> (fun ovar -> 
+            >> (fun ovar ->
                 { ovar with
-                    OrderVariable.Variable.Values = 
+                    OrderVariable.Variable.Values =
                         Units.Count.times |> ValueUnit.one |> Minimum.create true |> Min
                 }
-            ) 
+            )
             >> count
 
 
@@ -1439,7 +1481,7 @@ module OrderVariable =
         /// <param name="tu">The Time Unit of the Frequency</param>
         let create n tu =
             match tu with
-            | NoUnit -> 
+            | NoUnit ->
                 NoUnit
                 |> createNew (n |> Name.add name)
 
@@ -1758,6 +1800,9 @@ module OrderVariable =
 
 
         let applyOnlyMaxConstraints = toOrdVar >> applyOnlyMaxConstraints >> Quantity
+
+
+        let applyOnlyMinIncrConstraints = toOrdVar >> applyOnlyMinIncrConstraints >> Quantity
 
 
         /// Apply the constraints of a Quantity to the OrderVariable Variable
