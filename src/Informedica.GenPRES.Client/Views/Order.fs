@@ -1082,6 +1082,31 @@ module Order =
                             |> select true "" None ignore None false
                     }
                     {
+                        // frequency
+                        match state.Order with
+                        | Some ord ->
+                            let xs =
+                                ord.Schedule.Frequency.Variable.Vals
+                                |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
+                                |> Option.defaultValue [||]
+
+                            let navigate =
+                                if xs |> Array.length <> 1 then None
+                                else
+                                    {|
+                                        first = fun () -> SetMinFrequencyProperty |> dispatch
+                                        decrease = fun () -> DecreaseFrequencyProperty |> dispatch
+                                        median = fun () -> SetMedianFrequencyProperty |> dispatch
+                                        increase = fun () -> IncreaseFrequencyProperty |> dispatch
+                                        last = fun () -> SetMaxFrequencyProperty |> dispatch
+                                    |}
+                                    |> Some
+                            select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch) navigate true xs
+                        | _ ->
+                            [||]
+                            |> select true "" None ignore None false
+                    }
+                    {
                         // component orderable quantity
                         match state.Order with
                         | Some ord when ord.Orderable.Components |> Array.length > 1 ->
@@ -1132,31 +1157,6 @@ module Order =
                                 |> Array.map _.Name
                                 |> Array.map (fun s -> s, s)
                                 |> select false "Stoffen" state.SelectedItem (ChangeItem >> dispatch) None false
-                        | _ ->
-                            [||]
-                            |> select true "" None ignore None false
-                    }
-                    {
-                        // frequency
-                        match state.Order with
-                        | Some ord ->
-                            let xs =
-                                ord.Schedule.Frequency.Variable.Vals
-                                |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
-                                |> Option.defaultValue [||]
-
-                            let navigate =
-                                if xs |> Array.length <> 1 then None
-                                else
-                                    {|
-                                        first = fun () -> SetMinFrequencyProperty |> dispatch
-                                        decrease = fun () -> DecreaseFrequencyProperty |> dispatch
-                                        median = fun () -> SetMedianFrequencyProperty |> dispatch
-                                        increase = fun () -> IncreaseFrequencyProperty |> dispatch
-                                        last = fun () -> SetMaxFrequencyProperty |> dispatch
-                                    |}
-                                    |> Some
-                            select false (Terms.``Order Frequency`` |> getTerm "Frequentie") None (ChangeFrequency >> dispatch) navigate true xs
                         | _ ->
                             [||]
                             |> select true "" None ignore None false
@@ -1378,7 +1378,9 @@ module Order =
                             |> Some
 
                         match state.Order with
-                        | Some ord ->
+                        | Some ord when ord.Schedule.IsContinuous ||
+                                        ord.Schedule.IsTimed ||
+                                        ord.Schedule.IsOnceTimed ->
                             ord.Orderable.Dose.Rate.Variable.Vals
                             |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> string} {v.Unit}"))
                             |> Option.defaultValue [||]

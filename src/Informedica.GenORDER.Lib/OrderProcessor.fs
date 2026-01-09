@@ -633,17 +633,22 @@ module OrderProcessor =
             |> runPipeline ord
 
         | CalcValues ord ->
+            let guard (os : OrderState) =
+                ord.Orderable.Components |> List.length <= 2 &&
+                os.DoseIsSolved |> not &&
+                os.OrderIsSolved |> not &&
+                os.HasValues |> not
             [
-                { Name = "calc-values: calc-values"; Guard = (fun _ -> ord.Orderable.Components |> List.length <= 2); Run = calcValuesStep false}
+                { Name = "calc-values: calc-values"; Guard = guard; Run = calcValuesStep false}
             ]
             |> runPipeline ord
 
         | SolveOrder ord ->
             [
-                { Name = "solve-order: ensure-values-1"; Guard = (fun s -> s.HasValues |> not); Run = calcValuesStep (ord.Orderable.Components |> List.length <= 2)};
-                { Name = "solve-order: solve-1"; Guard = (fun s -> s.HasValues); Run = solveStep };
+                { Name = "solve-order: ensure-values-1"; Guard = (_.HasValues >> not); Run = calcValuesStep (ord.Orderable.Components |> List.length <= 2)};
+                { Name = "solve-order: solve-1"; Guard = _.HasValues; Run = solveStep };
                 { Name = "solve-order: process-cleared"; Guard = (fun s -> s.DoseIsSolved && s.IsCleared); Run = processClearedStep };
-                { Name = "solve-order: final-solve"; Guard = (fun s -> s.OrderIsSolved |> not); Run = solveStep }
+                { Name = "solve-order: final-solve"; Guard = (_.OrderIsSolved >> not); Run = solveStep }
             ]
             |> runPipeline ord
 
