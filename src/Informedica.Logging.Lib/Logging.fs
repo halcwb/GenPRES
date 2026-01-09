@@ -177,7 +177,7 @@ module AgentLogging =
     // ... your Level, IMessage, Event, Logger types here ...
 
     type LoggerMessage =
-        | Start  of path: string option * Level * AsyncReplyChannel<Result<unit, string>>
+        | Start  of path: string option * Level
         | LogEvent of Event
         | Report of AsyncReplyChannel<string[]>                // formatted lines
         | Write  of string * AsyncReplyChannel<Result<unit, string>>
@@ -192,7 +192,7 @@ module AgentLogging =
 
     type AgentLogger =
         {
-            StartAsync  : string option -> Level -> Async<Result<unit, string>>
+            Start: string option -> Level -> unit
             Logger      : Logger
             ReportAsync : unit -> Async<string[]>               // formatted lines
             WriteAsync  : string -> Async<Result<unit, string>>
@@ -225,7 +225,7 @@ module AgentLogging =
         Formatter: IMessage -> string
         MaxMessages: int option
         DefaultLevel: Level
-        flushThreshold : int
+        FlushThreshold: int
         FlushInterval: TimeSpan
         MinFlushInterval : TimeSpan
         MaxFlushInterval : TimeSpan
@@ -263,7 +263,7 @@ module AgentLogging =
             Formatter = defaultFormatter
             MaxMessages = Some 1000  // Keep the last 1000 messages in memory
             DefaultLevel = Level.Informative
-            flushThreshold = 100
+            FlushThreshold = 100
             FlushInterval = TimeSpan.FromSeconds(5.0)  // Auto-flush every 5 seconds
             MinFlushInterval = TimeSpan.FromSeconds(1.0)
             MaxFlushInterval = TimeSpan.FromSeconds(30.)
@@ -276,7 +276,7 @@ module AgentLogging =
             Formatter = defaultFormatter
             MaxMessages = Some 5000  // Larger buffer for high throughput
             DefaultLevel = Level.Warning  // Only log warnings and errors
-            flushThreshold = 1000
+            FlushThreshold = 1000
             FlushInterval = TimeSpan.FromSeconds(10.0)
             MinFlushInterval = TimeSpan.FromSeconds(1.0)
             MaxFlushInterval = TimeSpan.FromSeconds(30.)
@@ -289,7 +289,7 @@ module AgentLogging =
             Formatter = defaultFormatter
             MaxMessages = None  // Unlimited message storage
             DefaultLevel = Level.Debug
-            flushThreshold = 10
+            FlushThreshold = 10
             FlushInterval = TimeSpan.FromSeconds(1.0)
             MinFlushInterval = TimeSpan.FromSeconds(1.0)
             MaxFlushInterval = TimeSpan.FromSeconds(30.)
@@ -302,7 +302,7 @@ module AgentLogging =
             Formatter = defaultFormatter
             MaxMessages = Some 10_000  // Large buffer for production
             DefaultLevel = Level.Error  // Only log errors in production
-            flushThreshold = 10
+            FlushThreshold = 10
             FlushInterval = TimeSpan.FromSeconds(1.0)
             MinFlushInterval = TimeSpan.FromSeconds(1.0)
             MaxFlushInterval = TimeSpan.FromSeconds(30.)
@@ -336,7 +336,7 @@ module AgentLogging =
 
         /// Create a configuration with a custom flush threshold
         let withFlushThreshold (threshold: int) (config: AgentLoggerConfig) = {
-            config with flushThreshold = threshold
+            config with FlushThreshold = threshold
         }
 
 
@@ -361,12 +361,13 @@ module AgentLogging =
         let logger =
             Agent<LoggerMessage>.Start(fun inbox ->
                 let timer = Diagnostics.Stopwatch.StartNew()
+
                 let mutable pendingFlush = false
                 let mutable lastFlushTime = DateTime.UtcNow
                 let mutable messageCountSinceFlush = 0
                 let minFlushInterval = config.MinFlushInterval
                 let maxFlushInterval = config.MaxFlushInterval
-                let flushThreshold = config.flushThreshold
+                let flushThreshold = config.FlushThreshold
 
                 let scheduleFlush() =
                     let now = DateTime.UtcNow
@@ -447,18 +448,19 @@ module AgentLogging =
                                 reply.Reply(())
                                 return ()
 
-                            | Start (newPath, newLevel, reply) ->
+                            | Start (newPath, newLevel) ->
                                 try
                                     // If switching to a different path, flush and close the previous writer to avoid leaks
                                     match path, newPath with
                                     | Some oldPath, Some newP when not (String.Equals(oldPath, newP, StringComparison.Ordinal)) ->
-                                        do! W.flushAsync writer
+
+                                        W.flush writer |> ignore
                                         W.close oldPath writer |> ignore
                                         clearMessages ()
+
                                     | _ -> ()
-                                    // Defer file creation until the first actual log message
-                                    reply.Reply(Ok ())
-                                with ex -> reply.Reply(Error ex.Message)
+                                with ex ->
+                                        ConsoleWriter.writeErrorMessage $"unexpected error in logging agent:\n{ex}" true true
                                 // Reset initialization state when (re)starting a path
                                 return! loop newPath newLevel false
 
@@ -571,11 +573,11 @@ module AgentLogging =
 
         // Create the AgentLogger with proper disposal interfaces
         {
-            StartAsync = fun path level ->
-                async {
+            Start = fun path level ->
                     ensureNotDisposed()
-                    return! logger.PostAndAsyncReply(fun rc -> Start(path, level, rc))
-                }
+                    // TODO: this can be a problem if there is a long list of messages still
+                    // being processed
+                    do logger.Post (Start(path, level))
 
             Logger =
                 { Log = fun ev ->

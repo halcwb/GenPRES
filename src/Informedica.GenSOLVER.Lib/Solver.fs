@@ -88,10 +88,9 @@ module Solver =
     /// <param name="onlyMinMax">Whether only min incr max is calculated</param>
     /// <param name="eqs">The list of Equations</param>
     let sortQue onlyMinMax eqs =
-        if eqs |> List.length = 0 then eqs
-        else
-            eqs
-            |> List.sortBy (Equation.count onlyMinMax) //Equation.countProduct
+        eqs
+        |> List.map (fun eq -> eq |> Equation.count onlyMinMax, eq)
+        |> List.sortBy fst //Equation.countProduct
 
 
     let check eqs =
@@ -104,145 +103,6 @@ module Solver =
         else true
 
 
-    /// Solve equations in parallel.
-    /// Still an experimental feature.
-    /// Parallel distribution is cyclic
-    (*
-    Doesn't work (yet) due to conflicting parallel changes
-    *)
-    let parallelLoop onlyMinIncrMax log sortQue n rpl rst =
-
-        let solveE n eqs eq =
-            try
-                Equation.solve onlyMinIncrMax log eq
-            with
-            | Exceptions.SolverException errs ->
-                (n, errs, eqs)
-                |> Exceptions.SolverErrored
-                |> Exceptions.raiseExc (Some log) errs
-            | e ->
-                let msg = $"didn't catch {e}"
-                writeErrorMessage msg
-
-                msg |> failwith
-
-        let rec loop n que acc =
-            match acc with
-            | Error _ -> acc
-            | Ok acc  ->
-                let n = n + 1
-                let c = que @ acc |> List.length
-                if c > 0 && n > c * Constants.MAX_LOOP_COUNT then
-                    writeErrorMessage $"too many loops: {n}"
-
-                    (n, que @ acc)
-                    |> Exceptions.SolverTooManyLoops
-                    |> Exceptions.raiseExc (Some log) []
-
-                //(n, que)
-                //|> Events.SolverLoopedQue
-                //|> Logging.logInfo log
-
-                match que with
-                | [] ->
-                    match acc |> List.filter (Equation.check >> not) with
-                    | []      -> acc |> Ok
-                    | invalid ->
-                        writeErrorMessage "invalid equations"
-
-                        invalid
-                        |> Exceptions.SolverInvalidEquations
-                        |> Exceptions.raiseExc (Some log) []
-
-                | _ ->
-                    let que, acc =
-                        que
-                        |> List.partition Equation.isSolvable
-                        |> function
-                        | que, unsolv -> que, unsolv |> List.append acc
-                    // make sure that the equations with the lowest cost
-                    // are prioritezed
-                    let que = que |> sortQue onlyMinIncrMax
-                    // apply parallel equation solving to the
-                    // first number of optimal parallel workers 
-                    let rstQue, (rpl, rst) =
-                        let queLen = que |> List.length
-                        // calculate optimal number of workers
-                        let workers =
-                            if Parallel.totalWorders > queLen then queLen
-                            else Parallel.totalWorders
-                        // return remaining que and calculate
-                        // in parallel the worker que
-                        if workers >= queLen then []
-                        else que |> List.skip workers
-                        ,
-                        que
-                        |> List.take workers
-                        |> List.map (fun eq ->
-                            async {
-                                return eq |> solveE n (acc @ que)
-                            }
-                        )
-                        |> Async.Parallel
-                        |> Async.RunSynchronously
-                        |> Array.toList
-                        |> List.partition (snd >> function | Changed _ -> true | _ -> false)
-
-                    let rst, err =
-                        rst
-                        |> List.partition (snd >> function | Errored _ -> true | _ -> false)
-                        |> function
-                        | err, rst ->
-                            rst |> List.map fst,
-                            err
-                            |> List.choose (fun (_, sr) -> sr |> function | Errored m -> Some m | _ -> None)
-                            |> List.collect id
-
-                    if err |> List.isEmpty |> not then (que |> List.append acc, err) |> Error
-                    else
-                        let rpl, vars =
-                            rpl
-                            |> List.unzip
-                        // TODO: this needs probably to account for changes in the same variable
-                        // with different values!!
-                        let vars =
-                            vars
-                            |> List.choose (function
-                                | Changed vars -> Some vars
-                                | _ -> None
-                            )
-                            |> List.collect id
-                            |> List.fold (fun (vars : Variable list) (var, _) ->
-                                match vars |> List.tryFind (Variable.eqName var) with
-                                | None -> var::vars
-                                | Some v ->
-                                    let vNew = v |> Variable.setValueRange var.Values
-                                    vars |> List.replace (Variable.eqName vNew) vNew
-                            ) []
-                        // make sure that vars are updated with changed vars 
-                        // in the remaining que
-                        let rstQue = 
-                            rstQue
-                            |> replace vars
-                            |> function
-                            | es1, es2 -> es1 |> List.append es2
-                        // calculate new accumulator and que
-                        let acc, que =
-                            acc
-                            |> List.append rst
-                            |> replace vars
-                            |> function
-                            | es1, es2 ->
-                                es2 |> Ok,
-                                es1
-                                |> List.append rpl
-                                |> List.append rstQue
-
-                        loop n que acc
-
-        loop n rpl rst
-
-
     /// <summary>
     /// Solve a set of equations.
     /// </summary>
@@ -251,10 +111,9 @@ module Solver =
     /// <param name="sortQue">The sort function for the que</param>
     /// <param name="var">An option variable to solve for</param>
     /// <param name="eqs">The equations to solve</param>
-    /// <param name="useParallel">Optional param to indicate parallel processing</param>
     /// <typeparam name="'a"></typeparam>
     /// <returns></returns>
-    let solve useParallel onlyMinIncrMax log sortQue var eqs =
+    let solve onlyMinIncrMax log sortQue var eqs =
 
         let solveE n eqs eq =
             try
@@ -282,11 +141,16 @@ module Solver =
                     |> Exceptions.SolverTooManyLoops
                     |> Exceptions.raiseExc (Some log) []
 
-                let que = que |> sortQue onlyMinIncrMax
+                let que =
+                    let sorted =
+                        que
+                        |> sortQue onlyMinIncrMax
 
-                //(n, que)
-                //|> Events.SolverLoopedQue
-                //|> Logging.logInfo log
+                    (n, sorted)
+                    |> Events.SolverLoopedQue
+                    |> Logger.logInfo log
+
+                    sorted |> List.map snd
 
                 match que with
                 | [] ->
@@ -409,13 +273,12 @@ module Solver =
     /// <param name="sortQue">The sort function for the que</param>
     /// <param name="vr">The variable to solve for</param>
     /// <param name="eqs">The equations to solve</param>
-    /// <param name="useParallel">Optional param to indicate parallel processing</param>
     /// <typeparam name="'a"></typeparam>
     /// <returns></returns>
-    let solveVariable useParallel onlyMinIncrMax log sortQue vr eqs =
+    let solveVariable onlyMinIncrMax log sortQue vr eqs =
         let n1 = eqs |> List.length
         let solve =
-            solve useParallel onlyMinIncrMax log sortQue (Some vr)
+            solve onlyMinIncrMax log sortQue (Some vr)
 
         match solve eqs with
         | Error (eqs, errs) -> Error (eqs, errs)
@@ -432,13 +295,12 @@ module Solver =
     /// <param name="onlyMinIncrMax">Whether to only use min, incr and max</param>
     /// <param name="log">The log function</param>
     /// <param name="eqs">The equations to solve</param>
-    /// <param name="useParallel">Optional param to indicate parallel processing</param>
     /// <typeparam name="'a"></typeparam>
     /// <returns></returns>
-    let solveAll useParallel onlyMinIncrMax log eqs =
+    let solveAll onlyMinIncrMax log eqs =
         let n1 = eqs |> List.length
         let solve =
-            solve useParallel onlyMinIncrMax log sortQue None
+            solve onlyMinIncrMax log sortQue None
 
         match solve eqs with
         | Error (eqs, errs) -> Error (eqs, errs)

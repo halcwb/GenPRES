@@ -9,6 +9,7 @@ namespace Informedica.GenSolver.Lib
 /// y = x1 + x2 + ... + xn
 module Equation =
 
+    open System
     open Informedica.Utils.Lib
     open ConsoleWriter.NewLineNoTime
 
@@ -130,28 +131,44 @@ module Equation =
     /// <param name="eq">The equation</param>
     let count onlyMinMax eq =
         let vars = eq |> toVars
-        let b =
-            let n =
-                vars
-                |> List.filter Variable.isSolved
-                |> List.length
-            (vars |> List.length) - n = 1
-        if b then -100
+        if vars |> List.forall Variable.isSolved then Int32.MaxValue
         else
-            if onlyMinMax &&
-               eq
-               |> toVars
-               |> List.exists (fun var ->
-                   var.Values
-                   |> ValueRange.isValueSet
-               )
-               then -50
+            let b =
+                let n =
+                    vars
+                    |> List.filter Variable.isSolved
+                    |> List.length
+                (vars |> List.length) - n = 1
+            if b then -100
             else
-                eq
-                |> toVars
-                |> List.fold (fun (acc : int) v ->
-                    (+) (v |> Variable.count) acc
-                ) 0
+                if onlyMinMax then
+                    if vars |> List.length <= 1 then 0
+                    else
+                        let incrCount =
+                            vars
+                            |> List.skip 1
+                            |> List.filter (fun var ->
+                               // prioritize increment calculations
+                               // when only min max to avoid loops
+                               var.Values
+                               |> ValueRange.getIncr
+                               |> Option.isSome ||
+                               var |> Variable.isSolved
+                            )
+                            |> List.length
+                        if (vars |> List.length) - incrCount = 1 then -50
+                        else
+                            if vars |> List.exists Variable.isSolved then -20
+                            else
+                                vars
+                                |> List.fold (fun (acc : int) v ->
+                                    (+) (v |> Variable.count) acc
+                                ) 0
+                else
+                    vars
+                    |> List.fold (fun (acc : int) v ->
+                        (+) (v |> Variable.count) acc
+                    ) 0
 
 
     /// <summary>

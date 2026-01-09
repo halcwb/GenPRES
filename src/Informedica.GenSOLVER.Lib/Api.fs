@@ -75,7 +75,6 @@ module Api =
     /// <summary>
     /// Solve an `Equations` list with
     /// </summary>
-    /// <param name="useParallel">True if parallel processing should be used</param>
     /// <param name="onlyMinIncrMax">True if only min, incr and max values are to be used</param>
     /// <param name="sortQue">The algorithm to sort the equations</param>
     /// <param name="log">The logger to log operations</param>
@@ -83,14 +82,14 @@ module Api =
     /// <param name="p">Property of the variable to be updated</param>
     /// <param name="eqs">List of equations to solve</param>
     /// <returns>A result type of the solved equations</returns>
-    let solve useParallel onlyMinIncrMax sortQue log n p eqs =
+    let solve onlyMinIncrMax sortQue log n p eqs =
         eqs
         |> setVariableValues n p
         |> function
         | None -> eqs |> Ok
         | Some var ->
             eqs
-            |> Solver.solveVariable useParallel onlyMinIncrMax log sortQue var
+            |> Solver.solveVariable onlyMinIncrMax log sortQue var
 
 
     /// <summary>
@@ -125,14 +124,13 @@ module Api =
     /// <summary>
     /// Solve a list of equations using a list of constraints
     /// </summary>
-    /// <param name="useParallel">True if parallel processing should be used</param>
     /// <param name="onlyMinIncrMax">True if only min, incr and max values are to be used</param>
     /// <param name="log">The logger to log operations</param>
     /// <param name="eqs">A list of Equations</param>
     /// <param name="cs">A list of constraints</param>
     /// <returns>A list of Equations</returns>
-    let solveConstraints useParallel onlyMinIncrMax log cs eqs =
+    let solveConstraints onlyMinIncrMax log cs eqs =
         cs
         |> Constraint.orderConstraints log
         |> applyConstraints log eqs
-        |> Solver.solveAll useParallel onlyMinIncrMax log
+        |> Solver.solveAll onlyMinIncrMax log

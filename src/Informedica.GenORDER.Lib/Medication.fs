@@ -200,7 +200,7 @@ module Medication =
         let toString (prodCmp : ProductComponent) =
             [
                 "Name", prodCmp.Name
-                "Shape", prodCmp.Form
+                "Form", prodCmp.Form
                 "Quantities", prodCmp.Quantities |> valueUnitOptToString
                 "Divisible", prodCmp.Divisible |> BigRational.optToString
                 "Dose", prodCmp.Dose |> limitOptToString
@@ -250,6 +250,7 @@ module Medication =
             [
                 "Id", med.Id
                 "Name", med.Name
+                "Quantity", med.Quantity |> minMaxToString
                 "Quantities", med.Quantities |> valueUnitOptToString
                 "Route", med.Route
                 "OrderType", $"{med.OrderType}"
@@ -258,6 +259,7 @@ module Medication =
                 "Frequencies", med.Frequencies |> valueUnitOptToString
                 "Time", med.Time |> minMaxToString
                 "Dose", med.Dose |> limitOptToString
+                "Div", med.Div |> Option.map BigRational.toString |> Option.defaultValue ""
                 "DoseCount", med.DoseCount |> minMaxToString
                 "Components", ""
             ]
@@ -436,7 +438,7 @@ module Medication =
                                 sr.SolutionLimits
                                 |> Array.tryFind (fun sl ->
                                     match sl.SolutionLimitTarget with
-                                    | ComponentLimitTarget c -> 
+                                    | ComponentLimitTarget c ->
                                         c |> String.equalsCapInsens pc.Name
                                     | _ -> false
                                 )
@@ -447,11 +449,11 @@ module Medication =
                                             | None -> sol.Quantity
                                             | Some w ->
                                                 match sol.Quantity |> MinMax.isEmpty, sol.QuantityAdj |> MinMax.isEmpty with
-                                                | true, false -> sol.QuantityAdj |> MinMax.apply (( * ) w) 
-                                                | true, true -> 
+                                                | true, false -> sol.QuantityAdj |> MinMax.apply (( * ) w)
+                                                | true, true ->
                                                     [
                                                         sol.Quantity
-                                                        sol.QuantityAdj |> MinMax.apply (( * ) w) 
+                                                        sol.QuantityAdj |> MinMax.apply (( * ) w)
                                                     ]
                                                     |> MinMax.foldMinimize true true
                                                 | _ -> sol.Quantity
@@ -573,7 +575,7 @@ module Medication =
                     )
 
                 if incrs |> List.isEmpty then None
-                else 
+                else
                     incrs
                     |> List.max
                     |> createSingleValueUnitDto ou
@@ -781,15 +783,15 @@ module Medication =
                 | _ -> None
 
             let incr = med |> calculateDivisibility
-                        
+
             // orderable quantity increment defaults to smallest product component increment (based on component divisibility)
             orbDto.OrderableQuantity.Constraints.IncrOpt <- incr
 
             let setOrbDoseRate (dl : DoseLimit option) =
 
-                match rateUnit with 
+                match rateUnit with
                 | None -> ()
-                | Some ru -> 
+                | Some ru ->
                     let rates =
                         [ 100N .. 10N .. 1000N ]
                         |> List.append [ 50N .. 5N .. 95N ]

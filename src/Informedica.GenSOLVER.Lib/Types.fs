@@ -175,7 +175,7 @@ module rec Types =
             | EquationCouldNotBeSolved of Equation
             | EquationFinishedSolving of Equation * SolveResult
             | SolverStartSolving of minmax: bool * Equation list
-            | SolverLoopedQue of loopCount: int * Equation list
+            | SolverLoopedQue of loopCount: int * (int * Equation) list
             | SolverFinishedSolving of Equation list
             | ConstraintSortOrder of (int * Constraint) list
             | ConstraintApplied of Constraint
