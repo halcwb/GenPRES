@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Scripts (GenSOLVER)**: Add `SolverCanonPropertyTests.fsx` — property-based tests for the `CanonKey` module; validates key normalisation, round-trip symmetry, and hash-stability invariants using FsCheck and Expecto (PR #21)
+- **Scripts (GenSOLVER)**: Add `LRUCapacityTuning.fsx` — standalone LRU cache capacity benchmark for the constraint solver; tests solver throughput at varying cache sizes (PR #24)
+- **Server**: Add MCP (Model Context Protocol) server — allows GenForm and GenOrder to be accessed via MCP-compatible AI tooling; adds `/mcp` endpoint and `ModelContextProtocol` integration (PR #250)
+- **Client (UI)**: Add remember filter functionality — filter selections in the medication list are now persisted across sessions using local storage (PR #251)
+- **GenFORM**: Add component dose limit — dose limit rules can now be specified per component in formulation rules; `GenForm.Lib` updated to parse and apply `ComponentDoseLimit` constraints (PR #253)
 - **Client (UI)**: Add templating fields for emergency list — facilitates switching to prescribe mode for an emergency medication; adds template fields (`TemplateGeneric`, `TemplateRoute`, `TemplateDoseType`, `TemplateIndication`) to shared models and wires through server API and client app (PR #243)
 - **GenFORM**: Resolve `min adj to max` constraints for patient — `PrescriptionRule.fs` now handles the adjustment of minimum doses relative to maximum constraints; 131 new test cases added to `Informedica.GenFORM.Tests` (PR #243)
 - **Docs**: Add ADR for template-based prescribing — new design decision document describing the emergency medication prescribing template approach (PR #245)
@@ -32,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Scripts (GenSOLVER)**: Update `SolverCanonPropertyTests.fsx` and `LRUCapacityTuning.fsx` — Copilot-assisted improvements to property test coverage and benchmark stability (PR #252)
 - **Docs**: Restructure `docs/mdr/design-history/` as numbered ADRs with consistent naming — all design-history documents renamed with `0001`–`0013` prefixes for discoverability and traceability (PR #245)
 - **Docs (MCP)**: Update MCP server architecture document — fix file structure listing and pin `ModelContextProtocol` to version `1.2.0` (PR #241)
 - **Client**: Refactor environment variable access to use `AppEnv` module — adds `asEnv` Fable-compatible helper (`unbox<'T>`), eliminating scattered inline environment reads; fixes `appendScenarioToTreatmentPlan` naming to remove shadowing of outer `updateTreatmentPlan`; prevents concurrent duplicate `UpdateOrderPlan` requests by checking `InProgress`/`Recalculating` state (PR #223)
@@ -39,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **GenFORM / GenORDER**: Fix orderable rate value assignment — `Order.fs` now correctly sets `doseRateAdjustTo` and `doseRate` for orderable items (PR #253)
+- **GenFORM**: Fix dose rule and medication to avoid empty value units — prevents `ValueUnit` construction with zero-length value arrays in dose rule and medication calculations (PR #255)
 - **GenFORM / Build**: Fix build failure caused by incompatible message error types (PR #243)
 - **Client (UI)**: Remove hardcoded year ("2023") from application title bar (PR #238)
 - **Client (UI)**: Fix layout overflow — replace `React.Fragment` with `Box` for correct overflow containment in universal layout; conditional totals bar rendering and duplicate padding corrections (PR #229, PR #235)
@@ -51,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build**: Fix Fantomas glob pattern — scripts directory path corrected so `.fsx` files are properly ignored (PR #219)
 - **Build**: Bump `yaml` dependency in client project (PR #225)
 - **Build**: Bump `picomatch` from 4.0.3 to 4.0.4 in client project
+
+### Documentation
+
+- **Docs**: Improve README demo GIF — replace static screenshots with a smoother animated demo of the GenPRES UI (PR #254)
 
 ---
 
