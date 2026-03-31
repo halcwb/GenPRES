@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Scripts (GenSOLVER)**: Add `SolverCanonPropertyTests.fsx` — property-based tests for the `CanonKey` module using FsCheck and Expecto; validates key normalisation, round-trip symmetry, and hash-stability invariants (PR #21)
+- **Scripts (GenSOLVER)**: Add `LRUCapacityTuning.fsx` — standalone LRU cache capacity benchmark for the constraint solver; measures solver throughput at varying cache sizes to guide capacity configuration (PR #24)
 - **Scripts (GenSOLVER)**: Add `LoopDetect.fsx` — state-fingerprint-based cycle detection and bound-width convergence monitoring; wraps the solver inner loop with `StateFingerprint` (FNV-1a hash), `CycleDetector`, `ConvergenceTracker`, and `DetectingLoop.solve` returning a typed `TerminationReason` (`HardLimit` / `CycleDetected` / `PotentialStall`); 9 Expecto tests included (PR #249)
 - **Server (MCP)**: Add `Informedica.MCP.Server` — new executable project wiring GenFORM and GenORDER APIs into a Model Context Protocol (stdio) server; implements `McpTools.GenForm.fs` handler, registers tools via `McpServerBuilder`, and adds `ModelContextProtocol` + `Microsoft.Extensions.Hosting` NuGet dependencies (PR #250)
 - **Client (UI)**: Add remember filter functionality — introduces `EmergencyListFilter` and `ContinuousMedsFilter` state fields with controlled `selectedFilter`/`onFilterChange` props on `ResponsiveTable`; filter state persists across re-renders in Emergency List and Continuous Medications views (PR #251)
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Client (UI)**: Improve aria labeling and sidebar ordering — proper ARIA labels added to interactive UI elements; side menu ordering updated; trailing log messages removed (PR #261)
 - **GenFORM / GenORDER (Order)**: Improve component dose display — all `wrap` calls now include both base dose fields and their adjustment counterparts (`QuantityAdjust`, `RateAdjust`, `PerTimeAdjust`) in alert/caution outputs; `DoseRule.useAdjust` now checks substance, component, and form levels; single-component medications use the component dose as the orderable dose when no orderable-level dose is set (PR #253)
 - **Docs**: Restructure `docs/mdr/design-history/` as numbered ADRs with consistent naming — all design-history documents renamed with `0001`–`0013` prefixes for discoverability and traceability (PR #245)
 - **Docs (MCP)**: Update MCP server architecture document — fix file structure listing and pin `ModelContextProtocol` to version `1.2.0` (PR #241)
@@ -43,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **GenORDER**: Fix no-order scenarios — address cases where the medication order list is empty or unresolvable; explicit message formatter registration added (PR #263)
+- **GenORDER**: Fix missing `OrderVariable` for `MinIncrMax` — ensures `minincrmax` values are correctly mapped to order variables (PR #260)
+- **GenSOLVER**: Fix valueset pruning — pruning now retains at least the minimum and maximum guaranteed values; `mn`/`mx` bounds lifted out of loop and computed once at call site for correctness (PR #258)
+- **GenORDER**: Fix solver error guards — guard conditions use the updated order state to ensure values are correctly present before normalised dose calculation; log analyser added for error diagnosis (PR #257)
 - **GenFORM**: Fix `OnceTimed` dose rule validation — updated to accept `MaxRate` or `MaxRateAdj` as valid conditions alongside `MaxTime`/`TimeUnit`; missing-field check now requires at least one of these three options (PR #255)
 - **GenORDER**: Fix empty `ValueUnit` collection — `toValueUnit` returns `None` when the result is empty, preventing creation of invalid value units (PR #255)
 - **GenFORM / Build**: Fix build failure caused by incompatible message error types (PR #243)
