@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Scripts (Shared)**: Add `AgeCalculations.fsx` — Fable-compatible age calculation prototype; pure functions for computing age from date of birth (years, months, days), compatible with client-side Fable compilation; includes Expecto tests (PR #278)
+- **Scripts (Shared)**: Add `EmergencyCalcTests.fsx` — clinical validation tests for emergency medication calculations; covers weight-based dosing, concentration calculations, and infusion rate formulas for paediatric emergency scenarios (PR #277)
+- **Scripts (Shared)**: Add `BsaCalculations.fsx` — BSA (Body Surface Area) calculation prototype for the Shared library; implements Mosteller, DuBois, Haycock, and Boyd formulae; includes Expecto tests (PR #276)
+- **Scripts (Agents)**: Add `AgentLifecycle.fsx` — named agents with LIFO teardown ordering, lifecycle event hooks, and agent registry pattern; 9 Expecto tests included (PR #266, improved in PR #268)
+- **Scripts (GenSOLVER)**: Add `SolverCanonPropertyTests.fsx` — FsCheck + Expecto property tests for `CanonKey`; validates normalisation, round-trip symmetry, and hash-stability invariants (PR #21)
+- **Scripts (GenSOLVER)**: Add `LRUCapacityTuning.fsx` — LRU cache capacity benchmark script for the constraint solver; runs dosing scenarios at varying cache sizes and reports optimal capacity (PR #24)
 - **Scripts (GenSOLVER)**: Add `LoopDetect.fsx` — state-fingerprint-based cycle detection and bound-width convergence monitoring; wraps the solver inner loop with `StateFingerprint` (FNV-1a hash), `CycleDetector`, `ConvergenceTracker`, and `DetectingLoop.solve` returning a typed `TerminationReason` (`HardLimit` / `CycleDetected` / `PotentialStall`); 9 Expecto tests included (PR #249)
 - **Server (MCP)**: Add `Informedica.MCP.Server` — new executable project wiring GenFORM and GenORDER APIs into a Model Context Protocol (stdio) server; implements `McpTools.GenForm.fs` handler, registers tools via `McpServerBuilder`, and adds `ModelContextProtocol` + `Microsoft.Extensions.Hosting` NuGet dependencies (PR #250)
 - **Client (UI)**: Add remember filter functionality — introduces `EmergencyListFilter` and `ContinuousMedsFilter` state fields with controlled `selectedFilter`/`onFilterChange` props on `ResponsiveTable`; filter state persists across re-renders in Emergency List and Continuous Medications views (PR #251)
@@ -35,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Docs (MDR)**: Update ADR-0002 (state-of-affairs) and ADR-0004 (UI wireframes) with current screenshots and implementation status (PR #272)
+- **GenORDER**: Add component name to continuous printout for component-based dosing; fix generic naming case consistency; move hardcoded fluid calculation from UI to emergency data (PR #274)
+- **Client (UI)**: ARIA labeling improvements, sidebar ordering fixes, trailing log cleanup (PR #261)
+- **Docs**: Renumber design-history ADR files — `0013-change-log.md` → `0000-change-log.md`; `adr-template-based-navigation.md` → `0013-adr-template-based-navigation.md`; cross-references updated (PR #265)
+- **Build**: Improve Docker setup — add warning for Fable changing uncommitted files; improve Dockerfile configuration (PR #280)
 - **GenFORM / GenORDER (Order)**: Improve component dose display — all `wrap` calls now include both base dose fields and their adjustment counterparts (`QuantityAdjust`, `RateAdjust`, `PerTimeAdjust`) in alert/caution outputs; `DoseRule.useAdjust` now checks substance, component, and form levels; single-component medications use the component dose as the orderable dose when no orderable-level dose is set (PR #253)
 - **Docs**: Restructure `docs/mdr/design-history/` as numbered ADRs with consistent naming — all design-history documents renamed with `0001`–`0013` prefixes for discoverability and traceability (PR #245)
 - **Docs (MCP)**: Update MCP server architecture document — fix file structure listing and pin `ModelContextProtocol` to version `1.2.0` (PR #241)
@@ -43,6 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **GenORDER**: Fix order print alignment when administration column is empty — column widths now correctly calculated when `toediening` field is absent (PR #282)
+- **Client (UI)**: Fix race condition with item selection; restore missing item warning message that was removed in a previous refactor (PR #275)
+- **GenORDER**: Fix no-order scenarios and message formatter registration (PR #263)
+- **GenORDER**: Fix missing `OrderVariable` for `MinIncrMax` case (PR #260)
+- **GenSOLVER**: Fix valueset pruning correctness — pruning now correctly handles edge cases in constraint propagation (PR #258)
+- **GenORDER**: Fix solver error guards using updated order state (PR #257)
+- **Build**: Remove npm vulnerabilities in client project (PR #269)
+- **Build**: Add missing husky pre-commit configuration file (2026-04-06 direct commit)
 - **GenFORM**: Fix `OnceTimed` dose rule validation — updated to accept `MaxRate` or `MaxRateAdj` as valid conditions alongside `MaxTime`/`TimeUnit`; missing-field check now requires at least one of these three options (PR #255)
 - **GenORDER**: Fix empty `ValueUnit` collection — `toValueUnit` returns `None` when the result is empty, preventing creation of invalid value units (PR #255)
 - **GenFORM / Build**: Fix build failure caused by incompatible message error types (PR #243)
@@ -57,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build**: Fix Fantomas glob pattern — scripts directory path corrected so `.fsx` files are properly ignored (PR #219)
 - **Build**: Bump `yaml` dependency in client project (PR #225)
 - **Build**: Bump `picomatch` from 4.0.3 to 4.0.4 in client project
+- **Build**: Bump `vite` from 7.3.1 to 7.3.2 in client project (PR #279)
 
 ---
 
