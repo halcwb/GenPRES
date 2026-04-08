@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests (GenFORM)**: Migrate test scaffolding into formal CI test suite — 218 lines of new Expecto tests
 - **Tests (GenORDER)**: Migrate test scaffolding into formal CI test suite — 120 lines of new Expecto tests
 - **Build**: Add Fantomas pre-commit hook — F# source files are now auto-formatted on every commit; `.fantomasignore` updated to exclude client UI code
+- **Scripts (GenSOLVER)**: Add `SolverCanonPropertyTests.fsx` — FsCheck property tests for canonical key invariants in the constraint solver (PR #21)
+- **Scripts (GenSOLVER)**: Add `LRUCapacityTuning.fsx` — benchmark script for tuning LRU cache capacity under realistic patient workloads (PR #24)
+- **Scripts (Agents)**: Add `AgentLifecycle.fsx` — named agent registry with LIFO teardown and supervision pattern for structured agent lifecycle management (PR #266, #268)
+- **Scripts (Shared)**: Add `BsaCalculations.fsx` — BSA (body surface area) calculation prototype using Mosteller, DuBois, and Haycock formulae (PR #276)
+- **Scripts (Shared)**: Add `EmergencyCalcTests.fsx` — clinical validation tests for emergency medication calculations (PR #277)
+- **Scripts (Shared)**: Add `AgeCalculations.fsx` — Fable-compatible age calculation utilities (gestational age, corrected age, age in days/weeks/months/years) (PR #278)
+- **Docs (MDR)**: Add ADR-0014 — design document for staged value expansion approach in timed order variables (PR #283)
+- **Scripts (GenORDER)**: Add `StagedExpansion.fsx` — implementation prototype for staged value expansion in timed orders (PR #283)
 
 ### Changed
 
@@ -40,6 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs (MCP)**: Update MCP server architecture document — fix file structure listing and pin `ModelContextProtocol` to version `1.2.0` (PR #241)
 - **Client**: Refactor environment variable access to use `AppEnv` module — adds `asEnv` Fable-compatible helper (`unbox<'T>`), eliminating scattered inline environment reads; fixes `appendScenarioToTreatmentPlan` naming to remove shadowing of outer `updateTreatmentPlan`; prevents concurrent duplicate `UpdateOrderPlan` requests by checking `InProgress`/`Recalculating` state (PR #223)
 - **Docs**: Update `0007-clean-safe-architecture.md` to reflect implemented safe-and-clean architecture state and add code-verified implementation notes (PR #227)
+- **Client (UI)**: Improve accessibility — ARIA labels on interactive elements, sidebar section ordering, trailing log message cleanup (PR #261)
+- **Docs**: Renumber design-history ADR files — new ADRs now use sequential `0014`+ prefixes; existing ADRs `0001`–`0013` retained (PR #265)
+- **Docs (MDR)**: Update ADR-0002 and ADR-0004 with latest implementation notes and traceability links (PR #272)
+- **GenORDER**: Improve continuous printout — component name display, generic naming fix, and emergency fluid calculation added to order data (PR #274)
+- **Build**: Improve Docker setup for development and production deployment (PR #280)
+- **GenSOLVER**: Prevent value explosion by capping valueset calculation — `Variable.fs` limits the number of values generated during constraint solving to avoid combinatorial blowup (PR #285)
+- **GenORDER**: Fully implement staged value expansion — `Order.fs` and `OrderProcessor.fs` apply staged expansion logic for timed order variables; 72 new scenario tests and 80 new test cases added to `Informedica.GenORDER.Tests` (PR #286)
 
 ### Fixed
 
@@ -57,6 +72,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build**: Fix Fantomas glob pattern — scripts directory path corrected so `.fsx` files are properly ignored (PR #219)
 - **Build**: Bump `yaml` dependency in client project (PR #225)
 - **Build**: Bump `picomatch` from 4.0.3 to 4.0.4 in client project
+- **GenORDER**: Fix solver error guards — updated order state is now used for solver error handling instead of stale state (PR #257)
+- **GenSOLVER**: Fix valueset pruning correctness — pruning logic now correctly handles edge cases in constraint propagation (PR #258)
+- **GenORDER**: Fix missing `OrderVariable` for `MinIncrMax` case (PR #260)
+- **GenORDER**: Fix no-order scenarios and register missing message formatter (PR #263)
+- **Build**: Fix npm vulnerabilities; fix missing husky configuration file (PR #269)
+- **Client (UI)**: Fix race condition with item selection; restore missing item warning on empty order plan (PR #275)
+- **Build**: Bump vite from 7.3.1 to 7.3.2 (PR #279)
+- **Build**: Fix examine loop detect script (PR #281)
+- **GenORDER**: Fix order print alignment with empty administration column (PR #282)
 
 ---
 
