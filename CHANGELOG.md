@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Client (UI)**: Migrate from MUI v7 to MUI v9 — updates all `@mui/material`, `@mui/icons-material`, `@mui/x-data-grid`, and related packages to v9; resolves breaking API changes (PR #289)
+- **Client (UI)**: Refactor JSX inline anonymous records — extracts all inline `sx` prop objects and other anonymous records into named `let` bindings per project convention; removes compiler warnings and improves readability (PR #290)
+- **Server (Auth)**: Add login for settings page with token-based authentication; introduces `TokenStorage`, logout flow, and token expiration handling; add log-file analysis capability (PR #288)
+- **Scripts (Shared)**: Add `RenalCalculations.fsx` — Fable-compatible eGFR prototype implementing CKD-EPI 2021 and Schwartz equations with `PatientData`, `RenalFunction`, and `DosingAdjustment` types; 12 Expecto tests covering both adult and paediatric eGFR (PR #284)
+- **Scripts (GenSOLVER)**: Add `SolverCanonPropertyTests.fsx` — FsCheck property tests for canonical key invariants: normalisation, round-trip symmetry, and hash-stability (PR #21)
+- **Scripts (GenSOLVER)**: Add `LRUCapacityTuning.fsx` — LRU cache capacity benchmark; runs 50-patient dosing simulations at capacities 50–2000 to find the optimal cache size (PR #24)
+- **Scripts (Agents)**: Add `AgentLifecycle.fsx` — named agent registry pattern with LIFO teardown; demonstrates lifecycle management for multiple named `MailboxProcessor` agents (PR #266, #268)
+- **Scripts (Shared)**: Add `BsaCalculations.fsx` — BSA prototype using Mosteller, DuBois, and Haycock formulas with Fable-compatible types and 6 Expecto tests (PR #276)
+- **Scripts (Shared)**: Add `EmergencyCalcTests.fsx` — Expecto test suite for emergency-dose calculations covering weight-based and fixed-dose scenarios (PR #277)
+- **Scripts (Shared)**: Add `AgeCalculations.fsx` — Fable-compatible age calculation helpers (gestational age, corrected age, age in days/weeks/months/years) with 10 Expecto tests (PR #278)
+- **Docs (MDR)**: Add ADR-0014 — staged value expansion design document; documents the rationale for expanding value ranges in stages to prevent solver explosion (PR #283)
+- **Scripts (GenORDER)**: Add `StagedExpansion.fsx` — staged value expansion prototype for timed orders; wraps the solver to progressively widen candidate value sets (PR #283)
 - **Scripts (GenSOLVER)**: Add `LoopDetect.fsx` — state-fingerprint-based cycle detection and bound-width convergence monitoring; wraps the solver inner loop with `StateFingerprint` (FNV-1a hash), `CycleDetector`, `ConvergenceTracker`, and `DetectingLoop.solve` returning a typed `TerminationReason` (`HardLimit` / `CycleDetected` / `PotentialStall`); 9 Expecto tests included (PR #249)
 - **Server (MCP)**: Add `Informedica.MCP.Server` — new executable project wiring GenFORM and GenORDER APIs into a Model Context Protocol (stdio) server; implements `McpTools.GenForm.fs` handler, registers tools via `McpServerBuilder`, and adds `ModelContextProtocol` + `Microsoft.Extensions.Hosting` NuGet dependencies (PR #250)
 - **Client (UI)**: Add remember filter functionality — introduces `EmergencyListFilter` and `ContinuousMedsFilter` state fields with controlled `selectedFilter`/`onFilterChange` props on `ResponsiveTable`; filter state persists across re-renders in Emergency List and Continuous Medications views (PR #251)
@@ -35,6 +47,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **GenSOLVER**: Cap valueset calculation to prevent value explosion — adds an upper bound on the number of values generated during constraint solving to avoid combinatorial blowup with large dose ranges (PR #285)
+- **GenORDER**: Fully implement staged value expansion — `StagedExpansion` strategy applied to timed order solving; 152 new Expecto tests validating correctness across dose scenarios (PR #286)
+- **Client (UI)**: Accessibility improvements — ARIA labels, sidebar ordering, keyboard navigation (PR #261)
+- **Docs**: Renumber design-history ADR files with `0001`–`0013` prefixes for consistent ordering (PR #265)
+- **Docs (MDR)**: Update ADR-0002 and ADR-0004 to reflect current implementation state (PR #272)
+- **GenORDER**: Improve continuous medication printout — formatting improvements for continuous infusion order display (PR #274)
+- **Build**: Docker setup improvements — updated `Dockerfile` and `docker-compose` configuration for cleaner builds (PR #280)
 - **GenFORM / GenORDER (Order)**: Improve component dose display — all `wrap` calls now include both base dose fields and their adjustment counterparts (`QuantityAdjust`, `RateAdjust`, `PerTimeAdjust`) in alert/caution outputs; `DoseRule.useAdjust` now checks substance, component, and form levels; single-component medications use the component dose as the orderable dose when no orderable-level dose is set (PR #253)
 - **Docs**: Restructure `docs/mdr/design-history/` as numbered ADRs with consistent naming — all design-history documents renamed with `0001`–`0013` prefixes for discoverability and traceability (PR #245)
 - **Docs (MCP)**: Update MCP server architecture document — fix file structure listing and pin `ModelContextProtocol` to version `1.2.0` (PR #241)
@@ -43,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **GenORDER**: Fix solver error guards — handle missing `OrderVariable` for `MinIncrMax`, no-order scenarios, and edge cases in order validation (PR #257, #260, #263)
+- **GenSOLVER**: Fix valueset pruning correctness — `removeBigRationalMultiples` now correctly preserves smallest representatives (PR #258)
+- **Client (UI)**: Fix race condition with item selection — guard against concurrent selection state updates (PR #275)
+- **GenORDER**: Fix order print alignment with empty administration column (PR #282)
+- **Build**: Fix npm vulnerabilities, update husky config, bump vite (PR #269, #279, #281)
 - **GenFORM**: Fix `OnceTimed` dose rule validation — updated to accept `MaxRate` or `MaxRateAdj` as valid conditions alongside `MaxTime`/`TimeUnit`; missing-field check now requires at least one of these three options (PR #255)
 - **GenORDER**: Fix empty `ValueUnit` collection — `toValueUnit` returns `None` when the result is empty, preventing creation of invalid value units (PR #255)
 - **GenFORM / Build**: Fix build failure caused by incompatible message error types (PR #243)
