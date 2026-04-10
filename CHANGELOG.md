@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Client (UI)**: Add login icon and improve login dialog — adds a dedicated login icon button in the top bar; refactors login dialog layout for improved usability; extracts inlined event-handler lambdas to named bindings per F# JSX guidelines (PR #292)
 - **Client (UI)**: Add admin authentication and log analysis — login/logout flow with password-based token auth; Settings page gated behind authentication; list and analyze server log files; `GENPRES_RELOAD_PASSWORD` env var renamed to `GENPRES_PASSWORD`; `SideMenu` items support disabled state for future access control (PR #288)
 - **Scripts (Shared)**: Add `RenalCalculations.fsx` — Fable-compatible eGFR prototype for the Shared library; CKD-EPI Creatinine 2021 (no race coefficient), CKD-EPI 2009, MDRD 4-variable, and Bedside Schwartz (paediatric) formulas; creatinine (mg/dL ↔ µmol/L) and urea/BUN (mg/dL ↔ mmol/L) unit conversions; KDIGO 2012 classification (`Normal` → `KidneyFailure`); 31 Expecto tests (PR #284)
 - **Scripts (GenSOLVER)**: Add `LoopDetect.fsx` — state-fingerprint-based cycle detection and bound-width convergence monitoring; wraps the solver inner loop with `StateFingerprint` (FNV-1a hash), `CycleDetector`, `ConvergenceTracker`, and `DetectingLoop.solve` returning a typed `TerminationReason` (`HardLimit` / `CycleDetected` / `PotentialStall`); 9 Expecto tests included (PR #249)
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Client (UI)**: Extract inlined JSX event-handler lambdas — refactor non-trivial `onChange`/`onClick` lambdas in Fable JSX templates to named `let` bindings per F# coding guidelines; previously extracted `sx` anonymous records retained (PR #293)
 - **Client (UI)**: Migrate MUI from v7 to v9 — replace deprecated props (`color`, `display`, `alignItems`, `PaperProps`) with `sx` and `slotProps` APIs across all client components; chips rendered inline with `Chip` component; centralise style definitions in `Totals` and `Typography` modules (PR #289)
 - **Client (UI)**: Extract JSX inline anonymous records — refactor Fable JSX `sx` props from inline anonymous records to named `let` bindings per F# coding guidelines; fix Markdown linting errors in docs (PR #290)
 - **GenSOLVER**: Prevent value explosion — cap cartesian-product size at `MAX_CALC_COUNT` (500) in `ValueRange.calc`; solver falls back to min/max bounds instead of full product when threshold exceeded, eliminating `ValueSetOverflow` errors; document all solver/pipeline safeguards in ADR-0014 (PR #285)
