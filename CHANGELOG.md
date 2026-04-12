@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Shared (Calculations)**: Add `Calculations` module to `Informedica.GenPRES.Shared` — Fable-compatible shared clinical calculations available to both server and client; includes BSA formulas (Mosteller, Du Bois, Haycock, Gehan & George, Fujimoto), age calculations for preterm/term infants (post-menstrual age, adjusted age, chronological age), and eGFR formulas (CKD-EPI 2021, CKD-EPI 2009, MDRD, Bedside Schwartz); all functions use F# units of measure for type safety (PR #301)
+- **Docs**: Add GenSolver stability analysis document — `docs/domain/gensolver-stability-analysis.md` summarising findings from the master thesis by Đelić (2022); catalogues the three original problems (efficiency, increment arithmetic, cycle stability) and documents which are resolved in the current implementation and which are mitigated by `MAX_CALC_COUNT` and `LoopDetect.fsx` safeguards (PR #303)
 - **Client (UI)**: Add login/logout icons to title bar — `Login` icon displayed when logged out, `Logout` icon displayed when authenticated; button left margin added for improved spacing (PR #292)
 - **Client (UI)**: Add admin authentication and log analysis — login/logout flow with password-based token auth; Settings page gated behind authentication; list and analyze server log files; `GENPRES_RELOAD_PASSWORD` env var renamed to `GENPRES_PASSWORD`; `SideMenu` items support disabled state for future access control (PR #288)
 - **Scripts (Shared)**: Add `RenalCalculations.fsx` — Fable-compatible eGFR prototype for the Shared library; CKD-EPI Creatinine 2021 (no race coefficient), CKD-EPI 2009, MDRD 4-variable, and Bedside Schwartz (paediatric) formulas; creatinine (mg/dL ↔ µmol/L) and urea/BUN (mg/dL ↔ mmol/L) unit conversions; KDIGO 2012 classification (`Normal` → `KidneyFailure`); 31 Expecto tests (PR #284)
@@ -54,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Shared (Calculations)**: Fix unit ordering and harden unit-of-measure arithmetic in `Calculations.fs` — correct ordering of intermediate values and tighten numeric edge cases in BSA/age/eGFR sub-modules (PR #301)
 - **Client (UI)**: Fix token-based auth replacing plaintext password storage — logout now properly clears token and authentication state; concurrent admin requests guarded by `InProgress` state (PR #288)
 - **GenFORM**: Fix `OnceTimed` dose rule validation — updated to accept `MaxRate` or `MaxRateAdj` as valid conditions alongside `MaxTime`/`TimeUnit`; missing-field check now requires at least one of these three options (PR #255)
 - **GenORDER**: Fix empty `ValueUnit` collection — `toValueUnit` returns `None` when the result is empty, preventing creation of invalid value units (PR #255)
