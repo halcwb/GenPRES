@@ -180,11 +180,24 @@ module Patient =
         // way out that removes the new and changed orders; signing is the plan's own button
         let heldOpen, setHeldOpen = React.useState false
 
+        // not while a request is under way: the panel is greyed then, and the orders cannot be
+        // removed until the plan is settled
         let onAttempt (e: Browser.Types.Event) =
             if held then
                 e.preventDefault ()
                 e.stopPropagation ()
-                setHeldOpen true
+
+                if not busy then
+                    setHeldOpen true
+
+        // every edit of the panel goes out here, so that one the pointer does not make, from the
+        // keyboard or assistive technology, is held too: it asks instead of changing the panel
+        let dispatch msg =
+            if held then
+                if not busy then
+                    setHeldOpen true
+            else
+                dispatch msg
 
         // the summary: the data, and above it, identified, the id the data is held under; the
         // name and the birthdate are the title bar's alone
@@ -333,14 +346,16 @@ module Patient =
                         onClose = None
                     |}
 
+        // only over a settled plan; while a request is under way the question stays open, to be
+        // confirmed once it has landed
         let onRemoveChanged () =
-            setHeldOpen false
-
             match envPlan.OrderPlan with
             | OrderPlanView.Settled(tp, _) ->
+                setHeldOpen false
+
                 Api.OrderPlanCommand.RemoveOrderContexts(tp, envPlan.Changed)
                 |> envPlan.OrderPlanCommand
-            | OrderPlanView.NoPatient
+            | OrderPlanView.NoPatient -> setHeldOpen false
             | OrderPlanView.Changing _ -> ()
 
         let heldDialog =
