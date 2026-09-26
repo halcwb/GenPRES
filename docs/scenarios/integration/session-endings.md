@@ -1,6 +1,6 @@
 # How a Session ends, and who gets told
 
-The code has two endings that leave a mark, and two ways a Session goes without one. The
+The code has four endings that leave a mark, and two ways a Session goes without one. The
 design asks for six endings and an obligation that only the User can discharge; that is the
 last section.
 
@@ -14,6 +14,8 @@ stateDiagram-v2
     Open --> ReplacedInBrowser : a new launch in this browser opens or enrols
     Open --> SupersededByLaunch : the same login opens a Session elsewhere
     Open --> WrongPinLimit : the third wrong PIN at a signature
+    Open --> Idle : no request for the idle lifetime
+    Open --> Unreadable : its rows are in a form this release cannot read
 
     note left of Closed
         Removed, no mark.
@@ -26,9 +28,10 @@ stateDiagram-v2
     end note
 ```
 
-`SessionEnding` in `src/Informedica.GenPRES.Shared/Types.fs` has exactly the two marked cases,
-`SupersededByLaunch` and `WrongPinLimit`. There is no idle clock and no absolute lifetime: the
-Session record keeps a `Seen` timestamp that every request refreshes, and nothing reads it.
+`SessionEnding` in `src/Informedica.GenPRES.Shared/Types.fs` has exactly the four marked cases,
+`SupersededByLaunch`, `WrongPinLimit`, `Unreadable` and `Idle`. There is an idle clock and no
+absolute lifetime: the Session record keeps a `Seen` timestamp that every request but a close
+refreshes, and the idle end reads it.
 
 ## The two that leave no mark
 
@@ -42,7 +45,7 @@ Either way the old Session is not marked: the User asked for the new one. A Sess
 login that was merely overwritten stays in memory, unreachable, until the login it belongs to
 opens elsewhere.
 
-## The two that leave a mark
+## The four that leave a mark
 
 **Superseded by a launch.** A User has at most one open Session. The open of a new one
 (`Session.openWith`) removes every other Session of the same login and marks each
@@ -52,6 +55,16 @@ opens elsewhere.
 `WrongPinLimit`, drops its challenge and mails the User at the address the registry gave
 ([uc-05](uc-05-workstation-takeover.md)). The lock on signing belongs to the credential, not to
 the Session, and outlives it.
+
+**Idle.** A Session that has seen no request for the idle lifetime, an hour unless
+`GENPRES_SESSION_IDLE_MINUTES` sets another, ends at the next request that names it
+(`Session.endIdle`, run by the session port before every member but a close). There is no
+timer: a Session nobody asks for again is never marked, and a marked one is told on that same
+request. A relaunch reads the patient data again and computes an identified patient's age
+again ([#1061](https://github.com/informedica/GenPRES/issues/1061)).
+
+**Unreadable.** The SQLite store holds the Session's rows in a form this release cannot read,
+after an upgrade; the loader marks it, and a relaunch opens a fresh one.
 
 ## How a mark is told, and dropped
 
@@ -109,15 +122,17 @@ that and nothing else. A Client that merely holds the ended SessionId is refused
 discharges nothing: whoever holds it need not be the User. An anonymous Session owes nothing,
 whatever ends it.
 
-Of this the code has `Superseded` (as `SupersededByLaunch`) and `WrongPinLimit`, told at the
-next request rather than at the next launch, and acknowledged by the Client rather than by the
-User. `Idle` and `Expired` are not built, and neither is the acknowledgement as the design
+Of this the code has `Superseded` (as `SupersededByLaunch`), `WrongPinLimit` and `Idle`. Each
+is told at the next request rather than at the next launch, and acknowledged by the Client
+rather than by the User; `Idle` is marked at the next request that names the Session, not when
+its lifetime runs out. `Expired` is not built, and neither is the acknowledgement as the design
 means it. The MVP overview lists both as issues to file
-([mvpap2019-gap-overview.md](../../roadmap/mvpap2019-gap-overview.md), rows 2.1.5 and 2.1.6).
+([mvpap2019-gap-overview.md](../../roadmap/mvpap2019-gap-overview.md), rows 2.1.5 and 2.1.6);
+the absolute lifetime is [#825](https://github.com/informedica/GenPRES/issues/825).
 
 ---
 
 Read off `SessionEnding` in `src/Informedica.GenPRES.Shared/Types.fs` and `openWith`, `find`,
-`seen`, `close` and `commit` in `src/Informedica.GenPRES.Server/ServerApi.Session.fs`; the
+`seen`, `close`, `commit` and `endIdle` in `src/Informedica.GenPRES.Server/ServerApi.Session.fs`; the
 Client's side is `SessionMachine.fs` in `src/Informedica.GenPRES.Client/`. The design's
 endings are `EndMark`, `SessionNotice` and `owesNotice` in [`Integration.fsx`](Integration.fsx).

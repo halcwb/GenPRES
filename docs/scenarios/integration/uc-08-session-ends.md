@@ -3,9 +3,10 @@
 UC-8. The Server cannot reach a Client, so a Session that ends while nobody is looking cannot
 be announced. The screen goes on looking alive. User A finds out at their next action.
 
-The code has two endings that happen to a User: the same login opening a Session elsewhere,
-and the wrong-PIN limit ([uc-05](uc-05-workstation-takeover.md)). It has no clock: nothing
-ends a Session for being idle or for being old. This page draws the first.
+The code has three endings that happen to a User: the same login opening a Session elsewhere,
+the wrong-PIN limit ([uc-05](uc-05-workstation-takeover.md)), and a Session left idle for the
+idle lifetime, an hour unless the site sets another. Nothing ends a Session for being old. This
+page draws the first; an idle Session is told the same way, at the request that ends it.
 
 Precondition: [uc-03](uc-03-prescribe-and-sign.md) step 1, an open Session with unsigned work
 on screen.
@@ -76,11 +77,10 @@ engine is still to be chosen ([#516](https://github.com/informedica/GenPRES/issu
 
 ## Not built
 
-- The idle clock and the absolute lifetime (Rules 9 and 10). The SessionRecord keeps `Seen`,
-  refreshed by every request but a close, and nothing reads it. The MVP overview lists the
-  lifetimes as an issue to file
-  ([mvpap2019-gap-overview.md](../../roadmap/mvpap2019-gap-overview.md), row 2.1.5).
-- The request that ends its own out-of-time Session (Rule 41): there is no time to be out of.
+- The absolute lifetime (Rule 10), and the request that ends its own Session past it
+  (Rule 41) ([#825](https://github.com/informedica/GenPRES/issues/825)). The idle half is
+  built: every request but a close first ends a Session not seen for the idle lifetime, and is
+  told the ending ([#1061](https://github.com/informedica/GenPRES/issues/1061)).
 - The notice at the next launch, and the acknowledgement only A can give (Rule 11;
   [session-endings](session-endings.md)).
 - The carry-over of unsigned work into a relaunched tab ([#518](https://github.com/informedica/GenPRES/issues/518)).
@@ -93,8 +93,8 @@ engine is still to be chosen ([#516](https://github.com/informedica/GenPRES/issu
 ---
 
 Read off `Session.openWith`, `Session.seen`, `Session.find` and `Session.close` in
-`src/Informedica.GenPRES.Server/ServerApi.Session.fs`, `Compute.bound` in
+`src/Informedica.GenPRES.Server/ServerApi.Session.fs`, `StubDatabase.idleFirst` in
+`ServerApi.StubAdapters.fs`, `Compute.bound` in
 `ServerApi.Compute.fs`, and `EndedByServer` and `Resumed` in `SessionMachine.fs` in
 `src/Informedica.GenPRES.Client/`. The design is UC-8 in [`Integration.fsx`](Integration.fsx),
-whose `Idle` ending, `PriorSessionNotice` and `AckSessionNotice` have no counterpart in the
-code.
+whose `PriorSessionNotice` and `AckSessionNotice` have no counterpart in the code.

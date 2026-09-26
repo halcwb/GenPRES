@@ -12,8 +12,8 @@ The design itself lives in two files here:
 - [`Integration.fsx`](Integration.fsx), the design as an executable model. It runs standalone
   (`dotnet fsi Integration.fsx`), prints a trace per use case to `Integration.run.txt` (not
   tracked) and ends with a count of self-checks. It models the design, not the code: it has
-  six Session endings, a PIN reset, an anonymous open and an idle clock that the code does not
-  have, and it lacks the browser key pair and the LaunchRecord that the code does have.
+  six Session endings, a PIN reset and an anonymous open that the code does not have, and it
+  lacks the browser key pair and the LaunchRecord that the code does have.
 
 Where a page and the model disagree, the page describes the code and the model describes the
 design; the gap is named under the page's *Not built*.
@@ -29,7 +29,7 @@ design; the gap is named under the page's *Not built*.
 | UC-5 | [Someone else takes over the workstation](uc-05-workstation-takeover.md) | look and explore, attest nothing | yes, as a consequence of UC-3; the notice to the User is only the mail |
 | UC-6 | [A User forgets their PIN](uc-06-forgotten-pin.md) | replaced, never removed | **no** |
 | UC-7 | [User opens GenPRES directly](uc-07-direct-open.md) | decision support without a launch | yes, without a Session |
-| UC-8 | [A Session ends out from under the User](uc-08-session-ends.md) | told once, at the next launch | partly: two endings, no clocks, told at the next request |
+| UC-8 | [A Session ends out from under the User](uc-08-session-ends.md) | told once, at the next launch | partly: three endings and the idle clock, no absolute lifetime, told at the next request |
 | UC-9 | [A Reader consults a Patient](uc-09-reader.md) | reads the plan that counts, signs nothing | yes |
 | UC-10 | [User closes GenPRES](uc-10-close.md) | no stray Session, no notice | yes |
 | UC-11 | [A User's authority is withdrawn](uc-11-authority-withdrawn.md) | anonymous decision support, and nothing more | partly: refused at the launch, blocked at the signature |
@@ -44,7 +44,7 @@ fit-gap analysis (`docs/roadmap/fit-gap-ap2019-vs-genpres.md`) names the rows ea
 
 - [Actors and edges](actors-and-edges.md) — who may talk to whom, and which of those edges is
   HTTP and which an in-process port today.
-- [How a Session ends, and who gets told](session-endings.md) — the two endings the code has,
+- [How a Session ends, and who gets told](session-endings.md) — the four endings the code has,
   how a Client learns of them, and the six the design asks for.
 
 ## Reading the diagrams
