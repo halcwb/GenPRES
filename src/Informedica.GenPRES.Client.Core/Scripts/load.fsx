@@ -9,6 +9,7 @@
 #load "../SessionMachine.fs"
 #load "../SessionGatePolicy.fs"
 #load "../PlanWorkPolicy.fs"
+#load "../HeldContextPolicy.fs"
 #load "../SigningMachine.fs"
 #load "../SigningPolicy.fs"
 #load "../UnsignedWorkPolicy.fs"

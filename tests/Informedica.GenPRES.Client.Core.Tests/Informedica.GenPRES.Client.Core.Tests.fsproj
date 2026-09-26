@@ -18,6 +18,7 @@
     <Compile Include="SessionMachineTests.fs" />
     <Compile Include="SessionGatePolicyTests.fs" />
     <Compile Include="PlanWorkPolicyTests.fs" />
+    <Compile Include="HeldContextPolicyTests.fs" />
     <Compile Include="SigningMachineTests.fs" />
     <Compile Include="SigningPolicyTests.fs" />
     <Compile Include="UnsignedWorkPolicyTests.fs" />
