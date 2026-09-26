@@ -108,12 +108,17 @@ let canSign (session: SessionView) (plan: OrderPlan) =
     | _ -> false
 
 
-/// Whether the dialog is up: the notice, the PIN question (the retry after a lost answer
-/// among them), or the Submission in flight.
-let dialogOpen (signing: SigningView) =
+/// Whether a signature is under way: from the sign until it is answered or cancelled. The
+/// signing act is atomic on the client too: the order plan takes no change from a page meanwhile.
+let underWay (signing: SigningView) =
     match signing with
+    | SigningView.Idle -> false
+    | SigningView.Requesting
     | SigningView.Noticed _
     | SigningView.Challenged _
     | SigningView.Submitting _ -> true
-    | SigningView.Idle
-    | SigningView.Requesting -> false
+
+
+/// Whether the dialog is up: from the sign on, the challenge asked included, until the
+/// signature is answered or cancelled.
+let dialogOpen (signing: SigningView) = underWay signing

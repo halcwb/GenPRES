@@ -52,7 +52,15 @@ module SignDialog =
             [| box isOpen |]
         )
 
+        // a request under way: the challenge asked or the Submission sent; only the challenge
+        // asked can be cancelled, its answer then landing nowhere
         let busy =
+            match phase with
+            | SigningView.Requesting
+            | SigningView.Submitting _ -> true
+            | _ -> false
+
+        let submitting =
             match phase with
             | SigningView.Submitting _ -> true
             | _ -> false
@@ -230,7 +238,7 @@ module SignDialog =
                 {progress}
             </DialogContent>
             <DialogActions>
-                <Button key="cancel" onClick={onCancel} disabled={busy}>
+                <Button key="cancel" onClick={onCancel} disabled={submitting}>
                     {tr Terms.``Signing Cancel``}
                 </Button>
                 {primary}

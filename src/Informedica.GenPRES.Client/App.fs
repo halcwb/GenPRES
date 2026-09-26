@@ -949,11 +949,11 @@ module private Elmish =
             state, Cmd.ofMsg (SessionMsg(SessionMsg.TokenRenewed(token, patient, identity)))
         | SigningEffect.EndSession ending -> state, Cmd.ofMsg (SessionMsg(SessionMsg.EndedByServer ending))
         | SigningEffect.SetPatient patient -> state, Cmd.ofMsg (UpdatePatient(Some patient))
-        // the plan's work follows the signature: as signed, unless it changed meanwhile
-        | SigningEffect.TellSigned(signed, askedOver) ->
+        // the plan took no change while the signature was under way: it is the version signed
+        | SigningEffect.TellSigned signed ->
             state
             |> tell (SigningPolicy.signedSentence (signingTerm state) signed) "success",
-            Cmd.ofMsg (OrderPlanMsg(OrderPlanMsg.Signed askedOver))
+            Cmd.ofMsg (OrderPlanMsg OrderPlanMsg.Signed)
         // a refusal because the record moved on is the notice too: the Session keeps the head
         // for the bar
         | SigningEffect.TellRefused(SigningRefusal.Blocked head) ->
@@ -1561,7 +1561,9 @@ module private Elmish =
                 (fun state ctx -> state, Cmd.ofMsg (OrderContextMsg(OrderContextMsg.Answered(request, Ok ctx))))
 
         | OrderPlanMsg msg ->
-            let plan, effects = OrderPlanState.transition msg state.Lanes.OrderPlan
+            // a change from a page is dropped while a signature is under way
+            let plan, effects =
+                OrderPlanState.transitionWhile (SigningState.view state.Lanes.Signing) msg state.Lanes.OrderPlan
 
             { state with Lanes.OrderPlan = plan } |> runEffects applyOrderPlanEffect effects
 
@@ -1821,8 +1823,7 @@ type private ConcreteAppEnv
 
         // one request id per Sign, so the answer lands on this request and no other
         member _.Sign plan =
-            SigningMsg(SigningMsg.Sign(plan, OrderPlanState.work state.Lanes.OrderPlan, Guid.NewGuid().ToString()))
-            |> dispatch
+            SigningMsg(SigningMsg.Sign(plan, Guid.NewGuid().ToString())) |> dispatch
 
         member _.Accept() = SigningMsg SigningMsg.Accept |> dispatch
 

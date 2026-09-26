@@ -203,8 +203,8 @@ type OrderPlanState =
             Pending: (OrderPlanCommand * string) option
             Selected: string option
             // what the plan holds beside the version last opened or signed: stepped by the
-            // commands as they go out, as signed again by a version opened or a signature over
-            // the same work; the leave-page guard asks over it
+            // commands as they go out, as signed again by a version opened or a signature; the
+            // leave-page guard asks over it
             Work: PlanWork
             // the contexts of the version last opened or signed, as the open answered them: an
             // order of the plan is new or changed against these, and holds the patient context
@@ -228,9 +228,9 @@ type OrderPlanMsg =
     | Select of string option
     // the contexts the rows keep, by id; the totals follow
     | Filter of string[] * request: string
-    // a signature told, with the work it was asked over: the plan is the version just signed,
-    // unless it changed meanwhile
-    | Signed of askedOver: PlanWork
+    // a signature told: the plan took no change from a page while it was under way, so it is
+    // the version just signed
+    | Signed
 
 
 /// What the machine asks the App to do.
@@ -562,19 +562,37 @@ module OrderPlanState =
                 }
         | OrderPlanMsg.Command(cmd, request) -> run request (OrderPlanCartMsg.Command cmd) state
         | OrderPlanMsg.Filter(ids, request) -> run request (OrderPlanCartMsg.Filter ids) state
-        // the plan is the version just signed, unless it changed while the signature was under
-        // way; then the version signed is not the plan held, and its contexts are kept as they
-        // were, so that the change made meanwhile holds until the next signature
-        | OrderPlanMsg.Signed askedOver ->
-            let work = state.Work |> PlanWork.afterSigned askedOver
-
+        // the plan is the version just signed, its contexts the ones kept
+        | OrderPlanMsg.Signed ->
             let opened =
-                match work, state.Cart with
-                | PlanWork.AsSigned, OrderPlanCart.Opened(_, tp) -> tp.OrderContexts
-                | _ -> state.Opened
+                match state.Cart with
+                | OrderPlanCart.Opened(_, tp) -> tp.OrderContexts
+                | OrderPlanCart.NoPatient _ -> state.Opened
 
             { state with
-                Work = work
+                Work = PlanWork.AsSigned
                 Opened = opened
             },
             []
+
+
+    /// Whether the message reaches the plan: a change from a page does not while a signature is
+    /// under way, so that the signing act is atomic on the client too; the answer to a request
+    /// under way, the patient, a version opened, the selection and the signature told do.
+    let admitted (signing: SigningMachine.SigningView) (msg: OrderPlanMsg) =
+        match msg with
+        | OrderPlanMsg.Command _
+        | OrderPlanMsg.Filter _ -> not (SigningPolicy.underWay signing)
+        | OrderPlanMsg.PatientChanged _
+        | OrderPlanMsg.Version _
+        | OrderPlanMsg.Answered _
+        | OrderPlanMsg.Select _
+        | OrderPlanMsg.Signed -> true
+
+
+    /// The transition behind the signing: a message not admitted leaves the plan as it is.
+    let transitionWhile (signing: SigningMachine.SigningView) (msg: OrderPlanMsg) (state: OrderPlanState) =
+        if admitted signing msg then
+            transition msg state
+        else
+            state, []

@@ -237,10 +237,11 @@ let tests =
                     canSign session withOrders |> Expect.isFalse $"{session}"
             }
 
-            test "the dialog is up while noticed, challenged or submitting" {
+            test "the dialog is up from the sign on: requesting, noticed, challenged or submitting" {
                 let plan = Shared.Models.OrderPlan.create patient [||]
                 dialogOpen SigningView.Idle |> Expect.isFalse "idle"
-                dialogOpen SigningView.Requesting |> Expect.isFalse "requesting"
+                dialogOpen SigningView.Requesting
+                |> Expect.isTrue "requesting: modal from the sign on"
 
                 dialogOpen (
                     SigningView.Noticed(
@@ -259,5 +260,26 @@ let tests =
                 |> Expect.isTrue "refused"
 
                 dialogOpen (SigningView.Submitting plan) |> Expect.isTrue "submitting"
+            }
+
+            test "a signature is under way from the sign until it is answered or cancelled" {
+                let plan = Shared.Models.OrderPlan.create patient [||]
+
+                underWay SigningView.Idle |> Expect.isFalse "idle"
+                underWay SigningView.Requesting |> Expect.isTrue "requesting"
+
+                underWay (
+                    SigningView.Noticed(
+                        plan,
+                        {
+                            Data = None
+                            Token = "d"
+                        }
+                    )
+                )
+                |> Expect.isTrue "noticed"
+
+                underWay (SigningView.Challenged(plan, None)) |> Expect.isTrue "challenged"
+                underWay (SigningView.Submitting plan) |> Expect.isTrue "submitting"
             }
         ]

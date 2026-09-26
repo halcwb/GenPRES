@@ -254,8 +254,7 @@ let tests =
                         busy
                         |> Expect.equal
                             "in flight over the plan held, one change of work"
-                            (recalculating one None "r-1" rebased
-                             |> OrderPlanState.withWork (PlanWork.Changed 1))
+                            (recalculating one None "r-1" rebased |> OrderPlanState.withWork PlanWork.Changed)
 
                         effects
                         |> Expect.equal "the rebased command" [ OrderPlanEffect.CallPlan(rebased, "r-1") ]
@@ -482,7 +481,7 @@ let pendingTests =
                 |> Expect.equal
                     "the step, into the context answered"
                     (recalculating answer (Some "c-1") "r-2" sent
-                     |> OrderPlanState.withWork (PlanWork.Changed 1)
+                     |> OrderPlanState.withWork PlanWork.Changed
                      |> OrderPlanState.withOpened two.OrderContexts,
                      [
                          OrderPlanEffect.CheckInteractions [ "paracetamol-now" ]
@@ -498,7 +497,7 @@ let pendingTests =
                 |> Expect.equal
                     "the value typed, into the context it was typed into"
                     (recalculating answer (Some "c-1") "r-2" sent
-                     |> OrderPlanState.withWork (PlanWork.Changed 1)
+                     |> OrderPlanState.withWork PlanWork.Changed
                      |> OrderPlanState.withOpened two.OrderContexts,
                      [
                          OrderPlanEffect.CheckInteractions [ "paracetamol-now" ]
@@ -614,13 +613,13 @@ let workTests =
 
                 transition (OrderPlanMsg.Command(remove, "r-1")) (held one None)
                 |> workOf
-                |> Expect.equal "one change" (PlanWork.Changed 1)
+                |> Expect.equal "one change" PlanWork.Changed
 
                 transition
                     (OrderPlanMsg.Command(recalculate, "r-1"))
-                    (held one None |> OrderPlanState.withWork (PlanWork.Changed 1))
+                    (held one None |> OrderPlanState.withWork PlanWork.Changed)
                 |> workOf
-                |> Expect.equal "still one change" (PlanWork.Changed 1)
+                |> Expect.equal "still one change" PlanWork.Changed
             }
 
             test "a command counts when it goes out: not while it waits, never when it is dropped" {
@@ -646,7 +645,7 @@ let workTests =
                 // the answer lands: the step goes out, and counts once
                 transition (OrderPlanMsg.Answered("r-1", Ok one)) waiting
                 |> workOf
-                |> Expect.equal "gone out on the answer" (PlanWork.Changed 1)
+                |> Expect.equal "gone out on the answer" PlanWork.Changed
 
                 // the request fails: the step is dropped, and counts nothing
                 transition (OrderPlanMsg.Answered("r-1", Error [| "down" |])) waiting
@@ -658,34 +657,26 @@ let workTests =
 
                 transition (OrderPlanMsg.Answered("r-1", Ok one)) later
                 |> workOf
-                |> Expect.equal "the one that goes out" (PlanWork.Changed 1)
+                |> Expect.equal "the one that goes out" PlanWork.Changed
             }
 
             test "a version opened and a patient cleared are as signed" {
                 transition
                     (OrderPlanMsg.Version(version, "r-1"))
-                    (held one None |> OrderPlanState.withWork (PlanWork.Changed 2))
+                    (held one None |> OrderPlanState.withWork PlanWork.Changed)
                 |> workOf
                 |> Expect.equal "a version opened" PlanWork.AsSigned
 
                 transition
                     (OrderPlanMsg.PatientChanged(None, "r-1"))
-                    (held one None |> OrderPlanState.withWork (PlanWork.Changed 2))
+                    (held one None |> OrderPlanState.withWork PlanWork.Changed)
                 |> workOf
                 |> Expect.equal "no patient, nothing to sign" PlanWork.AsSigned
             }
 
-            test "a signature over the same work is as signed; over older work the change made meanwhile stays" {
-                transition
-                    (OrderPlanMsg.Signed(PlanWork.Changed 2))
-                    (held one None |> OrderPlanState.withWork (PlanWork.Changed 2))
+            test "a signature is as signed" {
+                transition OrderPlanMsg.Signed (held one None |> OrderPlanState.withWork PlanWork.Changed)
                 |> Expect.equal "as signed, nothing else" (held one None, [])
-
-                transition
-                    (OrderPlanMsg.Signed(PlanWork.Changed 1))
-                    (held one None |> OrderPlanState.withWork (PlanWork.Changed 2))
-                |> workOf
-                |> Expect.equal "the change made meanwhile stays" (PlanWork.Changed 2)
             }
         ]
 
@@ -742,24 +733,14 @@ let heldTests =
                 |> Expect.isFalse "the filter is no order"
             }
 
-            test "a signature over the same work releases" {
+            test "a signature releases" {
                 transition
-                    (OrderPlanMsg.Signed(PlanWork.Changed 1))
+                    OrderPlanMsg.Signed
                     (held two None
                      |> OrderPlanState.withOpened one.OrderContexts
-                     |> OrderPlanState.withWork (PlanWork.Changed 1))
+                     |> OrderPlanState.withWork PlanWork.Changed)
                 |> heldOf
                 |> Expect.isFalse "the plan is the version signed"
-            }
-
-            test "a signature over older work keeps holding" {
-                transition
-                    (OrderPlanMsg.Signed(PlanWork.Changed 1))
-                    (held two None
-                     |> OrderPlanState.withOpened one.OrderContexts
-                     |> OrderPlanState.withWork (PlanWork.Changed 2))
-                |> changedOf
-                |> Expect.equal "the change made meanwhile holds" [| "c-2" |]
             }
 
             test "a version opened and a patient cleared release" {
@@ -772,5 +753,86 @@ let heldTests =
                 transition (OrderPlanMsg.PatientChanged(None, "r-1")) holding
                 |> heldOf
                 |> Expect.isFalse "no patient, nothing held"
+            }
+        ]
+
+
+[<Tests>]
+let signingTests =
+    let notice: DataNotice =
+        {
+            Data = None
+            Token = "t"
+        }
+
+    let underWay =
+        [
+            "requesting", SigningMachine.SigningView.Requesting
+            "noticed", SigningMachine.SigningView.Noticed(one, notice)
+            "challenged", SigningMachine.SigningView.Challenged(one, None)
+            "submitting", SigningMachine.SigningView.Submitting one
+        ]
+
+    let add = OrderPlanCommand.AddOrderContext(one, context "" "ibuprofen")
+    let transitionWhile = OrderPlanState.transitionWhile
+
+    testList
+        "the order plan while a signature is under way"
+        [
+            testList
+                "a change from a page is dropped"
+                [
+                    for name, view in underWay do
+                        test name {
+                            transitionWhile view (OrderPlanMsg.Command(add, "r-1")) (held one None)
+                            |> Expect.equal "the command is dropped" (held one None, [])
+
+                            transitionWhile view (OrderPlanMsg.Filter([| "c-1" |], "r-1")) (held one None)
+                            |> Expect.equal "the filter is dropped" (held one None, [])
+                        }
+                ]
+
+            test "a change from a page goes out while idle" {
+                transitionWhile SigningMachine.SigningView.Idle (OrderPlanMsg.Command(add, "r-1")) (held one None)
+                |> snd
+                |> Expect.equal "the command goes out" [ OrderPlanEffect.CallPlan(add, "r-1") ]
+            }
+
+            test "what is not a page's change reaches the order plan" {
+                [
+                    OrderPlanMsg.PatientChanged(Some patient, "r-1")
+                    OrderPlanMsg.Version(head, "r-1")
+                    OrderPlanMsg.Answered("r-1", Ok one)
+                    OrderPlanMsg.Select(Some "c-1")
+                    OrderPlanMsg.Signed
+                ]
+                |> List.forall (OrderPlanState.admitted SigningMachine.SigningView.Requesting)
+                |> Expect.isTrue "admitted"
+            }
+
+            test "an order added before the sign is released by the signature, nothing added meanwhile" {
+                let added =
+                    held one None
+                    |> transitionWhile SigningMachine.SigningView.Idle (OrderPlanMsg.Command(add, "r-1"))
+                    |> fst
+                    |> transitionWhile SigningMachine.SigningView.Idle (OrderPlanMsg.Answered("r-1", Ok two))
+                    |> fst
+
+                added |> OrderPlanState.contextHeld |> Expect.isTrue "the order added holds"
+
+                let another = OrderPlanCommand.AddOrderContext(two, context "" "amoxicilline")
+
+                let meanwhile =
+                    added
+                    |> transitionWhile SigningMachine.SigningView.Requesting (OrderPlanMsg.Command(another, "r-2"))
+                    |> fst
+
+                meanwhile |> Expect.equal "nothing added meanwhile" added
+
+                meanwhile
+                |> transitionWhile SigningMachine.SigningView.Idle OrderPlanMsg.Signed
+                |> fst
+                |> OrderPlanState.contextHeld
+                |> Expect.isFalse "the order plan is the version signed"
             }
         ]

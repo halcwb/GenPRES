@@ -82,6 +82,19 @@ of its own, since the challenge's digest ties the order plan signed to the one c
   first build. It would prove the contexts correct, not only in agreement, at the cost of the
   rules run once more per sign.
 
+### A change while a signature is under way
+
+**Chosen: none can happen.** The Server signs atomically: the commit signs the order plan the
+challenge's digest names. The Client's signature runs in steps, though, and the sign dialog is
+modal only once a challenge stands, so an order can be added while the challenge is requested,
+and a pending dialog step can go out. The Client then kept the contexts of the version before
+the signature, so an order signed stayed marked changed and the context stayed held until the
+next signature: safe, but wrong. Signing now blocks the order plan from the sign to the answer.
+
+- *Carry the order plan the signature was asked over to the order plan state*: rejected. It
+  keeps a case the user should not be able to make, and the machinery that tells work signed
+  from work done meanwhile.
+
 ### The data notice under the hold
 
 **Chosen: signed on the held context, recorded as resting on data other than the EHR's
@@ -103,10 +116,11 @@ a case the idle end of #1061 already bounds.
 ## Chosen approach
 
 - **Hold** (Client.Core), steps 1 and 2.
-- **Patient data fields disabled while held** (Client), step 3.
-- **Check at the challenge** (Server), refusal `ContextDiffers`, steps 4 and 5.
-- **Data notice under the hold**, step 6.
-- **Refresh**, step 7.
+- **Signing blocks the order plan** (Client.Core and Client), step 3.
+- **Patient data fields disabled while held** (Client), step 4.
+- **Check at the challenge** (Server), refusal `ContextDiffers`, steps 5 and 6.
+- **Data notice under the hold**, step 7.
+- **Refresh**, step 8.
 
 ## Confidence
 
@@ -114,7 +128,7 @@ Medium. The check at the challenge is a pure function of the order plan and the 
 the safety of the change; it proves the contexts agree, not that they are correct. Its riskiest
 part is what "changed" means: whether a context of the head survives the round trip through the
 Client and the wire unchanged, compared by content after the same Dto, so that an untouched
-order of the head is not taken for a changed one. Step 4 settles that first. The Client's hold
+order of the head is not taken for a changed one. Step 5 settles that first. The Client's hold
 needs the order plan state to keep the version it opened or signed, which it does not today. The
 refresh adds a Session command and a second place the EHR is read.
 
@@ -132,14 +146,33 @@ One pull request per step unless the step says two. Everything outside
    releases; removing an order of the head alone does not hold; a change to the filter alone
    does not hold.
 
-2. **The hold migrated** into `OrderPlanMachine.fs` and a policy module beside
+2. **The hold migrated** (done with step 1 in #1090, the script removed) into `OrderPlanMachine.fs` and a policy module beside
    `PlanWorkPolicy.fs`, tests in `Informedica.GenPRES.Client.Core.Tests`.
 
-3. **The patient data fields.** `Views/Patient.fs` disables them while held, with a notice and
+3. **Signing blocks the order plan (script, then migration).**
+   `src/Informedica.GenPRES.Client.Core/Scripts/SigningBlocksPlan.fsx`. The signing act is
+   atomic on the Client as it is on the Server: from the sign until the signature is answered or
+   cancelled, the order plan takes no change from a page. A command and a filter are dropped
+   while a signature is under way; the answer to a request under way, the patient a data
+   notice accepted sets, a version opened and the signature told still reach it. The sign is
+   offered only over an order plan with nothing under way, so no dialog step waits at the
+   sign. The sign dialog is modal from the sign on, not only once a challenge stands. Nothing
+   can then change the order plan between the sign and the answer, so a signature signs the
+   order plan the Client shows and the kept contexts become exactly it.
+   This removes what only served a change made meanwhile: `AskedOver` and the work carried by
+   the signing machine's constructors, `Sign` and `TellSigned`; the count in
+   `PlanWork.Changed`; and the condition on the order plan state's `Signed`, which then sets
+   the work as signed and the kept contexts to the order plan's.
+
+   Tests: a command and a filter while a signature is under way are dropped, in every phase;
+   they go out while idle; what is not a page's change is admitted; an order added before the
+   sign is released by the signature, nothing added meanwhile.
+
+4. **The patient data fields.** `Views/Patient.fs` disables them while held, with a notice and
    its three actions; the leave-page guard unchanged. `updatePatient` ignores an edit while
    held. New terms for the notice and the actions.
 
-4. **The check (script).** `src/Informedica.GenPRES.Server/Scripts/HeldContext.fsx`: `changed`
+5. **The check (script).** `src/Informedica.GenPRES.Server/Scripts/HeldContext.fsx`: `changed`
    against the head, by id and by content after the same Dto; the patient context each changed
    context states compared with the order plan's on the data the rules read; `challenge`
    shadowed to refuse `ContextDiffers` before the challenge is issued.
@@ -150,11 +183,11 @@ One pull request per step unless the step says two. Everything outside
    an older context passes; an order plan without a head, every context new, is checked whole;
    a refusal costs no PIN attempt.
 
-5. **The check migrated.** `SigningRefusal.ContextDiffers` into `GenPRES.Shared`, the check
+6. **The check migrated.** `SigningRefusal.ContextDiffers` into `GenPRES.Shared`, the check
    into `ServerApi.Session.fs`, the refusal's sentence into `SigningPolicy.fs`; tests in both
    test projects.
 
-6. **The data notice under the hold (script, then migration; two pull requests).** The accept
+7. **The data notice under the hold (script, then migration; two pull requests).** The accept
    keeps the draft while held; the version signed over an accepted notice records that it rests
    on data other than the EHR's reading, as settled in review.
 
@@ -162,7 +195,7 @@ One pull request per step unless the step says two. Everything outside
    keeps `Verified` as the platform's reading; a notice accepted while released replaces the
    draft as today.
 
-7. **Refresh (script, then migration; two pull requests).** A Session command that reads the EHR
+8. **Refresh (script, then migration; two pull requests).** A Session command that reads the EHR
    again, projects it at the date of the refresh with the user's measurements over it, and
    returns the Session's patient with a fresh token; the Client asks first, drops the new and
    changed orders and reopens the head on the new patient. Closes #1075.
@@ -182,10 +215,11 @@ One pull request per step unless the step says two. Everything outside
 
 | Step | Check |
 |------|-------|
-| 3 | In the browser: add an order, the patient data fields are disabled with the notice; remove it, they are enabled; sign, they are enabled. |
-| 5 | An order plan with a new order on another weight, sent by hand, is refused `ContextDiffers` at the challenge. |
-| 6 | With the stub's EHR data changed after the open and an order on the order plan, the version is signed on the held data and records the difference. |
-| 7 | A refresh after a change of the stub's EHR data shows the new data and no new or changed orders. |
+| 3 | In the browser: click sign and, before the challenge comes back, try to add an order; nothing can be added until the signature is answered or cancelled. |
+| 4 | In the browser: add an order, the patient data fields are disabled with the notice; remove it, they are enabled; sign, they are enabled. |
+| 6 | An order plan with a new order on another weight, sent by hand, is refused `ContextDiffers` at the challenge. |
+| 7 | With the stub's EHR data changed after the open and an order on the order plan, the version is signed on the held data and records the difference. |
+| 8 | A refresh after a change of the stub's EHR data shows the new data and no new or changed orders. |
 
 ## To settle in review
 
@@ -211,6 +245,6 @@ One pull request per step unless the step says two. Everything outside
   the head's contexts.
 - **#976** the age fixed from the open to the sign; unchanged here.
 - **#1061** the idle end of a Session, which bounds a hold left behind.
-- **#598** client testing: would let step 3 be tested without the browser.
+- **#598** client testing: would let step 4 be tested without the browser.
 - **#518** the carry-over of an order plan's changes into a relaunched tab, which would carry
   the hold with it.

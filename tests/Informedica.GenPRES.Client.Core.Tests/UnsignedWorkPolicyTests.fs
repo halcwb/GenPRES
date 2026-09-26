@@ -67,7 +67,7 @@ module UnsignedWorkPolicyTests =
                         }
 
                         test "a plan changed since the version last signed is work" {
-                            hasUnsignedWork None SigningView.Idle (PlanWork.Changed 1)
+                            hasUnsignedWork None SigningView.Idle PlanWork.Changed
                             |> Expect.isTrue "should be work"
                         }
                     ]
