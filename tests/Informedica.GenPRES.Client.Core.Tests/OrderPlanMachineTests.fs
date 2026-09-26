@@ -810,6 +810,31 @@ let signingTests =
                 |> Expect.isTrue "admitted"
             }
 
+            test "a recalculation that lands after the signature, from a data notice accepted, stays released" {
+                // the notice's patient recalculates the order plan while the signature goes on;
+                // a recalculation changes only the totals, so its answer holds the contexts signed
+                let signing = SigningMachine.SigningView.Challenged(two, None)
+                let recalculated = { two with Patient = otherDraft }
+
+                held two None
+                |> OrderPlanState.withOpened one.OrderContexts
+                |> OrderPlanState.withWork PlanWork.Changed
+                |> transitionWhile signing (OrderPlanMsg.PatientChanged(Some other, "r-1"))
+                |> fst
+                |> transitionWhile SigningMachine.SigningView.Idle OrderPlanMsg.Signed
+                |> fst
+                |> transitionWhile SigningMachine.SigningView.Idle (OrderPlanMsg.Answered("r-1", Ok recalculated))
+                |> fst
+                |> fun state ->
+                    state
+                    |> OrderPlanState.contextHeld
+                    |> Expect.isFalse "the contexts are the ones signed"
+                    state |> OrderPlanState.work |> Expect.equal "as signed" PlanWork.AsSigned
+                    state
+                    |> OrderPlanState.plan
+                    |> Expect.equal "the answer shown" (Some recalculated)
+            }
+
             test "an order added before the sign is released by the signature, nothing added meanwhile" {
                 let added =
                     held one None
