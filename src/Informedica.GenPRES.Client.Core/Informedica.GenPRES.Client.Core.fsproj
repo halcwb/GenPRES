@@ -16,6 +16,7 @@
     <Compile Include="SessionMachine.fs" />
     <Compile Include="SessionGatePolicy.fs" />
     <Compile Include="PlanWorkPolicy.fs" />
+    <Compile Include="HeldContextPolicy.fs" />
     <Compile Include="SigningMachine.fs" />
     <Compile Include="SigningPolicy.fs" />
     <Compile Include="UnsignedWorkPolicy.fs" />

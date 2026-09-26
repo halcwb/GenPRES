@@ -206,6 +206,9 @@ type OrderPlanState =
             // commands as they go out, as signed again by a version opened or a signature over
             // the same work; the leave-page guard asks over it
             Work: PlanWork
+            // the contexts of the version last opened or signed, as the open answered them: an
+            // order of the plan is new or changed against these, and holds the patient context
+            Opened: OrderContext[]
         }
 
 
@@ -280,6 +283,7 @@ module OrderPlanState =
             Pending = None
             Selected = None
             Work = PlanWork.AsSigned
+            Opened = [||]
         }
 
 
@@ -292,6 +296,7 @@ module OrderPlanState =
             Pending = None
             Selected = None
             Work = PlanWork.AsSigned
+            Opened = [||]
         }
 
 
@@ -304,10 +309,12 @@ module OrderPlanState =
             Pending = None
             Selected = None
             Work = PlanWork.AsSigned
+            Opened = [||]
         }
 
 
-    /// The plan held for the patient with the dialog's selection, nothing under way.
+    /// The plan held for the patient with the dialog's selection, nothing under way: the
+    /// version opened.
     let held (pat: Patient) (tp: OrderPlan) (selected: string option) =
         {
             Cart = OrderPlanCart.Opened(pat, tp)
@@ -315,10 +322,12 @@ module OrderPlanState =
             Pending = None
             Selected = selected
             Work = PlanWork.AsSigned
+            Opened = tp.OrderContexts
         }
 
 
-    /// A change under way over the plan held, the one a failed change goes back to.
+    /// A change under way over the plan held, the one a failed change goes back to: the
+    /// version opened.
     let changing (pat: Patient) (tp: OrderPlan) (selected: string option) (sent: OrderPlanCommand) (request: string) =
         {
             Cart = OrderPlanCart.Opened(pat, tp)
@@ -326,6 +335,7 @@ module OrderPlanState =
             Pending = None
             Selected = selected
             Work = PlanWork.AsSigned
+            Opened = tp.OrderContexts
         }
 
 
@@ -341,6 +351,22 @@ module OrderPlanState =
 
     /// What the plan holds beside the version last opened or signed.
     let work (state: OrderPlanState) = state.Work
+
+
+    /// The contexts of the version last opened or signed, on a plan held or changing.
+    let withOpened (opened: OrderContext[]) (state: OrderPlanState) = { state with Opened = opened }
+
+
+    /// The ids of the plan's contexts that are new or changed since the version last opened or
+    /// signed; none without a patient.
+    let changed (state: OrderPlanState) =
+        match state.Cart with
+        | OrderPlanCart.NoPatient _ -> [||]
+        | OrderPlanCart.Opened(_, tp) -> HeldContextPolicy.changed state.Opened tp
+
+
+    /// Whether the patient context is held: the plan has a new or changed order.
+    let contextHeld (state: OrderPlanState) = changed state |> Array.isEmpty |> not
 
 
     /// The plan the state holds, none without a patient; the empty plan while an open runs.
@@ -475,6 +501,12 @@ module OrderPlanState =
                             Pending = None
                         }
 
+                // an open that landed is the version opened, as the server answered it
+                let landed =
+                    match sent, result with
+                    | OrderPlanCommand.Open _, Ok tp -> { landed with Opened = tp.OrderContexts }
+                    | _ -> landed
+
                 // the step that waited goes out over the plan answered; a failure drops it
                 match result, state.Pending, landed.Cart with
                 | Ok _, Some(cmd, next), OrderPlanCart.Opened(_, tp) ->
@@ -513,10 +545,36 @@ module OrderPlanState =
         // plan is dropped, nothing left to sign. A command counts as work where it goes out, in
         // the request stage
         | OrderPlanMsg.PatientChanged(None, request) ->
-            run request (OrderPlanCartMsg.PatientChanged None) { state with Work = PlanWork.AsSigned }
+            run
+                request
+                (OrderPlanCartMsg.PatientChanged None)
+                { state with
+                    Work = PlanWork.AsSigned
+                    Opened = [||]
+                }
         | OrderPlanMsg.Version(head, request) ->
-            run request (OrderPlanCartMsg.Version head) { state with Work = PlanWork.AsSigned }
+            run
+                request
+                (OrderPlanCartMsg.Version head)
+                { state with
+                    Work = PlanWork.AsSigned
+                    Opened = [||]
+                }
         | OrderPlanMsg.Command(cmd, request) -> run request (OrderPlanCartMsg.Command cmd) state
         | OrderPlanMsg.Filter(ids, request) -> run request (OrderPlanCartMsg.Filter ids) state
-        // the plan is the version just signed, unless it changed while the signature was under way
-        | OrderPlanMsg.Signed askedOver -> { state with Work = state.Work |> PlanWork.afterSigned askedOver }, []
+        // the plan is the version just signed, unless it changed while the signature was under
+        // way; then the version signed is not the plan held, and its contexts are kept as they
+        // were, so that the change made meanwhile holds until the next signature
+        | OrderPlanMsg.Signed askedOver ->
+            let work = state.Work |> PlanWork.afterSigned askedOver
+
+            let opened =
+                match work, state.Cart with
+                | PlanWork.AsSigned, OrderPlanCart.Opened(_, tp) -> tp.OrderContexts
+                | _ -> state.Opened
+
+            { state with
+                Work = work
+                Opened = opened
+            },
+            []

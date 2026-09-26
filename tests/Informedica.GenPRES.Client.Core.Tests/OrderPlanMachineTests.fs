@@ -289,14 +289,16 @@ let tests =
                         transition (OrderPlanMsg.Answered("r-1", Ok one)) busy
                         |> Expect.equal
                             "the selection's context went with the change"
-                            (held one None, [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
+                            (held one None |> OrderPlanState.withOpened two.OrderContexts,
+                             [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
 
                         let kept = recalculating two (Some "c-1") "r-1" cmd
 
                         transition (OrderPlanMsg.Answered("r-1", Ok one)) kept
                         |> Expect.equal
                             "the selection still holds"
-                            (held one (Some "c-1"), [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
+                            (held one (Some "c-1") |> OrderPlanState.withOpened two.OrderContexts,
+                             [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
 
                         transition (OrderPlanMsg.Answered("r-9", Ok one)) kept
                         |> Expect.equal "a stale answer dropped" (kept, [])
@@ -341,7 +343,7 @@ let tests =
                         transition (OrderPlanMsg.Answered("r-1", Ok two)) busy
                         |> Expect.equal
                             "shown, checked, the page and the workbench"
-                            (held two None,
+                            (held two None |> OrderPlanState.withOpened one.OrderContexts,
                              [
                                  OrderPlanEffect.CheckInteractions [ "paracetamol"; "ibuprofen" ]
                                  OrderPlanEffect.GoToPlanPage
@@ -480,7 +482,8 @@ let pendingTests =
                 |> Expect.equal
                     "the step, into the context answered"
                     (recalculating answer (Some "c-1") "r-2" sent
-                     |> OrderPlanState.withWork (PlanWork.Changed 1),
+                     |> OrderPlanState.withWork (PlanWork.Changed 1)
+                     |> OrderPlanState.withOpened two.OrderContexts,
                      [
                          OrderPlanEffect.CheckInteractions [ "paracetamol-now" ]
                          OrderPlanEffect.CallPlan(sent, "r-2")
@@ -495,7 +498,8 @@ let pendingTests =
                 |> Expect.equal
                     "the value typed, into the context it was typed into"
                     (recalculating answer (Some "c-1") "r-2" sent
-                     |> OrderPlanState.withWork (PlanWork.Changed 1),
+                     |> OrderPlanState.withWork (PlanWork.Changed 1)
+                     |> OrderPlanState.withOpened two.OrderContexts,
                      [
                          OrderPlanEffect.CheckInteractions [ "paracetamol-now" ]
                          OrderPlanEffect.CallPlan(sent, "r-2")
@@ -516,7 +520,8 @@ let pendingTests =
                 |> transition (OrderPlanMsg.Answered("r-1", Ok one))
                 |> Expect.equal
                     "its context gone with the change"
-                    (held one (Some "c-1"), [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
+                    (held one (Some "c-1") |> OrderPlanState.withOpened two.OrderContexts,
+                     [ OrderPlanEffect.CheckInteractions [ "paracetamol" ] ])
 
                 transition (OrderPlanMsg.Answered("r-1", Error [| "refused" |])) waiting
                 |> Expect.equal
@@ -681,5 +686,91 @@ let workTests =
                     (held one None |> OrderPlanState.withWork (PlanWork.Changed 2))
                 |> workOf
                 |> Expect.equal "the change made meanwhile stays" (PlanWork.Changed 2)
+            }
+        ]
+
+
+[<Tests>]
+let heldTests =
+    let heldOf (state: OrderPlanState, _: OrderPlanEffect list) = state |> OrderPlanState.contextHeld
+    let changedOf (state: OrderPlanState, _: OrderPlanEffect list) = state |> OrderPlanState.changed
+
+    /// The answer to a command sent over the plan held, landed.
+    let landed cmd answer state =
+        transition (OrderPlanMsg.Command(cmd, "r-1")) state
+        |> fst
+        |> transition (OrderPlanMsg.Answered("r-1", answer))
+
+    testList
+        "the patient context held"
+        [
+            test "a version opened lands released" {
+                transition (OrderPlanMsg.Answered("r-1", Ok two)) (loading patient head.OrderContexts "r-1")
+                |> heldOf
+                |> Expect.isFalse "the version opened holds nothing"
+            }
+
+            test "an order added holds once it lands" {
+                held one None
+                |> landed (OrderPlanCommand.AddOrderContext(one, context "c-2" "ibuprofen")) (Ok two)
+                |> changedOf
+                |> Expect.equal "the order added is new" [| "c-2" |]
+            }
+
+            test "an order of the version removed does not hold" {
+                held two None
+                |> landed (OrderPlanCommand.RemoveOrderContexts(two, [| "c-2" |])) (Ok one)
+                |> heldOf
+                |> Expect.isFalse "a removal is no new or changed order"
+            }
+
+            test "a failed change leaves the hold as it was" {
+                held two None
+                |> OrderPlanState.withOpened one.OrderContexts
+                |> landed (OrderPlanCommand.RemoveOrderContexts(two, [| "c-2" |])) (Error [| "down" |])
+                |> changedOf
+                |> Expect.equal "the order added stays new" [| "c-2" |]
+            }
+
+            test "the rows chosen do not hold" {
+                let filtered = { one with Filtered = [| "c-1" |] }
+
+                transition (OrderPlanMsg.Filter([| "c-1" |], "r-1")) (held one None)
+                |> fst
+                |> transition (OrderPlanMsg.Answered("r-1", Ok filtered))
+                |> heldOf
+                |> Expect.isFalse "the filter is no order"
+            }
+
+            test "a signature over the same work releases" {
+                transition
+                    (OrderPlanMsg.Signed(PlanWork.Changed 1))
+                    (held two None
+                     |> OrderPlanState.withOpened one.OrderContexts
+                     |> OrderPlanState.withWork (PlanWork.Changed 1))
+                |> heldOf
+                |> Expect.isFalse "the plan is the version signed"
+            }
+
+            test "a signature over older work keeps holding" {
+                transition
+                    (OrderPlanMsg.Signed(PlanWork.Changed 1))
+                    (held two None
+                     |> OrderPlanState.withOpened one.OrderContexts
+                     |> OrderPlanState.withWork (PlanWork.Changed 2))
+                |> changedOf
+                |> Expect.equal "the change made meanwhile holds" [| "c-2" |]
+            }
+
+            test "a version opened and a patient cleared release" {
+                let holding = held two None |> OrderPlanState.withOpened [||]
+
+                transition (OrderPlanMsg.Version(head, "r-1")) holding
+                |> heldOf
+                |> Expect.isFalse "the version is being opened"
+
+                transition (OrderPlanMsg.PatientChanged(None, "r-1")) holding
+                |> heldOf
+                |> Expect.isFalse "no patient, nothing held"
             }
         ]
