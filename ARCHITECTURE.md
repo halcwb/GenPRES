@@ -98,3 +98,187 @@ graph BT
 20 projects, 27 project references. An arrow points at the dependency. A dashed arrow is an
 outward reference the dependency rule still tolerates; the reasons are in `scripts/DependencyRule.fsx`.
 <!-- project-graph:end -->
+
+## Database Schema
+
+
+```mermaid
+erDiagram
+    %% ── clinical record ──
+    order_plan {
+        int id PK
+        text version_id UK
+        int no
+        text patient_id
+        text base "version_id it was built on"
+        text signed_by_user_id
+        int signed_at
+        int verified
+        int json_version
+        text plan "json OrderPlanVersion"
+        text patient_name "migr 9"
+        int birth_year "migr 9"
+    }
+    order_plan ||--o| order_plan : "base (logical)"
+
+    %% ── launch ──
+    launch_record {
+        text nonce PK
+        text state UK
+        text patient_id
+        text public_key
+        int expiry
+    }
+    launch_outcome {
+        text nonce PK "FK"
+        text outcome
+        text session_id
+        text attempt
+        int at
+    }
+    launch_record ||--o| launch_outcome : "FK nonce"
+
+    %% ── session ──
+    session {
+        int id PK
+        text session_id UK
+        text login
+        text user_id
+        text user_role
+        text patient_id
+        text key_thumbprint
+        int opened_at
+    }
+    session_opened_with {
+        int id PK
+        text session_id FK
+        text version_id
+        text head_id
+        text opened_token
+        text patient "json"
+        text ehr_data "json, migr 6"
+        int at
+    }
+    session_seen {
+        int id PK
+        text session_id FK
+        int at
+    }
+    session_ending {
+        text session_id PK "FK"
+        text ending "closed, wrong-pin-limit, unreadable, idle"
+        int at
+    }
+    session_acknowledged {
+        text session_id PK "FK"
+        int at
+    }
+    measurement {
+        int id PK
+        text session_id FK
+        text kind "weight, height, gestage"
+        int value
+        int days
+        int at
+    }
+    session ||--o{ session_opened_with : "FK"
+    session ||--o{ session_seen : "FK heartbeat"
+    session ||--o| session_ending : "FK"
+    session ||--o| session_acknowledged : "FK"
+    session ||--o{ measurement : "FK migr 8"
+    launch_outcome }o--o| session : "session_id (logical)"
+    session_opened_with }o--o| order_plan : "version_id, head_id (logical)"
+    session }o--o{ order_plan : "patient_id (logical)"
+
+    %% ── in flight ──
+    data_notice {
+        int id PK
+        text session_id FK
+        text nonce
+        text data "json"
+        text ehr_data "json, migr 7"
+        int expiry
+    }
+    challenge {
+        int id PK
+        text session_id FK
+        text nonce
+        text digest
+        text reading "json"
+        text ehr_data "json, migr 7"
+        int expiry
+    }
+    challenge_spent {
+        int challenge_id PK "FK"
+        int at
+    }
+    submission_answer {
+        text session_id PK "FK"
+        text idem_key PK
+        text answer
+        text version_id
+        text opened_token
+        int at
+    }
+    session ||--o{ data_notice : "FK"
+    session ||--o{ challenge : "FK"
+    challenge ||--o| challenge_spent : "FK"
+    session ||--o{ submission_answer : "FK"
+    submission_answer }o--o| order_plan : "version_id (logical)"
+
+    %% ── credentials and enrolment ──
+    credential_event {
+        int id PK
+        text user_id
+        text event "pin-set, wrong, locked, right"
+        blob pin_salt
+        blob pin_hash
+        int wrong_count
+        int locked_until
+    }
+    confirmation_code {
+        int id PK
+        text user_id
+        text mail_address
+        blob code_mac
+        int expiry
+    }
+    code_try {
+        int id PK
+        int code_id FK
+        int at
+    }
+    code_spent {
+        int code_id PK "FK"
+        int at
+    }
+    enrolment {
+        text attempt PK
+        text user_id
+        text login
+        text patient_id
+        text public_key
+    }
+    enrolment_dropped {
+        text attempt PK "FK"
+        int at
+    }
+    confirmation_code ||--o{ code_try : "FK"
+    confirmation_code ||--o| code_spent : "FK"
+    enrolment ||--o| enrolment_dropped : "FK"
+    launch_outcome }o--o| enrolment : "attempt (logical)"
+    session }o--o{ credential_event : "user_id (logical)"
+    enrolment }o--o{ confirmation_code : "user_id (logical)"
+
+    %% ── audit ──
+    audit_entry {
+        int id PK
+        int at
+        text session_id
+        text actor
+        text action
+        text outcome
+        text detail "json"
+    }
+    session |o--o{ audit_entry : "session_id (logical)"
+```
