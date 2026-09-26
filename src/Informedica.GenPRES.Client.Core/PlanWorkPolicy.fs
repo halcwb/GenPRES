@@ -1,6 +1,5 @@
 /// What the plan holds beside the order plan version last opened or signed, and how the plan
-/// commands and the signatures move it. Pure F#, no React, so it runs under Expecto; the
-/// signing lane carries the work a signature was asked over, and the leave-page guard reads it.
+/// commands move it. Pure F#, no React, so it runs under Expecto; the leave-page guard reads it.
 module PlanWorkPolicy
 
 open Shared.Api
@@ -11,9 +10,8 @@ open Shared.Api
 type PlanWork =
     /// The plan is the version last opened or signed, or empty with none opened yet.
     | AsSigned
-    /// Commands changed the plan since, this many; nothing signed holds the changes. The count
-    /// tells the work a signature was asked over from work done while it was under way.
-    | Changed of generation: int
+    /// Commands changed the plan since; nothing signed holds the changes.
+    | Changed
 
 
 module PlanWork =
@@ -31,18 +29,5 @@ module PlanWork =
         | OrderPlanCommand.RemoveOrderContexts _ -> true
 
 
-    /// The plan's work once a change went out: one more.
-    let afterChange (work: PlanWork) =
-        match work with
-        | PlanWork.AsSigned -> PlanWork.Changed 1
-        | PlanWork.Changed n -> PlanWork.Changed(n + 1)
-
-
     /// The plan's work once a command went out.
-    let afterCommand (cmd: OrderPlanCommand) (work: PlanWork) = if changedBy cmd then afterChange work else work
-
-
-    /// The plan's work once a signature is told: as signed when the plan is still the one the
-    /// signature was asked over; a change made while the signature was under way was not
-    /// signed, and stays.
-    let afterSigned (atSign: PlanWork) (work: PlanWork) = if work = atSign then PlanWork.AsSigned else work
+    let afterCommand (cmd: OrderPlanCommand) (work: PlanWork) = if changedBy cmd then PlanWork.Changed else work
