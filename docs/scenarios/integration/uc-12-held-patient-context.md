@@ -96,11 +96,13 @@ commit needs no check of its own: the challenge's digest ties the order plan sig
 checked.
 
 **Released three ways.** By the sign: the order plan is the new version, nothing in it is new or
-changed. By removing every new and changed order: the order plan is back to the version it
-opened. By a refresh: a new launch, an explicit refresh in GenPRES that reads the EHR again and
-drops those orders, or a browser reload, which drops them with the Client's state. Also released
-when the Session ends, idle ([#1061](https://github.com/informedica/GenPRES/issues/1061)) or
-otherwise ([uc-08](uc-08-session-ends.md)).
+changed. By removing every new and changed order: nothing new or changed is left, though the
+order plan need not be the version it opened, since an order of that version that was changed
+and then removed stays removed; a removal holds nothing. By a refresh: a new launch, an explicit
+refresh in GenPRES that reads the EHR again and drops those orders, or a browser reload, which
+drops them with the Client's state. Also released when the Session ends, idle
+([#1061](https://github.com/informedica/GenPRES/issues/1061)) or otherwise
+([uc-08](uc-08-session-ends.md)).
 
 **The age is fixed apart.** An identified patient's age is fixed by the Server from the open to
 the sign and put on every request
@@ -123,8 +125,9 @@ remove or prescribe again.
 
 ## Extensions
 
-**12a User A removes every new and changed order.** The order plan is the version it opened
-with; the patient data fields are enabled at once.
+**12a User A removes every new and changed order.** Nothing new or changed is left, so the
+patient data fields are enabled at once. Releasing the hold does not restore the version it
+opened: an order of that version that was changed and then removed stays removed.
 
 **12b User A refreshes.** GenPRES asks first: the new and changed orders are dropped. The Server
 reads the EHR again, projects it at the date of the refresh with the user's measurements over

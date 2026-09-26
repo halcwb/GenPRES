@@ -101,10 +101,18 @@ outward reference the dependency rule still tolerates; the reasons are in `scrip
 
 ## Database Schema
 
+The SQLite session and record store, abbreviated: each table shows its keys and main columns, and
+the labels say which relations are declared foreign keys and which are joins by id. The full
+schema is the migrations in `src/Informedica.GenPRES.Server/Sql/`, applied in order. Every table
+only gains rows; where a Session or a credential has a history, the newest row counts.
+
+The store is drawn in four parts. `session` and `order_plan` appear in more than one, with only
+the columns the part joins on.
+
+### The record and what a Session opens with
 
 ```mermaid
 erDiagram
-    %% ── clinical record ──
     order_plan {
         int id PK
         text version_id UK
@@ -118,27 +126,9 @@ erDiagram
         text plan "json OrderPlanVersion"
         text patient_name "migr 9"
         int birth_year "migr 9"
+        int birth_month "migr 9"
+        int birth_day "migr 9"
     }
-    order_plan ||--o| order_plan : "base (logical)"
-
-    %% ── launch ──
-    launch_record {
-        text nonce PK
-        text state UK
-        text patient_id
-        text public_key
-        int expiry
-    }
-    launch_outcome {
-        text nonce PK "FK"
-        text outcome
-        text session_id
-        text attempt
-        int at
-    }
-    launch_record ||--o| launch_outcome : "FK nonce"
-
-    %% ── session ──
     session {
         int id PK
         text session_id UK
@@ -155,9 +145,24 @@ erDiagram
         text version_id
         text head_id
         text opened_token
+        int json_version
         text patient "json"
+        int ehr_json_version "migr 6"
         text ehr_data "json, migr 6"
         int at
+    }
+    order_plan ||--o| order_plan : "base (logical)"
+    session ||--o{ session_opened_with : "FK"
+    session_opened_with }o--o| order_plan : "version_id, head_id (logical)"
+    session }o--o{ order_plan : "patient_id (logical)"
+```
+
+### A Session's life
+
+```mermaid
+erDiagram
+    session {
+        text session_id UK
     }
     session_seen {
         int id PK
@@ -181,32 +186,51 @@ erDiagram
         int days
         int at
     }
-    session ||--o{ session_opened_with : "FK"
+    audit_entry {
+        int id PK
+        int at
+        text session_id
+        text actor
+        text action
+        text outcome
+        text detail "json"
+    }
     session ||--o{ session_seen : "FK heartbeat"
     session ||--o| session_ending : "FK"
     session ||--o| session_acknowledged : "FK"
     session ||--o{ measurement : "FK migr 8"
-    launch_outcome }o--o| session : "session_id (logical)"
-    session_opened_with }o--o| order_plan : "version_id, head_id (logical)"
-    session }o--o{ order_plan : "patient_id (logical)"
+    session |o--o{ audit_entry : "session_id (logical)"
+```
 
-    %% ── in flight ──
+### Signing
+
+```mermaid
+erDiagram
+    session {
+        text session_id UK
+    }
     data_notice {
         int id PK
         text session_id FK
         text nonce
+        int json_version
         text data "json"
+        int ehr_json_version "migr 7"
         text ehr_data "json, migr 7"
         int expiry
+        int at
     }
     challenge {
         int id PK
         text session_id FK
         text nonce
         text digest
+        int json_version
         text reading "json"
+        int ehr_json_version "migr 7"
         text ehr_data "json, migr 7"
         int expiry
+        int at
     }
     challenge_spent {
         int challenge_id PK "FK"
@@ -218,15 +242,55 @@ erDiagram
         text answer
         text version_id
         text opened_token
+        int attempts_left
+        int locked_until
         int at
+    }
+    order_plan {
+        text version_id UK
     }
     session ||--o{ data_notice : "FK"
     session ||--o{ challenge : "FK"
     challenge ||--o| challenge_spent : "FK"
     session ||--o{ submission_answer : "FK"
     submission_answer }o--o| order_plan : "version_id (logical)"
+```
 
-    %% ── credentials and enrolment ──
+### Launch, credentials and enrolment
+
+```mermaid
+erDiagram
+    launch_record {
+        text nonce PK
+        text state UK
+        text patient_id
+        text public_key
+        int expiry
+    }
+    launch_outcome {
+        text nonce PK "FK"
+        text outcome
+        text session_id
+        text attempt
+        int at
+    }
+    session {
+        text session_id UK
+        text user_id
+    }
+    enrolment {
+        text attempt PK
+        text user_id
+        text login
+        text display_name
+        text patient_id
+        text public_key
+        int at
+    }
+    enrolment_dropped {
+        text attempt PK "FK"
+        int at
+    }
     credential_event {
         int id PK
         text user_id
@@ -235,6 +299,7 @@ erDiagram
         blob pin_hash
         int wrong_count
         int locked_until
+        int at
     }
     confirmation_code {
         int id PK
@@ -242,6 +307,7 @@ erDiagram
         text mail_address
         blob code_mac
         int expiry
+        int at
     }
     code_try {
         int id PK
@@ -252,33 +318,12 @@ erDiagram
         int code_id PK "FK"
         int at
     }
-    enrolment {
-        text attempt PK
-        text user_id
-        text login
-        text patient_id
-        text public_key
-    }
-    enrolment_dropped {
-        text attempt PK "FK"
-        int at
-    }
-    confirmation_code ||--o{ code_try : "FK"
-    confirmation_code ||--o| code_spent : "FK"
-    enrolment ||--o| enrolment_dropped : "FK"
+    launch_record ||--o| launch_outcome : "FK nonce"
+    launch_outcome }o--o| session : "session_id (logical)"
     launch_outcome }o--o| enrolment : "attempt (logical)"
+    enrolment ||--o| enrolment_dropped : "FK"
     session }o--o{ credential_event : "user_id (logical)"
     enrolment }o--o{ confirmation_code : "user_id (logical)"
-
-    %% ── audit ──
-    audit_entry {
-        int id PK
-        int at
-        text session_id
-        text actor
-        text action
-        text outcome
-        text detail "json"
-    }
-    session |o--o{ audit_entry : "session_id (logical)"
+    confirmation_code ||--o{ code_try : "FK"
+    confirmation_code ||--o| code_spent : "FK"
 ```
