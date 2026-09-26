@@ -73,6 +73,11 @@ jobs:
       # map; fails when a project or reference changed without `dotnet fsi scripts/ProjectGraph.fsx --write`.
       run: dotnet fsi scripts/ProjectGraph.fsx --check
 
+    - name: Check schema diagram is current
+      # The database schema diagrams in ARCHITECTURE.md are generated from the SQL migrations;
+      # fails when a migration changed without `dotnet fsi scripts/SchemaDiagram.fsx --write`.
+      run: dotnet fsi scripts/SchemaDiagram.fsx --check
+
     - name: Test execution
       env:
         CI: true
