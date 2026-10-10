@@ -4,6 +4,11 @@
 [<RequireQualifiedAccess>]
 module Tracing
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.StateMachines
+
+module Client = Informedica.GenPRES.Client.Core.Client
+
 #if DEBUG
 open Elmish
 open Elmish.Debug

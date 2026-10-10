@@ -1,5 +1,8 @@
 module App
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
 open System
 open Fable.Core
 open Fable.Core.JsInterop
@@ -19,7 +22,10 @@ open SigningMachine
 open OrderPlanMachine
 open OrderContextMachine
 open PatientMachine
-open Lanes
+open Informedica.GenPRES.Client.Core.Lanes
+
+module Client = Informedica.GenPRES.Client.Core.Client
+module Trail = Informedica.GenPRES.Client.Core.Trail
 
 
 type private State = Client.ClientState

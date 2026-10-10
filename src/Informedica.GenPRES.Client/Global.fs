@@ -1,5 +1,6 @@
 module Global
 
+open Informedica.GenPRES.Client.Core.Helpers
 open Feliz
 open Informedica.GenPRES.Shared
 

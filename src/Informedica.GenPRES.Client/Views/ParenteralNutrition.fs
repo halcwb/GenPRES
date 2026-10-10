@@ -1,5 +1,9 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+
 #nowarn "1104"
 
 /// The parenteral part of the nutrition page: TPN, lipids and electrolytes with glucose, each

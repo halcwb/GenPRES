@@ -147,7 +147,7 @@ confirmed solver result.
 | Click counting | `src/Informedica.GenPRES.Client/Components/ClickCountingButton.fs` | `ClickCountingButton` |
 | Steps and mode | `src/Informedica.GenPRES.Client/Views/ViewHelpers.fs` | `createDoseQtyStepper` |
 | Step message | `src/Informedica.GenPRES.Client/Views/Order.fs` | `Increase/DecreaseDoseQuantityProperty` |
-| Client machine | `src/Informedica.GenPRES.Client.Core/OrderContextMachine.fs` | `OrderContextMsg.Command`, `OrderContextState.transition` |
+| Client machine | `src/Informedica.GenPRES.Client.Core/StateMachines/OrderContextMachine.fs` | `OrderContextMsg.Command`, `OrderContextState.transition` |
 | Server call | `src/Informedica.GenPRES.Client/App.fs` | `applyOrderContextEffect`, `OrderContextAnswered` |
 | Shared DTO | `src/Informedica.GenPRES.Shared/Api.fs` | `OrderContextCommand` |
 | Server cmd | `src/Informedica.GenPRES.Server/ServerApi.OrderContextCommand.fs` | `processCmd` |

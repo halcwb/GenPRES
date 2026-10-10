@@ -1,5 +1,7 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Policies
+
 module Totals =
 
 

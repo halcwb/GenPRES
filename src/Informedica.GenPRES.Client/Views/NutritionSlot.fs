@@ -1,5 +1,11 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+
+module Trail = Informedica.GenPRES.Client.Core.Trail
+
 #nowarn "1104"
 
 /// The logic of one nutrition slot, shared by the enteral and the parenteral layout: the

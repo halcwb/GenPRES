@@ -1,5 +1,7 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.StateMachines
+
 #nowarn "1104"
 
 /// The print sheet of the parenteral nutrition orders.

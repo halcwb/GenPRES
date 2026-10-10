@@ -1,5 +1,7 @@
 namespace Components
 
+open Informedica.GenPRES.Client.Core.Policies
+
 
 module SimpleSelect =
 
