@@ -1,9 +1,10 @@
 namespace Components
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 module SimpleSelect =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
 
     open System
@@ -38,7 +39,7 @@ module SimpleSelect =
                 // whether the value can be stepped beside the select: a single value that can
                 // be stepped is not a fixed one, and is not drawn as one
                 canStep: bool
-                severity: Types.Severity
+                severity: Severity
                 minWidth: int option
                 // what a click or a key on the select does beyond choosing, told to a screen
                 // reader on the element that has the focus
@@ -247,7 +248,7 @@ module SimpleSelect =
                 "hidden"
 
         let sx =
-            match props.severity |> Models.Severity.isRaised, hasInteraction with
+            match props.severity |> Severity.isRaised, hasInteraction with
             | true, _ ->
                 {| ``& .MuiSelect-icon`` = {| visibility = iconVisibility |} |}
                 |> box

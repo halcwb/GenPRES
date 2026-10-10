@@ -1,11 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// How long a server error stays on the banner: until the next successful answer of the kind
 /// of request that raised it, or until the server check succeeds.
 module ServerErrorPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

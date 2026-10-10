@@ -1397,59 +1397,6 @@ module Models =
                 }
 
 
-            let renderValue prec (var: Variable) =
-                match var.Min, var.Max, var.Vals with
-                | _, _, Some vals when vals.Value.Length = 1 ->
-                    let v = vals.Value |> Array.head |> snd |> Decimal.fixPrecision prec
-                    $"{v} {vals.Unit}"
-                | _, _, Some vals when vals.Value.Length > 1 ->
-                    let minVal = vals.Value |> Array.minBy snd |> snd |> Decimal.fixPrecision prec
-                    let maxVal = vals.Value |> Array.maxBy snd |> snd |> Decimal.fixPrecision prec
-                    $"{minVal} - {maxVal} {vals.Unit}"
-                | Some min, Some max, _ ->
-                    let minVal = min.Value |> Array.minBy snd |> snd |> Decimal.fixPrecision prec
-                    let maxVal = max.Value |> Array.maxBy snd |> snd |> Decimal.fixPrecision prec
-                    $"{minVal} - {maxVal} {min.Unit}"
-                | _ -> ""
-
-
-            /// <summary>
-            /// Render an array of variables as a single string, as used for the
-            /// items (substances) of one component in the order plan overview.
-            /// </summary>
-            /// <param name="prec">The precision</param>
-            /// <param name="vars">The variables, one per item</param>
-            let renderValues prec (vars: Variable[]) =
-                // split a rendered variable in its value part and its unit,
-                // the unit is the last token as units never contain a space
-                let split s =
-                    let tokens = s |> String.split " " |> Array.filter String.notEmpty
-
-                    {|
-                        Value = tokens |> Array.truncate (tokens.Length - 1) |> String.concat ""
-                        Unit = tokens |> Array.tryLast |> Option.defaultValue ""
-                    |}
-
-                vars
-                |> Array.map (renderValue prec)
-                |> Array.filter String.notEmpty
-                |> Array.map split
-                |> Array.groupBy _.Unit
-                |> Array.map (fun (unit, items) ->
-                    let values = items |> Array.map _.Value
-                    // a value can be a range itself, i.e. "10-20", so in that case
-                    // the items are spaced out to keep the ranges apart visually
-                    let sep =
-                        if values |> Array.exists (String.contains "-") then
-                            " / "
-                        else
-                            "/"
-
-                    $"%s{values |> String.concat sep} %s{unit}"
-                )
-                |> String.concat ", "
-
-
         module OrderVariable =
 
             let create nme cst cal var outerIncr level =
@@ -1461,46 +1408,6 @@ module Models =
                     LargeIncr = outerIncr
                     Level = level
                 }
-
-
-            let isSolved (ovar: OrderVariable) =
-                ovar.Variable.Vals
-                |> Option.map (_.Value >> Array.length >> ((=) 1))
-                |> Option.defaultValue false
-
-
-            let isNavigable (ovar: OrderVariable) =
-                if ovar |> isSolved then
-                    false
-                else
-                    // note that an ordervariable with an increment always has a
-                    // min value by definition as all order variables are initialized to
-                    // be non-zero positive and a min value is always a multiple of an
-                    // increment
-                    (ovar.Variable.Max.IsSome && ovar.DefinedConstraints.Incr.IsSome)
-                    || ovar.Variable.Vals
-                       |> Option.map (_.Value >> Array.length >> (fun c -> c > 1))
-                       |> Option.defaultValue false
-
-
-            let displayString (ovar: OrderVariable) =
-                ovar.Variable.Vals
-                |> Option.bind (fun v ->
-                    v.Value
-                    |> Array.tryHead
-                    |> Option.map (fun (_, d) -> (d |> Decimal.toStringNumberNLWithoutTrailingZeros) + " " + v.Unit)
-                )
-                |> Option.defaultValue ""
-
-
-            let displayStringFormatted (format: decimal -> string) (ovar: OrderVariable) =
-                ovar.Variable.Vals
-                |> Option.bind (fun v ->
-                    v.Value
-                    |> Array.tryHead
-                    |> Option.map (fun (_, d) -> (d |> format) + " " + v.Unit)
-                )
-                |> Option.defaultValue ""
 
 
             let setVu s (vu: Types.ValueUnit option) =
@@ -1616,31 +1523,6 @@ module Models =
             }
 
 
-        let isSolved (ord: Order) =
-            [
-                yield! ord.Orderable.Components |> Array.map _.OrderableQuantity
-                ord.Orderable.OrderableQuantity
-                ord.Orderable.Dose.Quantity
-
-                if ord.Schedule.IsContinuous || ord.Schedule.IsOnceTimed || ord.Schedule.IsTimed then
-                    ord.Orderable.Dose.Rate
-
-                if ord.Schedule.IsDiscontinuous || ord.Schedule.IsTimed then
-                    ord.Schedule.Frequency
-            ]
-            |> List.forall OrderVariable.isSolved
-
-
-        module OrderLoader =
-
-            let create cmp itm o =
-                {
-                    Component = cmp
-                    Item = itm
-                    Order = o
-                }
-
-
     module Totals =
 
         let empty: Totals =
@@ -1663,54 +1545,6 @@ module Models =
                 BoricAcid = [||]
                 BenzylAlcohol = [||]
             }
-
-
-        // Intake substance row definitions
-        let intakeRows =
-            [|
-                [| "volume"; ""; "ml/kg/dag" |]
-                [| "energie"; ""; "kCal/kg/dag" |]
-                [| "koolhydraat"; ""; "mg/kg/min" |]
-                [| "eiwit"; ""; "g/kg/dag" |]
-                [| "vet"; ""; "g/kg/dag" |]
-                [| "natrium"; ""; "mmol/kg/dag" |]
-                [| "kalium"; ""; "mmol/kg/dag" |]
-                [| "chloride"; ""; "mmol/kg/dag" |]
-                [| "calcium"; ""; "mmol/kg/dag" |]
-                [| "magnesium"; ""; "mmol/kg/dag" |]
-                [| "fosfaat"; ""; "mmol/kg/dag" |]
-                [| "ijzer"; ""; "mmol/kg/dag" |]
-                [| "vit D"; ""; "mmol/kg/dag" |]
-                [| "ethanol"; ""; "mg/kg/dag" |]
-                [| "propyleenglycol"; ""; "mg/kg/dag" |]
-                [| "boorzuur"; ""; "mmol/kg/dag" |]
-                [| "benzylalcohol"; ""; "mmol/kg/dag" |]
-            |]
-
-
-        // Map a substance name to the corresponding Totals field
-        let substanceToField (intake: Totals) =
-            function
-            | "volume" -> intake.Volume
-            | "energie" -> intake.Energy
-            | "koolhydraat" -> intake.Carbohydrate
-            | "eiwit" -> intake.Protein
-            | "vet" -> intake.Fat
-            | "natrium" -> intake.Sodium
-            | "kalium" -> intake.Potassium
-            | "chloride" -> intake.Chloride
-            | "calcium" -> intake.Calcium
-            | "magnesium" -> intake.Magnesium
-            | "phosphaat"
-            | "fosfaat" -> intake.Phosphate
-            | "ijzer" -> intake.Iron
-            | "vitamine D"
-            | "vit D" -> intake.VitaminD
-            | "ethanol" -> intake.Ethanol
-            | "propyleenglycol" -> intake.Propyleenglycol
-            | "boorzuur" -> intake.BoricAcid
-            | "benzylalcohol" -> intake.BenzylAlcohol
-            | _ -> [||]
 
 
     module OrderScenario =
@@ -1739,60 +1573,6 @@ module Models =
                 ProductIds = ids
                 Access = acc
             }
-
-
-    module DoseType =
-
-
-        let doseTypeToDescription doseType =
-            match doseType with
-            | OnceTimed s
-            | Once s
-            | Timed s
-            | Discontinuous s
-            | Continuous s ->
-                if s |> String.notEmpty then
-                    s
-                else
-                    match doseType with
-                    | OnceTimed _
-                    | Once _ -> "eenmalig"
-                    | Timed _
-                    | Discontinuous _ -> "onderhoud"
-                    | Continuous _ -> "continu"
-                    | NoDoseType -> ""
-
-            | NoDoseType -> ""
-
-
-        let doseTypeToString doseType =
-            match doseType with
-            | OnceTimed s -> "oncetimed", s
-            | Once s -> "once", s
-            | Timed s -> "timed", s
-            | Discontinuous s -> "discontinuous", s
-            | Continuous s -> "continuous", s
-            | NoDoseType -> "", ""
-            |> fun (s1, s2) -> if String.isNullOrWhiteSpace s2 then s1 else $"{s1} {s2}"
-
-
-        let doseTypeFromString s =
-            let matchDoseType (dt: string) dd =
-                let dt = dt.ToLower().Trim()
-                let withText c = dd |> c
-
-                match dt with
-                | "once" -> Once |> withText
-                | "oncetimed" -> OnceTimed |> withText
-                | "timed" -> Timed |> withText
-                | "discontinuous" -> Discontinuous |> withText
-                | "continuous" -> Continuous |> withText
-                | _ -> NoDoseType
-
-            match s |> String.split " " |> Array.toList with
-            | [ dt ] -> matchDoseType dt ""
-            | dt :: rest -> rest |> String.concat " " |> matchDoseType dt
-            | _ -> NoDoseType
 
 
     module NutritionCategory =
@@ -1842,14 +1622,6 @@ module Models =
             }
 
         let setPatient pat ctx : OrderContext = { ctx with Patient = pat }
-
-
-        /// What a page calls the context: the category's name for a nutrition order, the
-        /// generic for a drug, nothing before a generic is chosen.
-        let label (ctx: OrderContext) =
-            match ctx.Category with
-            | OrderCategory.Nutrition category -> NutritionCategory.label category
-            | OrderCategory.Drug -> ctx.Filter.Generic |> Option.defaultValue ""
 
 
         /// The nutrition category of a context, none for a drug. A display copy of the
@@ -2407,107 +2179,6 @@ module Models =
 
             /// The context with the text written.
             let write (text: string) (ctx: OrderContext) = { ctx with Argumentation = normalise text }
-
-
-    /// Conversions between the one severity and the two shapes the wire carries it in.
-    [<RequireQualifiedAccess>]
-    module Severity =
-
-        /// The severity an order variable carries.
-        let ofLevel (level: Level) =
-            match level with
-            | IsNormal -> Severity.Normal
-            | IsCaution -> Severity.Caution
-            | IsWarning -> Severity.Warning
-            | IsAlert -> Severity.Alert
-
-
-        /// The level an order variable carries for a severity.
-        let toLevel (severity: Severity) =
-            match severity with
-            | Severity.Normal -> IsNormal
-            | Severity.Caution -> IsCaution
-            | Severity.Warning -> IsWarning
-            | Severity.Alert -> IsAlert
-
-
-        /// The severity a text block carries.
-        let ofTextBlock (block: TextBlock) =
-            match block with
-            | Valid _ -> Severity.Normal
-            | Caution _ -> Severity.Caution
-            | Warning _ -> Severity.Warning
-            | Alert _ -> Severity.Alert
-
-
-        /// The text a text block carries, whatever its severity.
-        let items (block: TextBlock) =
-            match block with
-            | Valid items
-            | Caution items
-            | Warning items
-            | Alert items -> items
-
-
-        /// The text block of a severity over some text.
-        let withItems (severity: Severity) (items: TextItem[]) =
-            match severity with
-            | Severity.Normal -> Valid items
-            | Severity.Caution -> Caution items
-            | Severity.Warning -> Warning items
-            | Severity.Alert -> Alert items
-
-
-        /// The highest of some severities; nothing raised when there are none.
-        let highest (severities: Severity seq) = severities |> Seq.fold max Severity.Normal
-
-
-        /// The highest severity among some text blocks.
-        let ofTextBlocks (blocks: TextBlock[]) = blocks |> Seq.map ofTextBlock |> highest
-
-
-        /// The highest severity among rows of text blocks; an empty row counts as nothing raised.
-        let ofTextBlockRows (rows: TextBlock[][]) = rows |> Seq.collect (Seq.map ofTextBlock) |> highest
-
-
-        /// Whether a severity is anything above normal: what gets a mark.
-        let isRaised (severity: Severity) = severity <> Severity.Normal
-
-
-    module TextBlock =
-
-        /// The text block constructor of the highest severity among rows of text blocks.
-        let maxTb (xs: TextBlock[][]) = xs |> Severity.ofTextBlockRows |> Severity.withItems
-
-
-        /// Flatten TextBlock[][] to a single-row TextBlock[][] for compact display.
-        /// Joins rows with " + " separators and uses the max severity level.
-        let flatten (blocks: TextBlock[][]) : TextBlock[][] =
-            if blocks |> Array.isEmpty then
-                blocks
-            else
-                let getItems tb = tb |> Severity.items |> Array.append [| " " |> Normal |]
-
-                let add xs =
-                    let plus = [| [| " + " |> Normal |] |]
-
-                    xs
-                    |> Array.fold
-                        (fun acc x ->
-                            if acc |> Array.isEmpty then
-                                x
-                            else
-                                x |> Array.append plus |> Array.append acc
-                        )
-                        [||]
-                    |> Array.collect id
-
-                blocks
-                |> Array.map (Array.map getItems)
-                |> add
-                |> (blocks |> maxTb)
-                |> Array.singleton
-                |> Array.singleton
 
 
     module OrderPlan =

@@ -1,12 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.Tests
-
 
 /// What an order context in the order plan can change and when, and the differences the sign
 /// dialog lists.
 module PlanContextPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.Tests
 
     open Expecto
     open Expecto.Flip

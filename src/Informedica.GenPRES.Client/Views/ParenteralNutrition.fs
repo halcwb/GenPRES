@@ -1,14 +1,15 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
 
 #nowarn "1104"
 
 /// The parenteral part of the nutrition page: TPN, lipids and electrolytes with glucose, each
 /// a slot that folds, with its components, and a button that prints them.
 module ParenteralNutrition =
+
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.Core.JsInterop

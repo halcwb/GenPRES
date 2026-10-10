@@ -1,10 +1,10 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// Whether the patient context is held, against the version last opened or signed.
 module HeldContextPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

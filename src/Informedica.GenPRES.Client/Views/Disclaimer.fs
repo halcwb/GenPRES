@@ -1,9 +1,9 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-
 
 module Disclaimer =
+
+    open Informedica.GenPRES.Client.Core.Helpers
 
     open Fable.Core
     open Feliz

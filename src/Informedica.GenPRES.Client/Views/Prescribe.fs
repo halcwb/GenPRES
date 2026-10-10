@@ -1,10 +1,11 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
-
 
 module Prescribe =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Feliz
@@ -80,7 +81,7 @@ module Prescribe =
 
         let doseTypeChange s =
             filterCommand OrderContext.DoseType
-            |> pickFilter _.Filter.DoseTypes (s |> Option.map DoseType.doseTypeFromString)
+            |> pickFilter _.Filter.DoseTypes (s |> Option.map DoseTypeText.doseTypeFromString)
 
         let clear () =
             match orderContext with
@@ -265,7 +266,11 @@ module Prescribe =
                                     """
                             )
 
-                        let sec = if not isMobile then sec else sec |> TextBlock.flatten
+                        let sec =
+                            if not isMobile then
+                                sec
+                            else
+                                sec |> TextBlockDisplay.flatten
 
                         sec
                         |> Array.mapi (fun i row ->
@@ -497,12 +502,12 @@ module Prescribe =
                              && pr.Filter.Generic.IsSome
                              && pr.Filter.Route.IsSome
                              ->
-                             let sel = pr.Filter.DoseType |> Option.map DoseType.doseTypeToString
+                             let sel = pr.Filter.DoseType |> Option.map DoseTypeText.doseTypeToString
                              let items = pr.Filter.DoseTypes
                              let lbl = Terms.``Dose Types`` |> getTerm "Doseer types"
 
                              items
-                             |> Array.map (fun s -> s |> DoseType.doseTypeToString, s |> DoseType.doseTypeToDescription)
+                             |> Array.map (fun s -> s |> DoseTypeText.doseTypeToString, s |> DoseTypeText.doseTypeToDescription)
                              |> select lbl sel doseTypeChange
 
                          | _ -> null}

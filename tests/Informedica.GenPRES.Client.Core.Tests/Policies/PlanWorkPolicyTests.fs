@@ -1,10 +1,10 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// The plan's work beside the version last opened or signed, linked in from the client project.
 module PlanWorkPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

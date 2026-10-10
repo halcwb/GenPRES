@@ -1,8 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Helpers
 
+
 /// The filter seed: a filter's choices set from outside its own fields, and the command that
 /// sends it.
 module FilterSeed =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open Informedica.GenPRES.Shared.Types
     open Informedica.GenPRES.Shared.Models
@@ -39,5 +42,5 @@ module FilterSeed =
             Generic = Some generic
             Route = route |> given
             Form = None
-            DoseType = doseType |> given |> Option.map DoseType.doseTypeFromString
+            DoseType = doseType |> given |> Option.map DoseTypeText.doseTypeFromString
         }

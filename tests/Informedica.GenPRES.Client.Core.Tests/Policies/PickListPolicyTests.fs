@@ -1,11 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// The picks the workbench dialog keeps: what a change or a step from the dialog picked, what a
 /// reopen keeps, and what the field decision reads of them.
 module PickListPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

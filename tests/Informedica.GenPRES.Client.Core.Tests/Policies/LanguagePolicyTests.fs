@@ -1,12 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// The language precedence, linked in from the client project: url `la` and the User's choice
 /// outrank the server default, whichever order the messages arrive in; a navigation without
 /// `la` keeps the language.
 module LanguagePolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

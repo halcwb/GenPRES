@@ -1,8 +1,5 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
 
 module Trail = Informedica.GenPRES.Client.Core.Trail
 
@@ -12,6 +9,11 @@ module Trail = Informedica.GenPRES.Client.Core.Trail
 /// slot's messages and its trail, and a hook that turns the slot's order context into ready
 /// controls.
 module NutritionSlot =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.Core.JsInterop
@@ -574,7 +576,7 @@ module NutritionSlot =
         let ncId = props.nutritionContext.Id
 
         let label =
-            let name = OrderContext.label ctx
+            let name = OrderContextText.label ctx
 
             match OrderContext.nutritionCategory ctx with
             | Some NutritionCategory.EnteralFeeding -> Terms.``Nutrition Enteral Feeding`` |> getTerm name
@@ -605,7 +607,7 @@ module NutritionSlot =
         let indicationChange s = pickFilter OrderContext.Indication ctx.Filter.Indications s
 
         let doseTypeChange s =
-            let dt = s |> Option.map DoseType.doseTypeFromString
+            let dt = s |> Option.map DoseTypeText.doseTypeFromString
             pickFilter OrderContext.DoseType ctx.Filter.DoseTypes dt
 
         // set by a field's arrow just before it clears its value, so that the change goes out as
@@ -853,7 +855,10 @@ module NutritionSlot =
                     // the range the solver calculated for the component's quantity, from the rules
                     // that bound it
                     let range, rangeCaption =
-                        match cmp.OrderableQuantity.CalculatedConstraints |> Variable.renderValue 3 with
+                        match
+                            cmp.OrderableQuantity.CalculatedConstraints
+                            |> OrderDisplay.Variable.renderValue 3
+                        with
                         | "" -> "", ""
                         | r -> $"(%s{r})", "Aanbevolen range"
 
@@ -1136,12 +1141,12 @@ module NutritionSlot =
             then
                 null
             else
-                let sel = ctx.Filter.DoseType |> Option.map DoseType.doseTypeToString
+                let sel = ctx.Filter.DoseType |> Option.map DoseTypeText.doseTypeToString
                 let items = ctx.Filter.DoseTypes
                 let lbl = Terms.``Dose Type`` |> getTerm "Doseer type"
 
                 items
-                |> Array.map (fun s -> s |> DoseType.doseTypeToString, s |> DoseType.doseTypeToDescription)
+                |> Array.map (fun s -> s |> DoseTypeText.doseTypeToString, s |> DoseTypeText.doseTypeToDescription)
                 |> filterSelect lbl sel doseTypeChange
 
         {

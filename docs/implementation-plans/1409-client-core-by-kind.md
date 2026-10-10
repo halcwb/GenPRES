@@ -41,8 +41,8 @@ Taken 2026-10-10 by the maintainer.
 |---|---|
 | Folders and namespaces | A folder is a namespace: `Informedica.GenPRES.Client.Core.<Folder>`. A file at the project root is in the root namespace `Informedica.GenPRES.Client.Core`. Every file declares its namespace explicitly, `namespace ...` on its own line with `module X =` below it. The root stays long, so no namespace is called `Client` and the `Client` module keeps its name |
 | Opening namespaces | Code opens the folder namespaces only, never the root `Informedica.GenPRES.Client.Core`. A caller reaches a root file through a module alias, `module Client = Informedica.GenPRES.Client.Core.Client`, or opens it by its full name, `open Informedica.GenPRES.Client.Core.Lanes`; an alias cannot be opened. With the root and Shared both opened, a name found in both (`Models.Severity`) resolves to whichever was opened last, without an error or warning. The rule lives in this plan and the 1157 addendum; no CI check |
-| Folders | `Helpers/`, `Models/` (the code from Shared), `Policies/`, `StateMachines/`, `MachinePolicies/` (the policies over machines, a namespace of their own). The entry files Lanes, Client and Trail sit at the project root, in the root namespace, so the root shows where the client starts |
-| `Models/` and `Shared.Models` | The folder keeps its name. Moved modules get names of their own (`PatientText`, `SeverityText`, ...), and code that means Shared opens `Informedica.GenPRES.Shared` and writes `Models.X`, the same in the Client, Client.Core and the tests. Proved on 2026-10-10 with a scratch build of this layout: F# does not bring parent or sibling namespaces into scope (only the file's own namespace), so with Shared opened and the root not, `Models.X` always resolves to Shared, also for a name both have. `Shared.Models.X` without an open does not compile |
+| Folders | `Models/` (the code from Shared, which reads only Shared and so compiles first, before the helpers that use it), `Helpers/`, `Policies/`, `StateMachines/`, `MachinePolicies/` (the policies over machines, a namespace of their own). The entry files Lanes, Client and Trail sit at the project root, in the root namespace, so the root shows where the client starts |
+| `Models/` and `Shared.Models` | The folder keeps its name. A moved module keeps its Shared name when Shared keeps nothing of that name (`Severity`, `OrderLoader`), and gets a name of its own when Shared still has a module or type of that name (`PatientText`, `DoseTypeText`, ...); code that means Shared opens `Informedica.GenPRES.Shared` and writes `Models.X`, the same in the Client, Client.Core and the tests. Proved on 2026-10-10 with a scratch build of this layout: F# does not bring parent or sibling namespaces into scope (only the file's own namespace), so with Shared opened and the root not, `Models.X` always resolves to Shared, also for a name both have. `Shared.Models.X` without an open does not compile |
 | The command preview chain and `NutritionCategory.label` | Stay in Shared, so their Server.Tests agreement tests stay where they are and no test project references across the rings |
 | `OrderContext.label` | Moves with the display helpers; it calls Shared's `NutritionCategory.label` |
 | The Busy split | `Helpers/Loads`: `Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`. `Policies/BusyPolicy`: `changes`, `any`, `page`. `MachinePolicies/OutPolicy`: `out`. The module is `Loads`, not `Load`: in FSI a script named `load.fsx` is the module `Load`, and `#load "load.fsx"` then fails on the duplicate |
@@ -158,8 +158,8 @@ Compile order, top to bottom. Each file is one module in an explicit namespace:
 
 | Folder | Files |
 |---|---|
+| `Models/` | the code from Shared, groups A to C; first, because `FilterSeed` and `Url` read `DoseTypeText` |
 | `Helpers/` | Deferred (AutoOpen kept), TermText, FilterSync, Page, Alert, Url, CommandPreview; new: `Loads` (`Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`), `FilterSeed`, and a text module for `SessionGatePolicy.digits` and `SigningPolicy.time` (Trail keeps its own `time`) |
-| `Models/` | the code from Shared, groups A to C |
 | `Policies/` | the policies over the contract; `PatientReadiness` → `PatientReadinessPolicy`, `PickList` → `PickListPolicy`; new `BusyPolicy` (`changes`, `any`, `page`); `UrlPolicy` takes `anyOut: bool` instead of a `Busy.Request` list, and takes over `ShellMachine.seeds` |
 | `StateMachines/` | Patient, Session, Signing, OrderPlan, OrderContext, Loader, Admin, Shell; `ShellMachine` computes `anyOut` with `BusyPolicy.any` |
 | `MachinePolicies/` | the policies over machines: SessionGate, Signing, UnsignedWork, HeldPanel, `OutPolicy` (`Busy.out`), Startup |
@@ -169,7 +169,7 @@ Compile order, top to bottom. Each file is one module in an explicit namespace:
 
 A Client.Core module `Patient` would shadow `Shared.Models.Patient` where both are open, not
 merge with it. The moved code gets names of its own, for example `PatientText`,
-`PatientEdit`, `SeverityText`, `OrderDisplay`, `Terms`. Code that still means Shared opens
+`PatientEdit`, `OrderDisplay`, `Terms`. Code that still means Shared opens
 `Informedica.GenPRES.Shared` and writes `Models.X`: today 18 `Models.OrderContext`, 5
 `Models.Severity`, 3 `Models.Totals` and 1 `Models.Patient` in the client code. They stay as
 they are; the Severity and Totals sites change with group B, because that code moves.
@@ -237,7 +237,11 @@ comment with the new location.
    `TextBlock.fromString` move to `Models/ContinuousMedicationList` and `Models/TextBlockParser`,
    with their tests green before and after. Closes #1209; the TSV stays the reference #1208
    diffs against.
-6. **Group B**, with its tests.
+6. **Group B**, with its tests. The code goes to `Models/`, named by the rule in the decisions:
+   `OrderDisplay` (the `Variable` and `OrderVariable` display functions and `isSolved`), the
+   `OrderLoader` type with its module beside it, `TotalsDisplay`, `DoseTypeText`, `Severity` (type
+   and module), `TextBlockDisplay` (`maxTb`, `flatten`) and `OrderContextText` (`label`). The
+   Severity tests, the render tests and the label tests move to Client.Core.Tests.
 7. **Group C**, with its tests. `scripts/CheckLocalization.fsx` loads `Shared/Types.fs`,
    `Utils.fs` and `Localization.fs` with `#load`; it loads the moved `Terms` file in the same
    PR.

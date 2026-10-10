@@ -15,8 +15,6 @@
     <Compile Include="LocalizationTests.fs" />
     <Compile Include="ModelsTests.fs" />
     <Compile Include="CsvTests.fs" />
-    <Compile Include="SeverityTests.fs" />
-    <Compile Include="Tests.fs" />
     <Compile Include="EmergencyBaseline.fs" />
     <Compile Include="EmergencyBaselineTests.fs" />
     <Compile Include="Main.fs" />

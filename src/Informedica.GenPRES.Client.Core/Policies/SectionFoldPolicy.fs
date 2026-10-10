@@ -1,8 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Policies
 
+
 /// Decides whether a section of order fields is open or folded: open while a value is still to be
 /// chosen, folded once all are, and the user can toggle it in between.
 module SectionFoldPolicy =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open Informedica.GenPRES.Shared.Types
     open Informedica.GenPRES.Shared.Models
@@ -19,7 +22,7 @@ module SectionFoldPolicy =
 
 
     /// Whether every variable holds one value. An empty section counts as solved.
-    let allSolved (ovars: OrderVariable seq) = ovars |> Seq.forall Order.OrderVariable.isSolved
+    let allSolved (ovars: OrderVariable seq) = ovars |> Seq.forall OrderDisplay.OrderVariable.isSolved
 
 
     /// The fold of a section as first shown, following the rule.

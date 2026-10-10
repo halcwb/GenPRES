@@ -1,11 +1,12 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-
 
 module OrderPlan =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
 
 
     open Fable.Core
@@ -417,7 +418,7 @@ module OrderPlan =
             |]
 
         let rows =
-            let parseVals = Order.Variable.renderValues 3
+            let parseVals = OrderDisplay.Variable.renderValues 3
 
             match orderPlan with
             | OrderPlanView.Settled(tp, _)
@@ -427,9 +428,9 @@ module OrderPlan =
                 |> Array.mapi (fun i o ->
                     let freq =
                         if o.Schedule.IsDiscontinuous || o.Schedule.IsTimed then
-                            o.Schedule.Frequency.Variable |> Order.Variable.renderValue 3
+                            o.Schedule.Frequency.Variable |> OrderDisplay.Variable.renderValue 3
                         else if o.Schedule.IsContinuous then
-                            o.Orderable.Dose.Rate.Variable |> Order.Variable.renderValue 3
+                            o.Orderable.Dose.Rate.Variable |> OrderDisplay.Variable.renderValue 3
                         else
                             ""
 
@@ -449,7 +450,9 @@ module OrderPlan =
                         else if o.Schedule.IsContinuous then
                             itms
                             |> Array.tryHead
-                            |> Option.map (fun i -> i.OrderableQuantity.Variable |> Order.Variable.renderValue 3)
+                            |> Option.map (fun i ->
+                                i.OrderableQuantity.Variable |> OrderDisplay.Variable.renderValue 3
+                            )
                             |> Option.defaultValue ""
                         else
                             ""
@@ -461,9 +464,9 @@ module OrderPlan =
                             || o.Schedule.IsOnce
                             || o.Schedule.IsOnceTimed
                         then
-                            o.Orderable.Dose.Quantity.Variable |> Order.Variable.renderValue 3
+                            o.Orderable.Dose.Quantity.Variable |> OrderDisplay.Variable.renderValue 3
                         else if o.Schedule.IsContinuous then
-                            o.Orderable.OrderableQuantity.Variable |> Order.Variable.renderValue 3
+                            o.Orderable.OrderableQuantity.Variable |> OrderDisplay.Variable.renderValue 3
                         else
                             ""
 
@@ -473,7 +476,7 @@ module OrderPlan =
                         else if o.Schedule.IsContinuous then
                             itms
                             |> Array.tryHead
-                            |> Option.map (fun i -> i.Dose.RateAdjust.Variable |> Order.Variable.renderValue 3)
+                            |> Option.map (fun i -> i.Dose.RateAdjust.Variable |> OrderDisplay.Variable.renderValue 3)
                             |> Option.defaultValue ""
 
                         else if o.Schedule.IsOnce || o.Schedule.IsOnceTimed then

@@ -1,11 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.Tests
-
 
 /// Which cells of the order plan table the user can step, and which order variable a cell steps.
 module PlanCellPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.Tests
 
     open Expecto
     open Expecto.Flip

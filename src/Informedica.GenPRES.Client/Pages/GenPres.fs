@@ -1,11 +1,12 @@
 namespace Pages
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-
 
 module GenPres =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
 
 
     open Fable.Core
@@ -220,7 +221,7 @@ module GenPres =
         let formularyBg =
             match formulary with
             | Resolved form
-            | Refreshing form -> form.DoseCheck |> Models.Severity.ofTextBlocks |> Mui.Styles.severityBg
+            | Refreshing form -> form.DoseCheck |> Severity.ofTextBlocks |> Mui.Styles.severityBg
             | _ -> None
 
         let interactionsIndex = pages |> List.tryFindIndex ((=) Global.Pages.Interactions)

@@ -1,12 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Tests.MachinePolicies
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-
 
 /// The leave-page guard's policy, linked in from the client project.
 module UnsignedWorkPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
 
     open Expecto
     open Expecto.Flip

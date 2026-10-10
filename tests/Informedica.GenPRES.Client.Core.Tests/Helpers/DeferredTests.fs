@@ -1,10 +1,10 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Helpers
 
-open Informedica.GenPRES.Client.Core.Helpers
-
 
 /// The reading of a plain fetch, linked in from the client project.
 module DeferredTests =
+
+    open Informedica.GenPRES.Client.Core.Helpers
 
     open Expecto
     open Expecto.Flip

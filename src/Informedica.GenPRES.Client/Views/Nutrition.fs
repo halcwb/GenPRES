@@ -1,11 +1,12 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
 
 #nowarn "1104"
 
 module Nutrition =
+
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.Core.JsInterop

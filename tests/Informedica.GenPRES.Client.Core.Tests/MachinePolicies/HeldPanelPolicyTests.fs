@@ -1,12 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Tests.MachinePolicies
 
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-open Informedica.GenPRES.Client.Core.Tests.StateMachines
-
 
 /// What the patient panel offers around a held patient context.
 module HeldPanelPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
+    open Informedica.GenPRES.Client.Core.Tests.StateMachines
 
     open Expecto
     open Expecto.Flip

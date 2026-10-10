@@ -1,8 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Policies
 
+
 /// Decides how the user can change the value of a quantity field, with one rule for the order
 /// and the nutrition views.
 module QuantityModePolicy =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open Informedica.GenPRES.Shared.Types
     open Informedica.GenPRES.Shared.Models
@@ -52,7 +55,7 @@ module QuantityModePolicy =
         | Field.Frequency -> true
         | Field.DoseQuantity ->
             ord.Orderable.Components
-            |> Array.forall (_.OrderableQuantity >> Order.OrderVariable.isSolved)
+            |> Array.forall (_.OrderableQuantity >> OrderDisplay.OrderVariable.isSolved)
         | Field.Other -> false
 
 
@@ -70,7 +73,7 @@ module QuantityModePolicy =
             else
                 Mode.Fixed
         | _ ->
-            if canStep && ovar |> Order.OrderVariable.isNavigable then
+            if canStep && ovar |> OrderDisplay.OrderVariable.isNavigable then
                 Mode.Navigable
             elif canStep && (ovar.Variable.Min.IsSome || ovar.Variable.Max.IsSome) then
                 Mode.Fixed
@@ -80,4 +83,4 @@ module QuantityModePolicy =
 
     /// The mode of a field of an order, as the views ask for it.
     let decideFor (field: Field) (ord: Order) (ovar: OrderVariable) =
-        ovar |> decide (ord |> canStep field) (ord |> Order.isSolved)
+        ovar |> decide (ord |> canStep field) (ord |> OrderDisplay.isSolved)

@@ -9,41 +9,13 @@ open Informedica.GenPRES.Shared.Models
 [<Tests>]
 let tests =
     testList
-        "OrderContext.label"
+        "OrderContext.empty"
         [
             test "a workbench not in the plan has the empty id and is a drug" {
                 OrderContext.empty.Id |> Expect.equal "no id" ""
                 OrderContext.empty.Category |> Expect.equal "a drug" OrderCategory.Drug
             }
 
-            test "a drug's label is its generic, empty before one is chosen" {
-                OrderContext.empty |> OrderContext.label |> Expect.equal "nothing yet" ""
-
-                { OrderContext.empty with OrderContext.Filter.Generic = Some "paracetamol" }
-                |> OrderContext.label
-                |> Expect.equal "the generic" "paracetamol"
-            }
-
-            testList
-                "a nutrition order's label is its category's name, whatever the generic"
-                [
-                    for category, expected in
-                        [
-                            NutritionCategory.EnteralFeeding, "Enterale Voeding"
-                            NutritionCategory.EnteralSupplement, "Enteraal Supplement"
-                            NutritionCategory.TPN, "Totale Parenterale Voeding"
-                            NutritionCategory.Lipid, "Vetten"
-                            NutritionCategory.ElectrolyteGlucose, "Elektrolyten/Glucose"
-                        ] do
-                        test $"{category}" {
-                            { OrderContext.empty with
-                                Category = OrderCategory.Nutrition category
-                                OrderContext.Filter.Generic = Some "Glucose 10%"
-                            }
-                            |> OrderContext.label
-                            |> Expect.equal "the category's name" expected
-                        }
-                ]
         ]
 
 

@@ -1,9 +1,9 @@
-module Informedica.GenPRES.Shared.Tests.SeverityTests
+module Informedica.GenPRES.Client.Core.Tests.Models.SeverityTests
 
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared.Types
-open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Client.Core.Models
 
 
 let private levels = [ IsNormal; IsCaution; IsWarning; IsAlert ]
@@ -114,7 +114,7 @@ let tests =
 
                     for name, rows, expected in rowsCases do
                         test $"{name}: the block of the highest severity" {
-                            TextBlock.maxTb rows text
+                            TextBlockDisplay.maxTb rows text
                             |> Expect.equal "the highest over the rows" (blockOf expected)
                         }
 

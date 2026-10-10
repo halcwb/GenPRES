@@ -1,11 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// The items of the totals that changed since they were last shown: a changed or new value of
 /// the same source, never an item that is not shown, and never totals from another source.
 module TotalsChangePolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

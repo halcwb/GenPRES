@@ -172,17 +172,6 @@ module Types =
         | IsAlert
 
 
-    /// How far what is shown stands from what the rules allow: nothing, a note, a warning, an
-    /// alert. The cases are declared from lowest to highest, so the highest of a set is their
-    /// maximum. Level and TextBlock carry it on the wire; the Severity module converts.
-    [<RequireQualifiedAccess>]
-    type Severity =
-        | Normal
-        | Caution
-        | Warning
-        | Alert
-
-
     type Schedule =
         {
             IsOnce: bool
@@ -258,14 +247,6 @@ module Types =
             Duration: OrderVariable
             Start: DateTime
             Stop: DateTime option
-        }
-
-
-    type OrderLoader =
-        {
-            Component: string option
-            Item: string option
-            Order: Order
         }
 
 

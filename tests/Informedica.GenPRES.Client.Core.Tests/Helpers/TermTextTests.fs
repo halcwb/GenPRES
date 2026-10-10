@@ -1,10 +1,10 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Helpers
 
-open Informedica.GenPRES.Client.Core.Helpers
-
 
 /// Text built from translated terms.
 module TermTextTests =
+
+    open Informedica.GenPRES.Client.Core.Helpers
 
     open Expecto
     open Expecto.Flip

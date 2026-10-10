@@ -1,9 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Helpers
 
+
 /// Reads what a url carries. The router gives the url as its segments; a "#/patient?..." url
 /// carries an anonymous patient, a page, a language, the disclaimer and a medication, a
 /// "#/session?..." url a launch or the refusal of one.
 module Url =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open System
     open Informedica.GenPRES.Shared
@@ -229,7 +232,7 @@ module Url =
                     medication = parameters |> Map.tryFind "med"
                     route = parameters |> Map.tryFind "rte"
                     form = parameters |> Map.tryFind "frm"
-                    dosetype = parameters |> Map.tryFind "dst" |> Option.map DoseType.doseTypeFromString
+                    dosetype = parameters |> Map.tryFind "dst" |> Option.map DoseTypeText.doseTypeFromString
                 |}
 
             // no medication when the url gives no part of it

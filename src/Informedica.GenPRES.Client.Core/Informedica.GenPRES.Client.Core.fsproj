@@ -9,6 +9,16 @@
     is what keeps it that way: add a Browser call here and this project stops compiling.
   -->
   <ItemGroup>
+    <!-- the code from Shared the client alone uses; it reads only Shared -->
+    <Compile Include="Models/Severity.fs" />
+    <Compile Include="Models/TextBlockDisplay.fs" />
+    <Compile Include="Models/TextBlockParser.fs" />
+    <Compile Include="Models/OrderDisplay.fs" />
+    <Compile Include="Models/TotalsDisplay.fs" />
+    <Compile Include="Models/DoseTypeText.fs" />
+    <Compile Include="Models/OrderContextText.fs" />
+    <Compile Include="Models/ContinuousMedicationList.fs" />
+
     <!-- helpers: no decisions, used by every kind below -->
     <Compile Include="Helpers/Deferred.fs" />
     <Compile Include="Helpers/TermText.fs" />
@@ -20,10 +30,6 @@
     <Compile Include="Helpers/Url.fs" />
     <Compile Include="Helpers/CommandPreview.fs" />
     <Compile Include="Helpers/FilterSeed.fs" />
-
-    <!-- the code from Shared the client alone uses -->
-    <Compile Include="Models/TextBlockParser.fs" />
-    <Compile Include="Models/ContinuousMedicationList.fs" />
 
     <!-- policies over the contract -->
     <Compile Include="Policies/LanguagePolicy.fs" />

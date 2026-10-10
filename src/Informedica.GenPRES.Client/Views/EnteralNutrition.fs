@@ -1,13 +1,14 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.StateMachines
 
 #nowarn "1104"
 
 /// The enteral part of the nutrition page: the feedings and the supplements, each a slot with
 /// its fields on one row, in one section that folds.
 module EnteralNutrition =
+
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.Core.JsInterop

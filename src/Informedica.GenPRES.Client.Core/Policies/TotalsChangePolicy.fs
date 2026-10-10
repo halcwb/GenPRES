@@ -1,8 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Policies
 
+
 /// Decides which items of the totals changed since they were last shown, so the view can light
 /// them up. Totals from another source, such as another patient, never count as a change.
 module TotalsChangePolicy =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open Informedica.GenPRES.Shared.Types
     open Informedica.GenPRES.Shared.Models
@@ -21,12 +24,12 @@ module TotalsChangePolicy =
     /// The names of the shown items whose value differs between two totals. An item with fewer
     /// than two text items is not shown, so an item that disappeared is not listed.
     let changedItems previous current =
-        Totals.intakeRows
+        TotalsDisplay.intakeRows
         |> Array.map Array.head
         |> Array.filter (fun name ->
-            let now = Totals.substanceToField current name
+            let now = TotalsDisplay.substanceToField current name
 
-            Array.length now >= 2 && now <> Totals.substanceToField previous name
+            Array.length now >= 2 && now <> TotalsDisplay.substanceToField previous name
         )
 
 

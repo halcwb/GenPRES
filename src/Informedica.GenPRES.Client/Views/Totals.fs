@@ -1,8 +1,10 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
 
 module Totals =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
 
     open Fable.Core
@@ -12,7 +14,7 @@ module Totals =
     open Types
 
 
-    let private rows = Models.Totals.intakeRows
+    let private rows = TotalsDisplay.intakeRows
 
 
     let private splitIntoColumns maxCols (arr: 'a[]) =
@@ -169,7 +171,7 @@ module Totals =
             row
             |> Array.map (fun cells ->
                 let name = cells |> Array.head
-                let items = Models.Totals.substanceToField intake name
+                let items = TotalsDisplay.substanceToField intake name
                 let isChanged = flash.names |> Set.contains name
 
                 {|
@@ -191,7 +193,7 @@ module Totals =
             rows
             |> Array.filter (fun cells ->
                 let name = cells |> Array.head
-                let items = Models.Totals.substanceToField props.intake name
+                let items = TotalsDisplay.substanceToField props.intake name
                 items |> Array.length >= 2
             )
 

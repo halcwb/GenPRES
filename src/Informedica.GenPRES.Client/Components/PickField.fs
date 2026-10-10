@@ -1,7 +1,5 @@
 namespace Components
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// One choice among some options: what the field offers is the pick rule's answer, not the
 /// page's. A field with nothing to choose is disabled and empty; a field with one option shows
@@ -11,6 +9,9 @@ open Informedica.GenPRES.Client.Core.Policies
 /// picks nothing itself: an answer of the server already picks every field left with one
 /// option.
 module PickField =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
 
     open Fable.Core
@@ -102,7 +103,7 @@ module PickField =
                     readOnly = isHeld
                     hasClear = hasClear
                     canStep = false
-                    severity = Types.Severity.Normal
+                    severity = Severity.Normal
                     minWidth = None
                     description = None
                     reopen = None

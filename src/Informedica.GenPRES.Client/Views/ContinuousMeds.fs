@@ -1,11 +1,11 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.Models
-open Informedica.GenPRES.Client.Core.Policies
-
 
 module ContinuousMeds =
+
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Fable.Core
     open Fable.Core.JsInterop

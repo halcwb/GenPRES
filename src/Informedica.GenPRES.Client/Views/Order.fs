@@ -1,13 +1,15 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
 
 module Trail = Informedica.GenPRES.Client.Core.Trail
 
 
 module Order =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.Core.JsInterop
