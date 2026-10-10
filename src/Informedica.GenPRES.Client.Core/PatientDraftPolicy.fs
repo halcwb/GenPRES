@@ -2,8 +2,8 @@
 /// weight and height the user did not enter are estimated again after it.
 module PatientDraftPolicy
 
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// One edit the panel makes to the draft.

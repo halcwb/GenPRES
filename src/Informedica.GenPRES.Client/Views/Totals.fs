@@ -6,7 +6,7 @@ module Totals =
     open Fable.Core
     open Fable.Core.JsInterop
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
     open Types
 
 

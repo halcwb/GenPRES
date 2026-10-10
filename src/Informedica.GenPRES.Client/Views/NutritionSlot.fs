@@ -11,10 +11,10 @@ module NutritionSlot =
     open Fable.Core.JsInterop
     open Fable.React
     open Feliz
-    open Shared
-    open Shared.Types
-    open Shared.Models
-    open Shared.Models.Order
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
+    open Informedica.GenPRES.Shared.Models.Order
     open Elmish
     open Utils
     open FSharp.Core

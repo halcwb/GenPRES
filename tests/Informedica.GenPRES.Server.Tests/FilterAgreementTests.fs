@@ -8,8 +8,8 @@ open Informedica.GenOrder.Lib
 
 open FilterFixtures
 
-module S = Shared.Types
-module SCtx = Shared.Models.OrderContext
+module S = Informedica.GenPRES.Shared.Types
+module SCtx = Informedica.GenPRES.Shared.Models.OrderContext
 module D = Informedica.GenForm.Lib.Types
 
 

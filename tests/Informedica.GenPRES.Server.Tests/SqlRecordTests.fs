@@ -10,7 +10,7 @@ open Expecto.Flip
 open Microsoft.Data.Sqlite
 open Informedica.GenOrder.Lib
 // after Expecto, whose FocusState has a Normal case too
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 open Informedica.GenPRES.Server.Tests.SessionStoreTests
 open Informedica.GenPRES.Server.Tests.SqlSchemaTests

@@ -11,8 +11,8 @@ module PatientDraftPolicyTests =
 
     module Fixtures =
 
-        open Shared.Types
-        open Shared.Models
+        open Informedica.GenPRES.Shared.Types
+        open Informedica.GenPRES.Shared.Models
 
 
         let row sex age p3 mean p97 : NormalValue =
@@ -67,8 +67,8 @@ module PatientDraftPolicyTests =
         let measuredHeight (draft: Patient option) = draft |> Option.bind _.Height.Measured
 
 
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
     open Fixtures
 
 

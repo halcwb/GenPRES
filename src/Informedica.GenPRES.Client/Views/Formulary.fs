@@ -6,9 +6,9 @@ module Formulary =
     open Fable.Core
     open Fable.React
     open Feliz
-    open Shared
-    open Shared.Models
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Models
+    open Informedica.GenPRES.Shared.Types
     open Elmish
     open OrderContextMachine
 

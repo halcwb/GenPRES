@@ -5,7 +5,7 @@
 /// the client.
 module Client
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open Page
 open Lanes
 open PatientMachine
@@ -245,7 +245,10 @@ let changing (state: ClientState) = state.Lanes.Patient |> PatientState.changing
 /// The draft with the estimates from the normal values, once they have loaded.
 let estimated (state: ClientState) =
     match state.Loader.NormalValues with
-    | Resolved nv -> state |> draft |> Option.map (Shared.Models.NormalValues.apply nv)
+    | Resolved nv ->
+        state
+        |> draft
+        |> Option.map (Informedica.GenPRES.Shared.Models.NormalValues.apply nv)
     | _ -> draft state
 
 

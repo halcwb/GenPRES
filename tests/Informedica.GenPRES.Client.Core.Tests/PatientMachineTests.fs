@@ -2,16 +2,16 @@ module Informedica.GenPRES.Client.Core.Tests.PatientMachineTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open PatientMachine
 
 
 module Fixtures =
 
-    let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+    let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
 
     /// An age makes the draft a patient.
-    let draft = { Shared.Models.Patient.empty with Age = Some ten }
+    let draft = { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
 
     /// The patient the server answers: the draft with an estimated weight and height.
     let answered =
@@ -21,7 +21,7 @@ module Fixtures =
         }
 
     /// Below the minimum: no age, no measured weight and height.
-    let below = Shared.Models.Patient.empty
+    let below = Informedica.GenPRES.Shared.Models.Patient.empty
 
     let renewed = PatientDraftPolicy.Estimates.Renewed
     let kept = PatientDraftPolicy.Estimates.Kept

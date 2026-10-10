@@ -12,9 +12,9 @@
 /// which the workbench stays as it was.
 module OrderContextMachine
 
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 
 
 /// A filter's choices set from outside its own fields, by name, with where they come from: the

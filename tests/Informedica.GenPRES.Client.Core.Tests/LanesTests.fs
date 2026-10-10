@@ -2,8 +2,8 @@ module Informedica.GenPRES.Client.Core.Tests.LanesTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open PatientMachine
 open SessionMachine
 open SigningMachine

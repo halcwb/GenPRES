@@ -9,7 +9,7 @@ module AdministrationSummary =
 
     open Fable.Core
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// One piece of a row: its text and its severity.

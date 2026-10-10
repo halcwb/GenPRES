@@ -1,7 +1,7 @@
 namespace ServerApi
 
 open System
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 // The store's clinical records are the domain's; unqualified, the names below are the
 // contract model's, which the identity half of the session keeps.

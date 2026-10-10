@@ -8,11 +8,11 @@ open Expecto.Flip
 open Informedica.GenOrder.Lib
 
 
-module Ctx = Shared.Models.OrderContext
+module Ctx = Informedica.GenPRES.Shared.Models.OrderContext
 
-type Api = Shared.Api.OrderViewCommand
+type Api = Informedica.GenPRES.Shared.Api.OrderViewCommand
 
-module Cmd = Shared.Api.OrderViewCommand
+module Cmd = Informedica.GenPRES.Shared.Api.OrderViewCommand
 
 type Target = Ctx.Target
 
@@ -21,9 +21,9 @@ type Target = Ctx.Target
 /// nutrition slot's (NutritionSlot.fs).
 module Today =
 
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
-    let setOvar = Shared.Models.Order.OrderVariable.setOvar
+    let setOvar = Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar
 
 
     /// The dose dialog's change of the item it shows, with the component and item picked.
@@ -131,7 +131,11 @@ module Fixtures =
             Generics = [| "generic a"; "generic b" |]
             Routes = [| "route a" |]
             Forms = [| "form a"; "form b"; "form c"; "form d" |]
-            DoseTypes = [| Shared.Types.DoseType.Once ""; Shared.Types.DoseType.Discontinuous "" |]
+            DoseTypes =
+                [|
+                    Informedica.GenPRES.Shared.Types.DoseType.Once ""
+                    Informedica.GenPRES.Shared.Types.DoseType.Discontinuous ""
+                |]
             Diluents = [| "diluent a"; "diluent b" |]
             Components = [| "component a"; "component b"; "component c" |]
         }
@@ -150,12 +154,12 @@ module Fixtures =
         let shared = ord |> Order.Dto.toDto |> ServerApi.Mappers.Order.mapFromOrderToShared items
 
         let sc =
-            Shared.Models.OrderScenario.create
+            Informedica.GenPRES.Shared.Models.OrderScenario.create
                 ""
                 med.Name
                 ""
                 med.Route
-                (Shared.Types.DoseType.Discontinuous "")
+                (Informedica.GenPRES.Shared.Types.DoseType.Discontinuous "")
                 None
                 None
                 None
@@ -193,29 +197,29 @@ module Fixtures =
 
 
 /// Every target an order can hold, with its component and item names.
-let targets (ord: Shared.Types.Order) =
+let targets (ord: Informedica.GenPRES.Shared.Types.Order) =
     [
-        Target.Schedule Shared.Types.ScheduleProperty.Frequency
-        Target.Schedule Shared.Types.ScheduleProperty.Time
-        Target.Orderable Shared.Types.OrderableProperty.Quantity
-        Target.Orderable Shared.Types.OrderableProperty.DoseQuantity
-        Target.Orderable Shared.Types.OrderableProperty.DoseRate
+        Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Frequency
+        Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Time
+        Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.Quantity
+        Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.DoseQuantity
+        Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.DoseRate
         for c in ord.Orderable.Components do
-            Target.Component(c.Name, Shared.Types.ComponentProperty.OrderableQuantity)
-            Target.Component(c.Name, Shared.Types.ComponentProperty.DoseQuantityAdjust)
+            Target.Component(c.Name, Informedica.GenPRES.Shared.Types.ComponentProperty.OrderableQuantity)
+            Target.Component(c.Name, Informedica.GenPRES.Shared.Types.ComponentProperty.DoseQuantityAdjust)
 
             for i in c.Items do
                 for prop in
                     [
-                        Shared.Types.ItemProperty.DoseQuantity
-                        Shared.Types.ItemProperty.DoseQuantityAdjust
-                        Shared.Types.ItemProperty.DosePerTime
-                        Shared.Types.ItemProperty.DosePerTimeAdjust
-                        Shared.Types.ItemProperty.DoseRate
-                        Shared.Types.ItemProperty.DoseRateAdjust
-                        Shared.Types.ItemProperty.ComponentConcentration
-                        Shared.Types.ItemProperty.OrderableConcentration
-                        Shared.Types.ItemProperty.OrderableQuantity
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantity
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantityAdjust
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DosePerTime
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DosePerTimeAdjust
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DoseRate
+                        Informedica.GenPRES.Shared.Types.ItemProperty.DoseRateAdjust
+                        Informedica.GenPRES.Shared.Types.ItemProperty.ComponentConcentration
+                        Informedica.GenPRES.Shared.Types.ItemProperty.OrderableConcentration
+                        Informedica.GenPRES.Shared.Types.ItemProperty.OrderableQuantity
                     ] do
                     Target.Item(c.Name, i.Name, prop)
     ]
@@ -260,7 +264,8 @@ let tests =
                             if keys.Length > 1 then
                                 for n in 0 .. keys.Length - 1 do
                                     test $"%s{name}: %A{target} set to value %i{n}" {
-                                        let set = Shared.Models.Order.OrderVariable.setOvar (Some keys[n])
+                                        let set =
+                                            Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar (Some keys[n])
 
                                         ord
                                         |> Ctx.Target.map target set
@@ -269,7 +274,9 @@ let tests =
 
                                 test $"%s{name}: %A{target} cleared" {
                                     ord
-                                    |> Ctx.Target.map target (Shared.Models.Order.OrderVariable.setOvar None)
+                                    |> Ctx.Target.map
+                                        target
+                                        (Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar None)
                                     |> Expect.equal "today's change" (ord |> Today.change target None)
                                 }
 
@@ -288,7 +295,10 @@ let tests =
 
                         ord
                         |> Ctx.Target.tryGet (
-                            Target.Component("none", Shared.Types.ComponentProperty.OrderableQuantity)
+                            Target.Component(
+                                "none",
+                                Informedica.GenPRES.Shared.Types.ComponentProperty.OrderableQuantity
+                            )
                         )
                         |> Expect.isNone "no variable"
                     }
@@ -296,19 +306,27 @@ let tests =
                     for name, ctx in Fixtures.all.Value do
                         let ord = ctx.Scenarios[0].Order
                         let first = ord.Orderable.Components[0]
-                        let set = Shared.Models.Order.OrderVariable.setOvar None
+                        let set = Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar None
 
                         for item in first.Items do
                             test $"%s{name}: a concentration of %s{item.Name} in a missing component" {
                                 let target =
-                                    Target.Item("none", item.Name, Shared.Types.ItemProperty.ComponentConcentration)
+                                    Target.Item(
+                                        "none",
+                                        item.Name,
+                                        Informedica.GenPRES.Shared.Types.ItemProperty.ComponentConcentration
+                                    )
 
                                 ord |> Ctx.Target.map target set |> Expect.equal "the order as it is" ord
                             }
 
                         test $"%s{name}: a missing item in the first component" {
                             let target =
-                                Target.Item(first.Name, "none", Shared.Types.ItemProperty.ComponentConcentration)
+                                Target.Item(
+                                    first.Name,
+                                    "none",
+                                    Informedica.GenPRES.Shared.Types.ItemProperty.ComponentConcentration
+                                )
 
                             ord |> Ctx.Target.map target set |> Expect.equal "the order as it is" ord
                         }
@@ -319,7 +337,7 @@ let tests =
 
                         let later = { first with Items = [| { first.Items[0] with Name = "later" } |] }
 
-                        let ord: Shared.Types.Order =
+                        let ord: Informedica.GenPRES.Shared.Types.Order =
                             { ord with
                                 Orderable =
                                     { ord.Orderable with
@@ -327,12 +345,13 @@ let tests =
                                     }
                             }
 
-                        let target = Target.Item(first.Name, "later", Shared.Types.ItemProperty.DoseQuantity)
+                        let target =
+                            Target.Item(first.Name, "later", Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantity)
 
                         ord |> Ctx.Target.tryGet target |> Expect.isSome "the item found"
 
                         ord
-                        |> Ctx.Target.map target (Shared.Models.Order.OrderVariable.setOvar None)
+                        |> Ctx.Target.map target (Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar None)
                         |> Ctx.Target.tryGet target
                         |> Option.map _.Variable.IsNonZeroPositive
                         |> Expect.equal "the item cleared" (Some true)
@@ -342,7 +361,9 @@ let tests =
                         Fixtures.all.Value[0]
                         |> snd
                         |> Ctx.count (
-                            Ctx.Options.Variable(Target.Item("none", "none", Shared.Types.ItemProperty.DoseQuantity))
+                            Ctx.Options.Variable(
+                                Target.Item("none", "none", Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantity)
+                            )
                         )
                         |> Expect.equal "nothing to pick" 0
                     }
@@ -368,7 +389,11 @@ let tests =
 
                     test "a variable of a context without one scenario counts nothing" {
                         { ctx with Scenarios = [||] }
-                        |> Ctx.count (Ctx.Options.Variable(Target.Schedule Shared.Types.ScheduleProperty.Frequency))
+                        |> Ctx.count (
+                            Ctx.Options.Variable(
+                                Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Frequency
+                            )
+                        )
                         |> Expect.equal "nothing to pick" 0
                     }
                 ]
@@ -410,7 +435,11 @@ let tests =
 
                     test "a target the order does not hold" {
                         let ctx = Fixtures.all.Value[0] |> snd
-                        let target = Target.Component("none", Shared.Types.ComponentProperty.OrderableQuantity)
+                        let target =
+                            Target.Component(
+                                "none",
+                                Informedica.GenPRES.Shared.Types.ComponentProperty.OrderableQuantity
+                            )
 
                         ctx |> Ctx.setNth target 0 |> Result.isError |> Expect.isTrue "an error"
                         ctx |> Ctx.clear target [||] |> Result.isError |> Expect.isTrue "an error"
@@ -418,7 +447,7 @@ let tests =
 
                     test "a context without one scenario" {
                         let ctx = Fixtures.all.Value[0] |> snd |> fun ctx -> { ctx with Scenarios = [||] }
-                        let target = Target.Schedule Shared.Types.ScheduleProperty.Frequency
+                        let target = Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Frequency
 
                         ctx |> Ctx.setNth target 0 |> Result.isError |> Expect.isTrue "an error"
                     }
@@ -669,7 +698,8 @@ let tests =
 
                     let env port =
                         StubAdapterTests.StubAdapters.makeEnv
-                            (StubAdapterTests.StubAdapters.formularyAlwaysOk Shared.Models.Formulary.empty)
+                            (StubAdapterTests.StubAdapters.formularyAlwaysOk
+                                Informedica.GenPRES.Shared.Models.Formulary.empty)
                             port
 
                     testAsync "a value pick reaches the port as the pick of one order value" {
@@ -706,7 +736,7 @@ let tests =
                         let! answer =
                             ServerApi.OrderContextCommand.processCmd
                                 (env port)
-                                (Shared.Api.OrderContextCommand.UpdatePatient(pat, ctx))
+                                (Informedica.GenPRES.Shared.Api.OrderContextCommand.UpdatePatient(pat, ctx))
 
                         answer |> Result.isOk |> Expect.isTrue "evaluated"
 
@@ -725,7 +755,7 @@ let tests =
                         seen.Value |> Expect.isNone "the port not asked"
 
                         match answer with
-                        | Ok(Shared.Types.OrderContextResponse.Evaluated c) ->
+                        | Ok(Informedica.GenPRES.Shared.Types.OrderContextResponse.Evaluated c) ->
                             c.Argumentation |> Expect.equal "the text written" (Some "bewust")
                         | other -> failtest $"expected the context, got %A{other}"
                     }
@@ -739,7 +769,7 @@ let tests =
                                 (Api.ResetOrderScenario, ctx |> Ctx.Argumentation.write "bewust")
 
                         match answer with
-                        | Ok(Shared.Types.OrderContextResponse.Evaluated c) ->
+                        | Ok(Informedica.GenPRES.Shared.Types.OrderContextResponse.Evaluated c) ->
                             c.Argumentation |> Expect.isNone "the text cleared"
                         | other -> failtest $"expected the context, got %A{other}"
                     }
@@ -762,7 +792,7 @@ let tests =
                 "the plan navigates with a new case"
                 [
                     let ctx = { (Fixtures.all.Value[0] |> snd) with Id = "c-1" }
-                    let plan = Shared.Models.OrderPlan.create ctx.Patient [| ctx |]
+                    let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create ctx.Patient [| ctx |]
 
                     let target =
                         targets ctx.Scenarios[0].Order
@@ -797,7 +827,8 @@ let tests =
 
                         let env =
                             { StubAdapterTests.StubAdapters.makeEnv
-                                  (StubAdapterTests.StubAdapters.formularyAlwaysOk Shared.Models.Formulary.empty)
+                                  (StubAdapterTests.StubAdapters.formularyAlwaysOk
+                                      Informedica.GenPRES.Shared.Models.Formulary.empty)
                                   (StubAdapterTests.StubAdapters.orderContextAlwaysOk ctx) with
                                 orderPlan = port
                             }
@@ -809,7 +840,14 @@ let tests =
 
                     testAsync "a value pick navigates" {
                         let! answer, seen =
-                            run (Shared.Api.OrderPlanCommand.Navigate(plan, "c-1", setNthCommand target 0, ctx))
+                            run (
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
+                                    plan,
+                                    "c-1",
+                                    setNthCommand target 0,
+                                    ctx
+                                )
+                            )
                         answer |> Result.isOk |> Expect.isTrue "answered"
                         seen |> Expect.equal "the navigation" [ "navigate" ]
                     }
@@ -817,7 +855,7 @@ let tests =
                     testAsync "the argumentation is written into the plan, which is recalculated" {
                         let! answer, seen =
                             run (
-                                Shared.Api.OrderPlanCommand.Navigate(
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
                                     plan,
                                     "c-1",
                                     Api.SetArgumentationProperty "bewust",
@@ -832,7 +870,7 @@ let tests =
                     testAsync "the argumentation for a context the plan does not hold is refused" {
                         let! answer, seen =
                             run (
-                                Shared.Api.OrderPlanCommand.Navigate(
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
                                     plan,
                                     "c-2",
                                     Api.SetArgumentationProperty "bewust",
@@ -848,12 +886,14 @@ let tests =
                         let other =
                             { ctx with
                                 Id = "c-9"
-                                Category = Shared.Types.OrderCategory.Nutrition Shared.Types.NutritionCategory.TPN
+                                Category =
+                                    Informedica.GenPRES.Shared.Types.OrderCategory.Nutrition
+                                        Informedica.GenPRES.Shared.Types.NutritionCategory.TPN
                             }
 
                         let! answer, _ =
                             run (
-                                Shared.Api.OrderPlanCommand.Navigate(
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
                                     plan,
                                     "c-1",
                                     Api.SetArgumentationProperty "bewust",
@@ -874,10 +914,17 @@ let tests =
 
                     testAsync "a reset clears the argumentation on the context and on the plan's copy of it" {
                         let argued = ctx |> Ctx.Argumentation.write "bewust"
-                        let argued' = Shared.Models.OrderPlan.create ctx.Patient [| argued |]
+                        let argued' = Informedica.GenPRES.Shared.Models.OrderPlan.create ctx.Patient [| argued |]
 
                         let! answer, _ =
-                            run (Shared.Api.OrderPlanCommand.Navigate(argued', "c-1", Api.ResetOrderScenario, argued))
+                            run (
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
+                                    argued',
+                                    "c-1",
+                                    Api.ResetOrderScenario,
+                                    argued
+                                )
+                            )
 
                         answer |> Result.isOk |> Expect.isTrue "answered"
 
@@ -893,7 +940,14 @@ let tests =
                     testAsync "an index past the values navigates, where it leaves the order as it is" {
                         let past = ctx |> Ctx.count (Ctx.Options.Variable target)
                         let! answer, seen =
-                            run (Shared.Api.OrderPlanCommand.Navigate(plan, "c-1", setNthCommand target past, ctx))
+                            run (
+                                Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
+                                    plan,
+                                    "c-1",
+                                    setNthCommand target past,
+                                    ctx
+                                )
+                            )
                         answer |> Result.isOk |> Expect.isTrue "answered"
                         seen |> Expect.equal "the navigation" [ "navigate" ]
                     }

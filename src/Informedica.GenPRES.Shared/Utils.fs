@@ -1,4 +1,4 @@
-namespace Shared
+namespace Informedica.GenPRES.Shared
 
 open System
 open System.Globalization
@@ -6,7 +6,7 @@ open System.Globalization
 
 module Measures =
 
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
     let toGram (x: int) = x * 1<gram>
 
@@ -372,7 +372,7 @@ module Csv =
 
 module TextBlock =
 
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open System.Text.RegularExpressions
 
     /// Convert a string to a Valid TextBlock with numbers shown as Bold TextItems

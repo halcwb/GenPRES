@@ -7,16 +7,16 @@ module PickListTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
 
     [<Tests>]
     let tests =
         let vu values : ValueUnit =
-            Shared.Models.Order.ValueUnit.create values "mg" "Mass" true "dutch" ""
+            Informedica.GenPRES.Shared.Models.Order.ValueUnit.create values "mg" "Mass" true "dutch" ""
 
         let variable name nonZero vals : Variable =
-            Shared.Models.Order.Variable.create name nonZero None false None None false vals
+            Informedica.GenPRES.Shared.Models.Order.Variable.create name nonZero None false None None false vals
 
         let ovar name nonZero vals : OrderVariable =
             {

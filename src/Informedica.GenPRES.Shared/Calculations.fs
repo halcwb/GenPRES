@@ -1,4 +1,4 @@
-namespace Shared
+namespace Informedica.GenPRES.Shared
 
 
 /// The clinical calculations the patient display uses: the Du Bois body surface area and
@@ -6,7 +6,7 @@ namespace Shared
 /// annotations are erased at compile time so there is no runtime overhead in JavaScript.
 module Calculations =
 
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
 
     [<Measure>]

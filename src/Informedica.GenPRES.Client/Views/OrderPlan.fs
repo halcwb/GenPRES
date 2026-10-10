@@ -7,9 +7,9 @@ module OrderPlan =
     open Fable.Core
     open Fable.Core.JsInterop
     open Feliz
-    open Shared
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
     open OrderPlanMachine
     open OrderContextMachine
 

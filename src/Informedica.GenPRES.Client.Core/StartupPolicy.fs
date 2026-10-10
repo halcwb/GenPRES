@@ -3,7 +3,7 @@
 /// that failed keeps it on hold and is named, so a list is never silently empty.
 module StartupPolicy
 
-open Shared
+open Informedica.GenPRES.Shared
 open Busy
 open TermText
 

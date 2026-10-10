@@ -6,18 +6,18 @@ module HeldContextPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open HeldContextPolicy
 
 
     let context id generic =
-        { Shared.Models.OrderContext.empty with
+        { Informedica.GenPRES.Shared.Models.OrderContext.empty with
             Id = id
             OrderContext.Filter.Generic = Some generic
         }
 
     let plan contexts =
-        Shared.Models.OrderPlan.create Shared.Models.Patient.empty contexts
+        Informedica.GenPRES.Shared.Models.OrderPlan.create Informedica.GenPRES.Shared.Models.Patient.empty contexts
 
     let para = context "c1" "paracetamol"
     let morf = context "c2" "morfine"
@@ -75,7 +75,10 @@ module HeldContextPolicyTests =
                 test "totals recalculated alone do not hold" {
                     let now =
                         { plan opened with
-                            Totals = { Shared.Models.Totals.empty with Volume = [| TextItem.Normal "10 mL" |] }
+                            Totals =
+                                { Informedica.GenPRES.Shared.Models.Totals.empty with
+                                    Volume = [| TextItem.Normal "10 mL" |]
+                                }
                         }
 
                     changed opened now |> Expect.isEmpty "the totals are no order"

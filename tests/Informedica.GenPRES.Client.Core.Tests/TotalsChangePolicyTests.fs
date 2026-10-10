@@ -7,8 +7,8 @@ module TotalsChangePolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
 
 
     let value s unit = [| Bold s; Normal unit |]

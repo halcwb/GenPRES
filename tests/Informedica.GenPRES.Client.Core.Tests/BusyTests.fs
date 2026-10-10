@@ -2,7 +2,7 @@ module Informedica.GenPRES.Client.Core.Tests.BusyTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Api
+open Informedica.GenPRES.Shared.Api
 open Busy
 open SessionMachine
 open SigningMachine

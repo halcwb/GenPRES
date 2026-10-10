@@ -3,17 +3,17 @@
 module Informedica.GenPRES.Client.Core.Tests.OrderFixtures
 
 open System
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 
-let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
 
 /// The data a plan carries, and the patient it is: an age makes the draft a patient.
-let draft = { Shared.Models.Patient.empty with Age = Some ten }
+let draft = { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
 
 let asPatient (dto: Patient) =
-    match dto |> Shared.Models.Patient.validate with
+    match dto |> Informedica.GenPRES.Shared.Models.Patient.validate with
     | Ok pat -> pat
     | Error err -> invalidOp $"the fixture is no patient: %A{err}"
 
@@ -63,13 +63,14 @@ let scenario (id: string) (name: string) : OrderScenario =
 
 
 let context id name =
-    { Shared.Models.OrderContext.empty with
+    { Informedica.GenPRES.Shared.Models.OrderContext.empty with
         Id = id
         Scenarios = [| scenario $"o-{id}" name |]
     }
 
 
-let plan contexts = Shared.Models.OrderPlan.create draft contexts
+let plan contexts =
+    Informedica.GenPRES.Shared.Models.OrderPlan.create draft contexts
 
 let one = plan [| context "c-1" "paracetamol" |]
 let two = plan [| context "c-1" "paracetamol"; context "c-2" "ibuprofen" |]

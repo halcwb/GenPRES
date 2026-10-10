@@ -7,7 +7,7 @@ open Expecto
 open Expecto.Flip
 open Informedica.GenOrder.Lib
 // after Expecto, whose FocusState has a Normal case too
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 open Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters
 
@@ -15,14 +15,15 @@ open Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters
 let patient = StubPatientData.patient
 
 let ctx: OrderContext =
-    { Shared.Models.OrderContext.empty with
+    { Informedica.GenPRES.Shared.Models.OrderContext.empty with
         Id = "c-1"
         Category = OrderCategory.Nutrition NutritionCategory.TPN
         DemoVersion = true
         Patient = patient
     }
 
-let plan: OrderPlan = { Shared.Models.OrderPlan.create patient [| ctx |] with Filtered = [| "c-1" |] }
+let plan: OrderPlan =
+    { Informedica.GenPRES.Shared.Models.OrderPlan.create patient [| ctx |] with Filtered = [| "c-1" |] }
 
 
 let answering (seen: string list ref) name (p: Informedica.GenOrder.Lib.Types.OrderPlan) =
@@ -42,7 +43,7 @@ let echoPort seen : OrderPlanPort =
 
 
 let envOver demo (port: OrderPlanPort) =
-    { makeEnv (formularyAlwaysOk Shared.Models.Formulary.empty) (orderContextAlwaysOk ctx) with
+    { makeEnv (formularyAlwaysOk Informedica.GenPRES.Shared.Models.Formulary.empty) (orderContextAlwaysOk ctx) with
         orderPlan = port
         demo = demo
     }
@@ -57,18 +58,19 @@ let tests =
                 let seen = ref []
                 let run = OrderPlanCommand.processCmd (envOver true (echoPort seen))
 
-                let! recalculated = run (Shared.Api.OrderPlanCommand.FilterRows(plan.Filtered, plan))
+                let! recalculated =
+                    run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.FilterRows(plan.Filtered, plan))
 
                 recalculated
                 |> Expect.equal "the plan back, demo as the environment says" (Ok plan)
 
                 let! _ =
                     run (
-                        Shared.Api.OrderPlanCommand.Navigate(
+                        Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
                             plan,
                             "c-1",
-                            Shared.Api.OrderViewCommand.SeedFilter(
-                                Shared.Types.SeedSource.Reload,
+                            Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                                Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                 None,
                                 None,
                                 None,
@@ -79,10 +81,11 @@ let tests =
                         )
                     )
 
-                let! _ = run (Shared.Api.OrderPlanCommand.AddOrderContext(plan, ctx))
-                let! _ = run (Shared.Api.OrderPlanCommand.NewOrderContext(plan, NutritionCategory.TPN))
-                let! _ = run (Shared.Api.OrderPlanCommand.RemoveOrderContexts(plan, [| "c-1" |]))
-                let! opened = run (Shared.Api.OrderPlanCommand.Open(patient, [| ctx |]))
+                let! _ = run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.AddOrderContext(plan, ctx))
+                let! _ =
+                    run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.NewOrderContext(plan, NutritionCategory.TPN))
+                let! _ = run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.RemoveOrderContexts(plan, [| "c-1" |]))
+                let! opened = run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.Open(patient, [| ctx |]))
 
                 seen.Value
                 |> List.rev
@@ -114,7 +117,7 @@ let tests =
                 let! answer =
                     OrderPlanCommand.processCmd
                         (envOver true (echoPort seen))
-                        (Shared.Api.OrderPlanCommand.UpdatePatient(updated, plan))
+                        (Informedica.GenPRES.Shared.Api.OrderPlanCommand.UpdatePatient(updated, plan))
 
                 seen.Value |> Expect.equal "recalculated" [ "recalculate" ]
 
@@ -129,8 +132,14 @@ let tests =
                 let seen = ref []
                 let run = OrderPlanCommand.processCmd (envOver true (echoPort seen))
 
-                let! none = run (Shared.Api.OrderPlanCommand.FilterRows([||], plan))
-                let! one = run (Shared.Api.OrderPlanCommand.FilterRows([| "c-1" |], { plan with Filtered = [||] }))
+                let! none = run (Informedica.GenPRES.Shared.Api.OrderPlanCommand.FilterRows([||], plan))
+                let! one =
+                    run (
+                        Informedica.GenPRES.Shared.Api.OrderPlanCommand.FilterRows(
+                            [| "c-1" |],
+                            { plan with Filtered = [||] }
+                        )
+                    )
 
                 seen.Value |> Expect.equal "recalculated twice" [ "recalculate"; "recalculate" ]
 
@@ -143,7 +152,7 @@ let tests =
                 let! answer =
                     OrderPlanCommand.processCmd
                         (envOver false (echoPort (ref [])))
-                        (Shared.Api.OrderPlanCommand.FilterRows(plan.Filtered, plan))
+                        (Informedica.GenPRES.Shared.Api.OrderPlanCommand.FilterRows(plan.Filtered, plan))
 
                 answer
                 |> Result.map (_.OrderContexts >> Array.map _.DemoVersion)
@@ -164,10 +173,10 @@ let tests =
                 let! _ =
                     OrderPlanCommand.processCmd
                         (envOver false port)
-                        (Shared.Api.OrderPlanCommand.Navigate(
+                        (Informedica.GenPRES.Shared.Api.OrderPlanCommand.Navigate(
                             plan,
                             "c-1",
-                            Shared.Api.OrderViewCommand.SelectNthOrderScenario 0,
+                            Informedica.GenPRES.Shared.Api.OrderViewCommand.SelectNthOrderScenario 0,
                             ctx
                         ))
 
@@ -197,7 +206,10 @@ let tests =
                 let! _ =
                     OrderPlanCommand.processCmd
                         (envOver false port)
-                        (Shared.Api.OrderPlanCommand.NewOrderContext(plan, NutritionCategory.EnteralSupplement))
+                        (Informedica.GenPRES.Shared.Api.OrderPlanCommand.NewOrderContext(
+                            plan,
+                            NutritionCategory.EnteralSupplement
+                        ))
 
                 seen.Value
                 |> Expect.equal
@@ -211,7 +223,10 @@ let tests =
                 let! refused =
                     OrderPlanCommand.processCmd
                         (envOver false (echoPort seen))
-                        (Shared.Api.OrderPlanCommand.FilterRows([||], Shared.Models.OrderPlan.empty))
+                        (Informedica.GenPRES.Shared.Api.OrderPlanCommand.FilterRows(
+                            [||],
+                            Informedica.GenPRES.Shared.Models.OrderPlan.empty
+                        ))
 
                 refused |> Expect.equal "no patient" (Error [| Patient.noPatient |])
                 seen.Value |> Expect.isEmpty "the port never asked"

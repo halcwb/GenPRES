@@ -3,15 +3,15 @@ module Informedica.GenPRES.Client.Core.Tests.SigningMachineTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open SigningMachine
 
 
 module Fixtures =
 
-    let patient = Shared.Models.Patient.empty
+    let patient = Informedica.GenPRES.Shared.Models.Patient.empty
     let otherData = { patient with Department = Some "ICU" }
-    let plan = Shared.Models.OrderPlan.create patient [||]
+    let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [||]
 
     let prescriber =
         {
@@ -314,7 +314,8 @@ let tests =
             test "the orders that differ stay as signed until the signature ends" {
                 let differ =
                     [|
-                        { Shared.Models.OrderContext.empty with Id = "o-1" }, HeldContextPolicy.Difference.New
+                        { Informedica.GenPRES.Shared.Models.OrderContext.empty with Id = "o-1" },
+                        HeldContextPolicy.Difference.New
                     |]
 
                 let state, _ = transition (SigningMsg.Sign(plan, differ, "r-1")) SigningState.idle

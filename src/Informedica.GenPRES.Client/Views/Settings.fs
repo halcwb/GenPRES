@@ -5,8 +5,8 @@ module Settings =
 
     open Fable.Core
     open Feliz
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
 
 
     let private formatSize (bytes: int64) =

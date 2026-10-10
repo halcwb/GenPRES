@@ -7,9 +7,9 @@ module ViewHelpers =
     open System
     open Fable.Core
     open Feliz
-    open Shared
-    open Shared.Types
-    open Shared.Models.Order
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models.Order
 
 
     /// A filter select: what it offers is the pick rule's answer.

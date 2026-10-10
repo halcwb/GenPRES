@@ -1,7 +1,7 @@
 namespace ServerApi
 
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 
 /// Whether a command needs the formulary loaded.

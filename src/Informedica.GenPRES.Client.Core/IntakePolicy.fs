@@ -2,7 +2,7 @@
 /// TPN to the whole orderable by itself.
 module IntakePolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// What the slot does with the order that arrived.

@@ -4,7 +4,7 @@ namespace Components
 module ResponsiveTable =
 
     open System
-    open Shared
+    open Informedica.GenPRES.Shared
     open Fable.Core
     open Feliz
     open Fable.Core.JsInterop

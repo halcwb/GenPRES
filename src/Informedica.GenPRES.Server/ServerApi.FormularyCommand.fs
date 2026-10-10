@@ -1,6 +1,6 @@
 namespace ServerApi
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// The formulary view's member: the formulary port over the request's filter.

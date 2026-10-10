@@ -7,7 +7,7 @@ module Informedica.GenPRES.Server.Tests.RefreshTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 
 

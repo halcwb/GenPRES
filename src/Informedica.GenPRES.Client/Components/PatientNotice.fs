@@ -9,7 +9,7 @@ module PatientNotice =
 
     open Fable.Core
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The page's environment, and what the page needs the patient for.

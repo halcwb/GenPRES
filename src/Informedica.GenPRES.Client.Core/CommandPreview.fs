@@ -1,7 +1,7 @@
 /// The context as an order command changes it, shown while the command's request is under way.
 module CommandPreview
 
-open Shared.Api
+open Informedica.GenPRES.Shared.Api
 
 
 /// The context as the command changes it; the context itself when the command cannot change it.

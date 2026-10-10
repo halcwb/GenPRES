@@ -8,7 +8,7 @@ module LeaveDialog =
 
 
     open Fable.Core
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The dialog; whether the Session is launched and whether the url asks for a launch pick

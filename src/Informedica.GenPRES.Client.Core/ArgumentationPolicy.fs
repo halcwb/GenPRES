@@ -1,9 +1,9 @@
 /// Decides when the dose dialog asks for an argumentation of a dose the rules mark.
 module ArgumentationPolicy
 
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 
 
 /// Every order variable of an order: its own, the schedule's, the orderable's, and those of each

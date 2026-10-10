@@ -4,9 +4,9 @@
 module Url
 
 open System
-open Shared
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// What a "#/session?..." url carries: the Launch MainEHR opened GenPRES with, or the

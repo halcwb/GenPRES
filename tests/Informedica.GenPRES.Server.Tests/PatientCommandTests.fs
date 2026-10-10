@@ -5,8 +5,8 @@ module Informedica.GenPRES.Server.Tests.PatientCommandTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open ServerApi
 open Informedica.GenPRES.Server.Tests.AgeOnRequestTests
 

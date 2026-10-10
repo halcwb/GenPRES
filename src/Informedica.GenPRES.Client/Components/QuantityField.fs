@@ -16,7 +16,7 @@ module QuantityField =
     open Fable.Core
     open Fable.Core.JsInterop
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The steps a value offers and what a click does; absent steps draw disabled. The

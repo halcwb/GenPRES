@@ -1,9 +1,9 @@
 module Informedica.GenPRES.Shared.Tests.AgeTests
 
-open Shared.Localization
-open Shared.Models
-open Shared.Types
-open Shared.Types.Patient
+open Informedica.GenPRES.Shared.Localization
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Types.Patient
 open Expecto
 
 let calcYearsTests =

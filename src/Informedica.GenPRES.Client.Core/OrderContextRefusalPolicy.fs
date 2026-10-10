@@ -2,9 +2,9 @@
 /// are Terms, translated by the caller.
 module OrderContextRefusalPolicy
 
-open Shared
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// What the page shows for a refusal.

@@ -8,8 +8,8 @@ module Interactions =
     open Fable.React
     open Feliz
     open Elmish
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
     open OrderPlanMachine
 
 
@@ -20,7 +20,7 @@ module Interactions =
         let getPlanDrugs (orderPlan: OrderPlanView) =
             match orderPlan with
             | OrderPlanView.Settled(tp, _) ->
-                Shared.Models.OrderPlan.orders tp
+                Informedica.GenPRES.Shared.Models.OrderPlan.orders tp
                 |> Array.map _.Name
                 |> Array.distinct
                 |> Array.toList

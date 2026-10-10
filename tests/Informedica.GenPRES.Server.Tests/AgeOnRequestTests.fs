@@ -8,8 +8,8 @@ module Informedica.GenPRES.Server.Tests.AgeOnRequestTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open Informedica.Utils.Lib.BCL
 open Informedica.GenUnits.Lib
 open ServerApi
@@ -25,7 +25,7 @@ let today = DateTime(2026, 9, 26)
 
 
 /// The Session's age at the open: ten years, six months, one week and four days.
-let sessionAge = Shared.Models.Patient.Age.fromDays 3841
+let sessionAge = Informedica.GenPRES.Shared.Models.Patient.Age.fromDays 3841
 
 
 let ehr = StubPatientData.data "p1"
@@ -122,7 +122,9 @@ let portOver (clock: unit -> DateTime) (captured: ResizeArray<Informedica.GenOrd
 
 
 let envOver port =
-    { makeEnv (formularyAlwaysOk Shared.Models.Formulary.empty) (orderContextAlwaysOk emptyCtx) with session = port }
+    { makeEnv (formularyAlwaysOk Informedica.GenPRES.Shared.Models.Formulary.empty) (orderContextAlwaysOk emptyCtx) with
+        session = port
+    }
 
 
 let cookieOf (sid: string option) : SessionCookie =
@@ -136,16 +138,16 @@ let cookieOf (sid: string option) : SessionCookie =
 /// The stub's patient as a client would send it at the wrong age, with a weight it measured.
 let sent: Patient =
     { StubPatientData.patient with
-        Age = Some(Shared.Models.Patient.Age.fromDays (5 * 365))
+        Age = Some(Informedica.GenPRES.Shared.Models.Patient.Age.fromDays (5 * 365))
         Weight = { StubPatientData.patient.Weight with Measured = Some 12000<gram> }
     }
 
 
-let context = { Shared.Models.OrderContext.empty with Patient = sent }
+let context = { Informedica.GenPRES.Shared.Models.OrderContext.empty with Patient = sent }
 
-let plan = Shared.Models.OrderPlan.create sent [| context; context |]
+let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create sent [| context; context |]
 
-let form = { Shared.Models.Formulary.empty with Patient = Some sent }
+let form = { Informedica.GenPRES.Shared.Models.Formulary.empty with Patient = Some sent }
 
 
 /// The command a computing request reaches its handler as, run through bound over the Session
@@ -196,7 +198,8 @@ let signedOver (sid: string option) (cmd: SigningCommand) =
 
 /// Normal values of both sexes at five and at ten years: 18 kg and 110 cm, 32 kg and 140 cm.
 let tables: NormalValues =
-    let row sex age p3 mean p97 = Shared.Models.NormalValues.create sex age p3 mean p97
+    let row sex age p3 mean p97 =
+        Informedica.GenPRES.Shared.Models.NormalValues.create sex age p3 mean p97
 
     {
         Weights =
@@ -232,11 +235,14 @@ let counting (nv: NormalValues option) =
 
 /// A patient with an age in years and nothing else.
 let ageOnly years : Patient =
-    { Shared.Models.Patient.empty with Age = Some(Shared.Models.Patient.Age.fromDays (years * 365)) }
+    { Informedica.GenPRES.Shared.Models.Patient.empty with
+        Age = Some(Informedica.GenPRES.Shared.Models.Patient.Age.fromDays (years * 365))
+    }
 
 
 let weightAndHeight (pat: Patient) =
-    pat |> Shared.Models.Patient.getWeight, pat |> Shared.Models.Patient.getHeight
+    pat |> Informedica.GenPRES.Shared.Models.Patient.getWeight,
+    pat |> Informedica.GenPRES.Shared.Models.Patient.getHeight
 
 
 /// The command a computing request reaches its handler as, with the normal values given.
@@ -279,7 +285,16 @@ let evaluatedWith normalValues (ctx: OrderContext) =
         (OrderContextCommand.processViewCmd env)
         {
             Opened = None
-            Command = OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None), ctx
+            Command =
+                OrderViewCommand.SeedFilter(
+                    Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None
+                ),
+                ctx
         }
     |> Async.RunSynchronously
 
@@ -400,7 +415,7 @@ let tests =
                             over
                                 sid
                                 (OrderViewCommand.SeedFilter(
-                                    Shared.Types.SeedSource.Reload,
+                                    Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                     None,
                                     None,
                                     None,
@@ -411,7 +426,7 @@ let tests =
                             |> Expect.equal
                                 $"the order context as sent, %A{sid}"
                                 (OrderViewCommand.SeedFilter(
-                                    Shared.Types.SeedSource.Reload,
+                                    Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                     None,
                                     None,
                                     None,
@@ -428,7 +443,7 @@ let tests =
                                 plan,
                                 "1",
                                 OrderViewCommand.SeedFilter(
-                                    Shared.Types.SeedSource.Reload,
+                                    Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                     None,
                                     None,
                                     None,
@@ -559,27 +574,48 @@ let tests =
                     }
 
                     test "an age-only patient on another request is not estimated: the patient change is" {
-                        let ctx = { Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
+                        let ctx = { Informedica.GenPRES.Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
 
                         estimatedOver
                             loaded
                             None
-                            (OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                            (OrderViewCommand.SeedFilter(
+                                Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                                None,
+                                None,
+                                None,
+                                None,
+                                None
+                             ),
                              ctx)
                         |> Expect.equal
                             "the context as sent"
-                            (OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                            (OrderViewCommand.SeedFilter(
+                                Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                                None,
+                                None,
+                                None,
+                                None,
+                                None
+                             ),
                              ctx)
                     }
 
                     test "a request other than a patient change never asks the normal values" {
                         let ask, count = counting (Some tables)
-                        let ctx = { Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
+                        let ctx = { Informedica.GenPRES.Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
 
                         estimatedOver
                             ask
                             None
-                            (OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                            (OrderViewCommand.SeedFilter(
+                                Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                                None,
+                                None,
+                                None,
+                                None,
+                                None
+                             ),
                              ctx)
                         |> ignore
 
@@ -594,7 +630,7 @@ let tests =
                     }
 
                     test "a Session resumed after its weight and height were cleared is refused as sent" {
-                        { Shared.Models.OrderContext.empty with Patient = resumedAfterClearing () }
+                        { Informedica.GenPRES.Shared.Models.OrderContext.empty with Patient = resumedAfterClearing () }
                         |> evaluatedWith loaded
                         |> Result.mapError List.ofArray
                         |> Expect.equal "refused" (Error [ Patient.noWeightAndHeight ])
@@ -603,9 +639,9 @@ let tests =
                     test "signing takes no estimate: the plan is signed as sent, whatever the normal values" {
                         // the challenge is a digest of the plan as sent; an estimate from tables
                         // reloaded before the submission would change the plan under it
-                        let ctx = { Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
+                        let ctx = { Informedica.GenPRES.Shared.Models.OrderContext.empty with Patient = ageOnly 10 }
 
-                        let plan = Shared.Models.OrderPlan.create (ageOnly 10) [| ctx |]
+                        let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create (ageOnly 10) [| ctx |]
 
                         let cmd = SigningCommand.RequestSignChallenge(plan, OpenedToken $"opened-{identified}", None)
 

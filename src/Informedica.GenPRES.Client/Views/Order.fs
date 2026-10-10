@@ -7,9 +7,9 @@ module Order =
     open Fable.Core.JsInterop
     open Fable.React
     open Feliz
-    open Shared.Types
-    open Shared.Models.Order
-    open Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models.Order
+    open Informedica.GenPRES.Shared
     open OrderContextMachine
     open Elmish
     open FSharp.Core

@@ -14,7 +14,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Feliz
 open System
-open Shared
+open Informedica.GenPRES.Shared
 
 type IUrlSearchParameters =
     abstract entries: unit -> seq<string array>

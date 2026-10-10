@@ -1,4 +1,4 @@
-namespace Shared
+namespace Informedica.GenPRES.Shared
 
 
 /// This module defines shared types between

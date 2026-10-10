@@ -2,7 +2,7 @@
 /// variable holds.
 module SeverityReasonPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// A bound a value crossed.

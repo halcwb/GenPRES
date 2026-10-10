@@ -10,7 +10,7 @@
 ///   touches a later one.
 module SigningMachine
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// The signing itself, without any request under way.

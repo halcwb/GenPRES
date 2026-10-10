@@ -3,8 +3,8 @@
 #load "load.fsx"
 
 open System
-open Shared
-open Shared.Models
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Models
 open FsCheck
 
 let genAlphaNum = Gen.elements (['a'..'z'] @ ['A'..'Z'] @ ['0'..'9'])

@@ -4,7 +4,7 @@ namespace ServerApi
 /// The interaction member: the drug names and the check, over the interaction port.
 module InteractionCommand =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
 
 
     /// The drug names come from the interaction source, not the formulary; a check over a

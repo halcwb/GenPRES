@@ -6,8 +6,8 @@ module ContinuousMeds =
     open Fable.Core
     open Fable.Core.JsInterop
     open Feliz
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
 
 
     [<JSX.Component>]

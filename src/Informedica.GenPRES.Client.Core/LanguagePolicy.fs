@@ -4,7 +4,7 @@
 /// </summary>
 module LanguagePolicy
 
-open Shared.Localization
+open Informedica.GenPRES.Shared.Localization
 
 
 /// The current language, and whether the url or the user chose it. Once chosen, the server

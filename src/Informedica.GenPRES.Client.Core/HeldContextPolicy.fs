@@ -4,7 +4,7 @@
 /// differences against that version, new, changed and removed, as the sign dialog shows them.
 module HeldContextPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// The ids of the order contexts that are new or changed since the version last opened or
@@ -36,7 +36,8 @@ type Difference =
 /// scenario, has nothing to list and is left out, on either side.
 let differences (opened: OrderContext[]) (plan: OrderPlan) =
     let contributing (ctxs: OrderContext[]) =
-        ctxs |> Array.filter (Shared.Models.OrderContext.contribution >> Option.isSome)
+        ctxs
+        |> Array.filter (Informedica.GenPRES.Shared.Models.OrderContext.contribution >> Option.isSome)
 
     let byId id (ctxs: OrderContext[]) = ctxs |> Array.tryFind (fun c -> c.Id = id)
 

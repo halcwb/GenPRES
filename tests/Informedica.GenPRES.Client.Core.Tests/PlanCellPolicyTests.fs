@@ -6,7 +6,7 @@ module PlanCellPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open PlanCellPolicy
 
 
@@ -54,18 +54,19 @@ module PlanCellPolicyTests =
     let onceTimed = discontinuous |> scheduled (fun s -> { s with IsOnceTimed = true })
     let continuous = discontinuous |> scheduled (fun s -> { s with IsContinuous = true })
 
-    let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
-    let patient = { Shared.Models.Patient.empty with Age = Some ten }
+    let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+    let patient = { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
 
     /// A context in the plan contributing the order.
     let contextOf (ord: Order) =
-        { Shared.Models.OrderContext.empty with
+        { Informedica.GenPRES.Shared.Models.OrderContext.empty with
             Id = "c-1"
             Patient = patient
             Scenarios = [| { OrderFixtures.scenario "o-1" "test" with Order = ord } |]
         }
 
-    let planOf ctx = Shared.Models.OrderPlan.create patient [| ctx |]
+    let planOf ctx =
+        Informedica.GenPRES.Shared.Models.OrderPlan.create patient [| ctx |]
 
     /// The field and the order variable a cell of the order steps, if any.
     let stepsOf (ord: Order) column =

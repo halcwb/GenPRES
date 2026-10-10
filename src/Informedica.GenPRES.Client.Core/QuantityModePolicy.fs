@@ -2,8 +2,8 @@
 /// and the nutrition views.
 module QuantityModePolicy
 
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// How the user can change the value of a quantity field.

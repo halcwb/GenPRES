@@ -7,7 +7,7 @@ module AlertSnackbar =
 
 
     open Fable.Core
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The snackbar of the alert; closed when there is none. The close button and the auto-hide

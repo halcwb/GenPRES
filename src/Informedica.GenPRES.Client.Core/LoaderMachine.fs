@@ -9,10 +9,10 @@
 /// Each interaction check is numbered, so that an answer to an earlier check is dropped.
 module LoaderMachine
 
-open Shared
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 open Busy
 open Page
 open OrderContextMachine
