@@ -50,10 +50,6 @@ let english (term: Terms) : string =
     | _ -> SessionGatePolicy.english term
 
 
-/// A moment as the user reads it: the local time of day.
-let time (at: System.DateTime) = at.ToLocalTime().ToString "HH:mm"
-
-
 /// The sentence for a refusal, with its numbers and names filled in.
 let refusalSentence (tr: Terms -> string) (refusal: SigningRefusal) =
     match refusal with
@@ -62,13 +58,13 @@ let refusalSentence (tr: Terms -> string) (refusal: SigningRefusal) =
     | SigningRefusal.NotPrescriber -> tr Terms.``Signing Refusal Not Prescriber``
     | SigningRefusal.Blocked head ->
         tr Terms.``Signing Refusal Blocked``
-        |> TermText.fill [ head.By.DisplayName; time head.SignedAt ]
+        |> TermText.fill [ head.By.DisplayName; TextFormat.time head.SignedAt ]
     | SigningRefusal.StaleToken -> tr Terms.``Signing Refusal Stale Token``
     | SigningRefusal.ChallengeMismatch -> tr Terms.``Signing Refusal Challenge Mismatch``
     | SigningRefusal.ChallengeExpired -> tr Terms.``Signing Refusal Challenge Expired``
     | SigningRefusal.PinWrong left -> tr Terms.``Signing Refusal Pin Wrong`` |> TermText.fill [ string left ]
     | SigningRefusal.PinLimit -> tr Terms.``Signing Refusal Pin Limit``
-    | SigningRefusal.Locked until -> tr Terms.``Signing Refusal Locked`` |> TermText.fill [ time until ]
+    | SigningRefusal.Locked until -> tr Terms.``Signing Refusal Locked`` |> TermText.fill [ TextFormat.time until ]
     | SigningRefusal.StoreFailed -> tr Terms.``Signing Refusal Store Failed``
     | SigningRefusal.PlanUnreadable -> tr Terms.``Signing Refusal Plan Unreadable``
     | SigningRefusal.ContextDiffers -> tr Terms.``Signing Refusal Context Differs``
@@ -83,7 +79,7 @@ let signedSentence (tr: Terms -> string) (signed: SignedOrderPlan) =
 /// The sentence when a newer version exists: who signed it, and when.
 let newerPlanSentence (tr: Terms -> string) (head: OrderPlanHead) =
     tr Terms.``Session Newer Version``
-    |> TermText.fill [ head.By.DisplayName; time head.SignedAt ]
+    |> TermText.fill [ head.By.DisplayName; TextFormat.time head.SignedAt ]
 
 
 /// The sentence when a version is opened.
@@ -103,7 +99,7 @@ let noticeSentence (tr: Terms -> string) (held: bool) (notice: DataNotice) =
 
 /// The error for a PIN that is not four to six digits, checked before anything is sent.
 let pinError (tr: Terms -> string) (pin: string) =
-    if SessionGatePolicy.digits 4 6 pin then
+    if TextFormat.digits 4 6 pin then
         None
     else
         Some(tr Terms.``Session Enrolment Pin Format``)

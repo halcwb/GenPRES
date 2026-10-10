@@ -55,7 +55,7 @@ state, keeps the context it sent visible (`OrderContextView.Changing`), and
 reconciles when the server answer arrives. Rapid clicks accumulate into the
 delta and the click count until the debounced button fires one command. While
 a field counts its clicks it holds every page but Nutrition and the menu
-(`Request.Counting` in `Busy.fs`), and every other quantity field is disabled.
+(`Request.Counting` in `Loads.fs`), and every other quantity field is disabled.
 Once the command is out, its page is disabled until the answer lands, the field
 stepped included.
 
@@ -67,7 +67,7 @@ flowchart TD
     DISPATCH["debounce fires: dispatch OrderContextMsg.Command<br/>(Increase/DecreaseOrderableDoseQuantityProperty(n, useCalc), ctx, request)<br/>OrderContextState.transition<br/>OrderContextMachine.fs"]
 
     REC["OrderContextWorkbench.Evaluated held stays; InFlight = ((cmd, sent), request)<br/>shown as OrderContextView.Changing sent<br/>OrderContextState.view, OrderContextMachine.fs"]
-    KEEP["The page disabled while the request is out<br/>the preliminary value stays visible<br/>Busy.fs, Order.fs"]
+    KEEP["The page disabled while the request is out<br/>the preliminary value stays visible<br/>BusyPolicy.fs, Order.fs"]
 
     SERVER(["Server re-solve round-trip<br/>(see main flow above)"])
 

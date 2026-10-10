@@ -290,7 +290,7 @@ module Interactions =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.PlanMedication
+                    needs = PatientReadinessPolicy.Needs.PlanMedication
                 |}
 
         let sxTitle = {| fontSize = 14 |}

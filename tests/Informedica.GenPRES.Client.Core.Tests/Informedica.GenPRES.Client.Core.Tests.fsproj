@@ -22,7 +22,7 @@
     <Compile Include="LanguagePolicyTests.fs" />
     <Compile Include="OrderContextRefusalPolicyTests.fs" />
     <Compile Include="PatientDraftPolicyTests.fs" />
-    <Compile Include="PatientReadinessTests.fs" />
+    <Compile Include="PatientReadinessPolicyTests.fs" />
     <Compile Include="PatientMachineTests.fs" />
     <Compile Include="PickPolicyTests.fs" />
     <Compile Include="StepPolicyTests.fs" />
@@ -32,7 +32,7 @@
     <Compile Include="QuantityModePolicyTests.fs" />
     <Compile Include="IntakePolicyTests.fs" />
     <Compile Include="FieldOpenPolicyTests.fs" />
-    <Compile Include="PickListTests.fs" />
+    <Compile Include="PickListPolicyTests.fs" />
     <Compile Include="PlanContextPolicyTests.fs" />
     <Compile Include="PlanCellPolicyTests.fs" />
     <Compile Include="SectionFoldPolicyTests.fs" />

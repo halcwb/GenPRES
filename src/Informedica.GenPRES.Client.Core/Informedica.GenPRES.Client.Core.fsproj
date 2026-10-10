@@ -9,18 +9,23 @@
     is what keeps it that way: add a Browser call here and this project stops compiling.
   -->
   <ItemGroup>
-    <!-- the rest -->
+    <!-- helpers: no decisions, used by every kind below -->
     <Compile Include="Deferred.fs" />
-    <Compile Include="FilterSync.fs" />
     <Compile Include="TermText.fs" />
+    <Compile Include="TextFormat.fs" />
+    <Compile Include="FilterSync.fs" />
     <Compile Include="Page.fs" />
+    <Compile Include="Loads.fs" />
+    <Compile Include="Alert.fs" />
+    <Compile Include="Url.fs" />
+    <Compile Include="CommandPreview.fs" />
+    <Compile Include="FilterSeed.fs" />
 
-    <!-- policies over the contract alone -->
+    <!-- policies over the contract -->
     <Compile Include="LanguagePolicy.fs" />
     <Compile Include="OrderContextRefusalPolicy.fs" />
     <Compile Include="PatientDraftPolicy.fs" />
-    <Compile Include="PatientReadiness.fs" />
-    <Compile Include="PatientMachine.fs" />
+    <Compile Include="PatientReadinessPolicy.fs" />
     <Compile Include="PickPolicy.fs" />
     <Compile Include="StepPolicy.fs" />
     <Compile Include="DialogTabPolicy.fs" />
@@ -29,7 +34,7 @@
     <Compile Include="QuantityModePolicy.fs" />
     <Compile Include="IntakePolicy.fs" />
     <Compile Include="FieldOpenPolicy.fs" />
-    <Compile Include="PickList.fs" />
+    <Compile Include="PickListPolicy.fs" />
     <Compile Include="PlanContextPolicy.fs" />
     <Compile Include="PlanCellPolicy.fs" />
     <Compile Include="SectionFoldPolicy.fs" />
@@ -37,34 +42,29 @@
     <Compile Include="PlanWorkPolicy.fs" />
     <Compile Include="HeldContextPolicy.fs" />
     <Compile Include="ServerErrorPolicy.fs" />
-    <Compile Include="Alert.fs" />
+    <Compile Include="BusyPolicy.fs" />
+    <Compile Include="UrlPolicy.fs" />
 
-    <!-- the session and signing machines -->
+    <!-- the state machines -->
+    <Compile Include="PatientMachine.fs" />
     <Compile Include="SessionMachine.fs" />
     <Compile Include="SigningMachine.fs" />
+    <Compile Include="OrderPlanMachine.fs" />
+    <Compile Include="OrderContextMachine.fs" />
+    <Compile Include="LoaderMachine.fs" />
+    <Compile Include="AdminMachine.fs" />
+    <Compile Include="ShellMachine.fs" />
 
-    <!-- policies over the session and signing machines -->
+    <!-- policies over the machines -->
     <Compile Include="SessionGatePolicy.fs" />
     <Compile Include="SigningPolicy.fs" />
     <Compile Include="UnsignedWorkPolicy.fs" />
     <Compile Include="HeldPanelPolicy.fs" />
-
-    <!-- the order machines -->
-    <Compile Include="CommandPreview.fs" />
-    <Compile Include="OrderPlanMachine.fs" />
-    <Compile Include="OrderContextMachine.fs" />
+    <Compile Include="OutPolicy.fs" />
+    <Compile Include="StartupPolicy.fs" />
 
     <!-- the wiring between the machines -->
     <Compile Include="Lanes.fs" />
-
-    <!-- what is out, and what it disables -->
-    <Compile Include="Busy.fs" />
-    <Compile Include="StartupPolicy.fs" />
-    <Compile Include="Url.fs" />
-    <Compile Include="UrlPolicy.fs" />
-    <Compile Include="LoaderMachine.fs" />
-    <Compile Include="AdminMachine.fs" />
-    <Compile Include="ShellMachine.fs" />
     <Compile Include="Client.fs" />
 
     <!-- the readable trail of the machines, for development -->

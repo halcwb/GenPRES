@@ -40,9 +40,9 @@ module Patient =
             // what the draft misses to be a patient, in the words every page uses
             let missing =
                 pat
-                |> PatientReadiness.readiness
-                |> PatientReadiness.missing
-                |> Option.map (fun t -> term (PatientReadiness.english t) t)
+                |> PatientReadinessPolicy.readiness
+                |> PatientReadinessPolicy.missing
+                |> Option.map (fun t -> term (PatientReadinessPolicy.english t) t)
 
             [ pat |> Option.map toString; missing ]
             |> List.choose id

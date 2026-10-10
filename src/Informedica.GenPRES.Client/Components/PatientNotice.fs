@@ -2,7 +2,7 @@ namespace Components
 
 
 /// What every page says when the patient data is not enough for it: one notice, decided by
-/// PatientReadiness from the draft alone, in the same words and the same place on every page.
+/// PatientReadinessPolicy from the draft alone, in the same words and the same place on every page.
 /// Nothing while the page has what it needs; the patient panel above is where the data goes in.
 module PatientNotice =
 
@@ -16,7 +16,7 @@ module PatientNotice =
     type Props =
         {|
             appEnv: obj
-            needs: PatientReadiness.Needs
+            needs: PatientReadinessPolicy.Needs
         |}
 
 
@@ -32,12 +32,12 @@ module PatientNotice =
 
         // the sheet's translation in the User's language, else the policy's English
         let tr term =
-            Global.getLocalizedTerm localizationTerms context.Localization (PatientReadiness.english term) term
+            Global.getLocalizedTerm localizationTerms context.Localization (PatientReadinessPolicy.english term) term
 
         match
             envPatient.Draft
-            |> PatientReadiness.readiness
-            |> PatientReadiness.notice props.needs
+            |> PatientReadinessPolicy.readiness
+            |> PatientReadinessPolicy.notice props.needs
         with
         | None -> null
         | Some words ->
@@ -46,7 +46,7 @@ module PatientNotice =
                     {|
                         kind = Notice.Kind.Warning
                         title = None
-                        message = words |> PatientReadiness.message tr
+                        message = words |> PatientReadinessPolicy.message tr
                         action = None
                         onClose = None
                     |}

@@ -527,7 +527,7 @@ module Order =
                         let changed = ol.Order |> Models.OrderContext.Target.map t (OrderVariable.setOvar s)
 
                         shownOrder
-                        |> Option.iter (fun before -> setPicks (picks |> PickList.afterChange before changed))
+                        |> Option.iter (fun before -> setPicks (picks |> PickListPolicy.afterChange before changed))
 
                         props.command (ViewHelpers.setNthCommand t n)
                     | None -> Logging.warning "a value the field does not offer is not sent" key
@@ -657,7 +657,7 @@ module Order =
                     setReopenedFrom None
 
                     match stepping.current, ctx.Scenarios |> Array.tryExactlyOne with
-                    | Some(name, before), Some sc -> setPicks (picks |> PickList.afterStep name before sc.Order)
+                    | Some(name, before), Some sc -> setPicks (picks |> PickListPolicy.afterStep name before sc.Order)
                     | _ -> ()
 
                     stepping.current <- None
@@ -943,11 +943,11 @@ module Order =
         // keeps the picks made before it, and a list closed without a pick puts them all back
         let reopenOf (name: string) : ViewHelpers.Reopen =
             {|
-                constrained = PickList.constrained picks name
+                constrained = PickListPolicy.constrained picks name
                 reopening =
                     fun () ->
                         heldPicks.current <- picks
-                        setPicks (picks |> PickList.beforeReopen name)
+                        setPicks (picks |> PickListPolicy.beforeReopen name)
                         reopening.current <- true
                         setReopenedFrom shownOrder
                 restore =

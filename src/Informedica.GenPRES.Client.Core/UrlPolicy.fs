@@ -76,6 +76,17 @@ type UrlAction =
     | StartOver
 
 
+/// Whether a url carries a patient, a medication or a launch.
+let seeds (url: Url.UrlParts) =
+    url.Patient.IsSome
+    || url.Medication.IsSome
+    || (
+        match url.Launch with
+        | Some(Url.LaunchUrl.Launch _) -> true
+        | _ -> false
+    )
+
+
 /// What the url change is: unchanged when the url is the one shown, and otherwise by whether it
 /// carries a patient, a medication or a launch. The page load applies its url itself, so the router's
 /// first report, of that same url, is unchanged too.
@@ -92,11 +103,11 @@ let change url sl seeds =
 /// while anything that holds the menu is out, so that no page is shown whose data is still
 /// changing, and applied otherwise. A patient, a medication or a launch starts over, whatever
 /// is out, after asking when it leaves a launched Session or there is work that is not signed.
-let action change signingUnderWay out unsignedWork launched =
+let action change signingUnderWay anyOut unsignedWork launched =
     match change with
     | UrlChange.Unchanged -> UrlAction.Ignore
     | _ when signingUnderWay -> UrlAction.PutBack
-    | UrlChange.PageOnly when Busy.any out -> UrlAction.PutBack
+    | UrlChange.PageOnly when anyOut -> UrlAction.PutBack
     | UrlChange.PageOnly -> UrlAction.ApplyPage
     | UrlChange.Seed when launched || unsignedWork -> UrlAction.Ask
     | UrlChange.Seed -> UrlAction.StartOver

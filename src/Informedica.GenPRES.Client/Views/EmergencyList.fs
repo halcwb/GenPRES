@@ -243,7 +243,7 @@ module EmergencyList =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.Calculation
+                    needs = PatientReadinessPolicy.Needs.Calculation
                 |}
 
         let tableProps =

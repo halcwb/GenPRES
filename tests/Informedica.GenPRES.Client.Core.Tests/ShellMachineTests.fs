@@ -221,7 +221,7 @@ let tests =
                     }
 
                     test "a page alone is put back while a request is out" {
-                        let busy = { idle with Out = [ Busy.Request.Plan ] }
+                        let busy = { idle with Out = [ Loads.Request.Plan ] }
 
                         loaded [ "a" ]
                         |> transition (ShellMsg.UrlChanged([ "b" ], Url.none, busy))

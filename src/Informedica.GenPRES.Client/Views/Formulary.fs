@@ -140,7 +140,7 @@ module Formulary =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.DoseCheck
+                    needs = PatientReadinessPolicy.Needs.DoseCheck
                 |}
 
         let stackDirection = if Mui.Hooks.useIsNarrow () then "column" else "row"

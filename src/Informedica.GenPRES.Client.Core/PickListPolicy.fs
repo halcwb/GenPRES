@@ -1,6 +1,6 @@
 /// The picks the workbench dialog keeps: the variables the user picked or stepped, in the order
 /// picked. A field reads from them whether the user constrained its variable.
-module PickList
+module PickListPolicy
 
 open Informedica.GenPRES.Shared.Types
 

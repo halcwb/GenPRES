@@ -45,7 +45,7 @@ Taken 2026-10-10 by the maintainer.
 | `Models/` and `Shared.Models` | The folder keeps its name. Moved modules get names of their own (`PatientText`, `SeverityText`, ...), and code that means Shared opens `Informedica.GenPRES.Shared` and writes `Models.X`, the same in the Client, Client.Core and the tests. Proved on 2026-10-10 with a scratch build of this layout: F# does not bring parent or sibling namespaces into scope (only the file's own namespace), so with Shared opened and the root not, `Models.X` always resolves to Shared, also for a name both have. `Shared.Models.X` without an open does not compile |
 | The command preview chain and `NutritionCategory.label` | Stay in Shared, so their Server.Tests agreement tests stay where they are and no test project references across the rings |
 | `OrderContext.label` | Moves with the display helpers; it calls Shared's `NutritionCategory.label` |
-| The Busy split | `Helpers/Load`: `Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`. `Policies/BusyPolicy`: `changes`, `any`, `page`. `MachinePolicies/OutPolicy`: `out` |
+| The Busy split | `Helpers/Loads`: `Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`. `Policies/BusyPolicy`: `changes`, `any`, `page`. `MachinePolicies/OutPolicy`: `out`. The module is `Loads`, not `Load`: in FSI a script named `load.fsx` is the module `Load`, and `#load "load.fsx"` then fails on the duplicate |
 | `Deferred` | Keeps its AutoOpen; every file that uses its cases opens `Helpers` |
 | PR size | A PR that only moves or renames code may exceed the 200-source-line limit; it holds no logic change and is reviewed with `git diff --color-moved` |
 | `PatientDraftPolicy` | Stays under `Policies/`: it owns no state and emits no effects |
@@ -158,7 +158,7 @@ Compile order, top to bottom. Each file stays one module:
 
 | Folder | Files |
 |---|---|
-| `Helpers/` | Deferred (AutoOpen kept), TermText, FilterSync, Page, Alert, Url, CommandPreview; new: `Load` (`Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`), `FilterSeed`, and a text module for `SessionGatePolicy.digits` and `SigningPolicy.time` (Trail keeps its own `time`) |
+| `Helpers/` | Deferred (AutoOpen kept), TermText, FilterSync, Page, Alert, Url, CommandPreview; new: `Loads` (`Load`, `Request`, `outOf`, `loadedOf`, `isOut`, `StartupPolicy.required`), `FilterSeed`, and a text module for `SessionGatePolicy.digits` and `SigningPolicy.time` (Trail keeps its own `time`) |
 | `Models/` | the code from Shared, groups A to C |
 | `Policies/` | the policies over the contract; `PatientReadiness` → `PatientReadinessPolicy`, `PickList` → `PickListPolicy`; new `BusyPolicy` (`changes`, `any`, `page`); `UrlPolicy` takes `anyOut: bool` instead of a `Busy.Request` list, and takes over `ShellMachine.seeds` |
 | `StateMachines/` | Patient, Session, Signing, OrderPlan, OrderContext, Loader, Admin, Shell; `ShellMachine` computes `anyOut` with `BusyPolicy.any` |
@@ -215,11 +215,11 @@ comment with the new location.
    namespace: the Fable.Remoting routes are built from the interface name
    (`routerPaths typeName method`), and the store writes the domain DTOs with System.Text.Json,
    without type names. A rename, no logic change.
-3. **Break the cross-kind edges in Client.Core.** Split Busy into `Load`, `BusyPolicy` and
+3. **Break the cross-kind edges in Client.Core.** Split Busy into `Loads`, `BusyPolicy` and
    `OutPolicy`; move `StartupPolicy.required`, `FilterSeed`, `digits` and `time`; `UrlPolicy`
    with `anyOut` and `seeds`; rename `PatientReadiness` and `PickList`; keep one
-   `canCalculate` (PatientDraftPolicy's; the readiness one delegates, and
-   `PatientReadinessTests.fs:182` already pins them equal). Trail and its tests in the same PR.
+   `canCalculate`, PatientDraftPolicy's; the readiness one had no caller and is deleted, with
+   the test that pinned the two equal. Trail and its tests in the same PR.
 4. **Folders and namespaces.** `git mv` into the folders, the namespace top lines, the fsproj in
    folder blocks, `Scripts/load.fsx`. Client files qualify Core modules by name today, so each
    gains one `open Informedica.GenPRES.Client.Core.<Folder>` per folder it uses; files that use

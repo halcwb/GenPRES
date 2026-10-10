@@ -2,7 +2,7 @@ module Informedica.GenPRES.Client.Core.Tests.UrlPolicyTests
 
 open Expecto
 open Expecto.Flip
-open Busy
+open Informedica.GenPRES.Shared
 open UrlPolicy
 
 
@@ -31,6 +31,30 @@ let tests =
                 UrlState.Shown page |> UrlState.asked |> Expect.isNone "no question"
             }
 
+            test "a url seeds with a patient, a medication or a launch, and not with a page alone or a refusal" {
+                { Url.none with Patient = Some Models.Patient.empty }
+                |> seeds
+                |> Expect.isTrue "a patient"
+
+                // the medication is an anonymous record of the core, so it is read from a url
+                Url.parse (System.DateTime(2026, 1, 1)) [ "patient"; "?med=paracetamol" ]
+                |> fun url -> { url with Patient = None }
+                |> seeds
+                |> Expect.isTrue "a medication"
+
+                { Url.none with Launch = Some(Url.LaunchUrl.Launch(Types.Launch "abc")) }
+                |> seeds
+                |> Expect.isTrue "a launch"
+
+                { Url.none with Launch = Some(Url.LaunchUrl.Refused Types.LaunchRefusal.LaunchExpired) }
+                |> seeds
+                |> Expect.isFalse "a refused launch"
+
+                { Url.none with Page = Some Page.Page.Formulary }
+                |> seeds
+                |> Expect.isFalse "a page alone"
+            }
+
             test "the url shown is unchanged, also while asked; the rest by what it carries" {
                 change shown page false |> Expect.equal "unchanged" UrlChange.Unchanged
                 change (UrlState.Asked(page, seed, Url.none)) page false
@@ -42,39 +66,38 @@ let tests =
             }
 
             test "an unchanged url does nothing, whatever is out" {
-                action UrlChange.Unchanged true [ Request.Plan ] true false
+                action UrlChange.Unchanged true true true false
                 |> Expect.equal "ignored" UrlAction.Ignore
             }
 
             test "a signature under way puts any change back, without a question" {
-                action UrlChange.Seed true [] true false
+                action UrlChange.Seed true false true false
                 |> Expect.equal "seed" UrlAction.PutBack
-                action UrlChange.PageOnly true [] false false
+                action UrlChange.PageOnly true false false false
                 |> Expect.equal "page" UrlAction.PutBack
             }
 
             test "a page alone is put back while anything is out, and applied with nothing out" {
-                action UrlChange.PageOnly false [ Request.Workbench ] false false
+                action UrlChange.PageOnly false true false false
                 |> Expect.equal "put back" UrlAction.PutBack
 
-                action UrlChange.PageOnly false [] true false
+                action UrlChange.PageOnly false false true false
                 |> Expect.equal "applied" UrlAction.ApplyPage
-
-                action UrlChange.PageOnly false [ Request.Load Load.DrugNames ] false false
-                |> Expect.equal "the drug names hold nothing" UrlAction.ApplyPage
             }
 
             test "a patient or a medication always asks first over a launched Session" {
-                action UrlChange.Seed false [] false true |> Expect.equal "asked" UrlAction.Ask
+                action UrlChange.Seed false false false true
+                |> Expect.equal "asked" UrlAction.Ask
 
-                action UrlChange.PageOnly false [] false true
+                action UrlChange.PageOnly false false false true
                 |> Expect.equal "a page alone leaves no Session" UrlAction.ApplyPage
             }
 
             test "a patient or a medication asks first with work not signed, and starts over otherwise" {
-                action UrlChange.Seed false [] true false |> Expect.equal "asked" UrlAction.Ask
+                action UrlChange.Seed false false true false
+                |> Expect.equal "asked" UrlAction.Ask
 
-                action UrlChange.Seed false [ Request.Workbench; Request.Plan ] false false
+                action UrlChange.Seed false true false false
                 |> Expect.equal "started over, with requests out" UrlAction.StartOver
             }
         ]

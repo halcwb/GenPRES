@@ -3,7 +3,7 @@ module Informedica.GenPRES.Client.Core.Tests.BusyTests
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared.Api
-open Busy
+open Loads
 open SessionMachine
 open SigningMachine
 open OrderPlanMachine
@@ -46,12 +46,13 @@ let allLoads =
 
 
 /// The pages a request disables, in the order of allPages.
-let disabled request = allPages |> List.filter (fun p -> [ request ] |> Busy.page p)
+let disabled request =
+    allPages |> List.filter (fun p -> [ request ] |> BusyPolicy.page p)
 
 
 /// Nothing out in any lane.
 let idle loads =
-    Busy.out
+    OutPolicy.out
         false
         noPatientChange
         (OrderContextState.held patient (OrderContextState.emptyFor patient))
@@ -70,10 +71,10 @@ let tests =
                 let out = idle []
 
                 out |> Expect.isEmpty "no request"
-                out |> Busy.any |> Expect.isFalse "the menu is free"
+                out |> BusyPolicy.any |> Expect.isFalse "the menu is free"
 
                 for p in allPages do
-                    out |> Busy.page p |> Expect.isFalse $"%A{p} is free"
+                    out |> BusyPolicy.page p |> Expect.isFalse $"%A{p} is free"
             }
 
             test "each lane with a request out is a request" {
@@ -81,7 +82,7 @@ let tests =
                 let plan = recalculating one None "p-1" (OrderPlanCommand.FilterRows([||], one))
                 let signing = SigningState.requesting one None "s-1"
 
-                Busy.out
+                OutPolicy.out
                     false
                     patientChanging
                     OrderContextState.noPatient
@@ -91,10 +92,10 @@ let tests =
                     []
                 |> Expect.equal "the patient" [ Request.Patient ]
 
-                Busy.out false noPatientChange workbench shown SessionState.anonymous SigningState.idle []
+                OutPolicy.out false noPatientChange workbench shown SessionState.anonymous SigningState.idle []
                 |> Expect.equal "the workbench" [ Request.Workbench ]
 
-                Busy.out
+                OutPolicy.out
                     false
                     noPatientChange
                     OrderContextState.noPatient
@@ -104,7 +105,7 @@ let tests =
                     []
                 |> Expect.equal "the plan" [ Request.Plan ]
 
-                Busy.out
+                OutPolicy.out
                     false
                     noPatientChange
                     OrderContextState.noPatient
@@ -114,7 +115,7 @@ let tests =
                     []
                 |> Expect.equal "the Session" [ Request.Session ]
 
-                Busy.out false noPatientChange OrderContextState.noPatient shown SessionState.anonymous signing []
+                OutPolicy.out false noPatientChange OrderContextState.noPatient shown SessionState.anonymous signing []
                 |> Expect.equal "the signature" [ Request.Signature ]
 
                 let refreshing =
@@ -122,7 +123,7 @@ let tests =
                     |> SessionState.transition SessionMsg.RefreshPatient
                     |> fst
 
-                Busy.out false noPatientChange OrderContextState.noPatient shown refreshing SigningState.idle []
+                OutPolicy.out false noPatientChange OrderContextState.noPatient shown refreshing SigningState.idle []
                 |> Expect.equal "a refresh" [ Request.Session ]
             }
 
@@ -143,7 +144,7 @@ let tests =
                         "submitting", SigningMachineTests.Fixtures.submitting
                     ] do
                     let out =
-                        Busy.out
+                        OutPolicy.out
                             false
                             noPatientChange
                             OrderContextState.noPatient
@@ -153,15 +154,15 @@ let tests =
                             []
 
                     out |> Expect.equal name [ Request.Signature ]
-                    out |> Busy.any |> Expect.isTrue $"%s{name}: the menu waits"
+                    out |> BusyPolicy.any |> Expect.isTrue $"%s{name}: the menu waits"
 
                     for p in allPages do
-                        out |> Busy.page p |> Expect.isTrue $"%s{name}: %A{p}"
+                        out |> BusyPolicy.page p |> Expect.isTrue $"%s{name}: %A{p}"
             }
 
             test "a workbench or a plan request disables the page that would send the next command or change" {
                 let workbench =
-                    Busy.out
+                    OutPolicy.out
                         false
                         noPatientChange
                         (OrderContextState.opening patient "w-1")
@@ -170,10 +171,12 @@ let tests =
                         SigningState.idle
                         []
 
-                workbench |> Busy.page Page.Page.Prescribe |> Expect.isTrue "the Prescribe page"
+                workbench
+                |> BusyPolicy.page Page.Page.Prescribe
+                |> Expect.isTrue "the Prescribe page"
 
                 let plan =
-                    Busy.out
+                    OutPolicy.out
                         false
                         noPatientChange
                         OrderContextState.noPatient
@@ -182,13 +185,17 @@ let tests =
                         SigningState.idle
                         []
 
-                plan |> Busy.page Page.Page.OrderPlan |> Expect.isTrue "the OrderPlan page"
-                plan |> Busy.page Page.Page.Nutrition |> Expect.isTrue "the Nutrition page"
+                plan
+                |> BusyPolicy.page Page.Page.OrderPlan
+                |> Expect.isTrue "the OrderPlan page"
+                plan
+                |> BusyPolicy.page Page.Page.Nutrition
+                |> Expect.isTrue "the Nutrition page"
             }
 
             test "a patient change disables the pages of both order machines" {
                 let out =
-                    Busy.out
+                    OutPolicy.out
                         false
                         patientChanging
                         OrderContextState.noPatient
@@ -198,12 +205,12 @@ let tests =
                         []
 
                 for p in [ Page.Page.Prescribe; Page.Page.OrderPlan; Page.Page.Nutrition ] do
-                    out |> Busy.page p |> Expect.isTrue $"%A{p}"
+                    out |> BusyPolicy.page p |> Expect.isTrue $"%A{p}"
             }
 
             test "a field counting step clicks disables every page but Nutrition, whose fields wait themselves" {
                 let out =
-                    Busy.out
+                    OutPolicy.out
                         true
                         noPatientChange
                         OrderContextState.noPatient
@@ -213,10 +220,10 @@ let tests =
                         []
 
                 out |> Expect.equal "the count" [ Request.Counting ]
-                out |> Busy.any |> Expect.isTrue "the menu and the title bar wait"
+                out |> BusyPolicy.any |> Expect.isTrue "the menu and the title bar wait"
 
                 for p in allPages do
-                    out |> Busy.page p |> Expect.equal $"%A{p}" (p <> Page.Page.Nutrition)
+                    out |> BusyPolicy.page p |> Expect.equal $"%A{p}" (p <> Page.Page.Nutrition)
             }
 
             test "every load out is a request" {
@@ -238,7 +245,7 @@ let tests =
 
                 for request in requests do
                     [ request ]
-                    |> Busy.any
+                    |> BusyPolicy.any
                     |> Expect.equal $"%A{request}" (request <> Request.Load Load.DrugNames)
             }
 
@@ -296,9 +303,9 @@ let tests =
             test "the drug names disable the Page.Page.Interactions page and hold nothing else" {
                 let out = idle [ Load.DrugNames ]
 
-                out |> Busy.any |> Expect.isFalse "the menu is free"
+                out |> BusyPolicy.any |> Expect.isFalse "the menu is free"
 
                 for p in allPages do
-                    out |> Busy.page p |> Expect.equal $"%A{p}" (p = Page.Page.Interactions)
+                    out |> BusyPolicy.page p |> Expect.equal $"%A{p}" (p = Page.Page.Interactions)
             }
         ]
