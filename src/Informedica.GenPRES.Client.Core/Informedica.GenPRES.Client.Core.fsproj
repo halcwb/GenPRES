@@ -21,6 +21,10 @@
     <Compile Include="Helpers/CommandPreview.fs" />
     <Compile Include="Helpers/FilterSeed.fs" />
 
+    <!-- the code from Shared the client alone uses -->
+    <Compile Include="Models/TextBlockParser.fs" />
+    <Compile Include="Models/ContinuousMedicationList.fs" />
+
     <!-- policies over the contract -->
     <Compile Include="Policies/LanguagePolicy.fs" />
     <Compile Include="Policies/OrderContextRefusalPolicy.fs" />

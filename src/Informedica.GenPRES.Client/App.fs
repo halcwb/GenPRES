@@ -1,6 +1,7 @@
 module App
 
 open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Policies
 open Informedica.GenPRES.Client.Core.StateMachines
 open System
@@ -709,7 +710,7 @@ type private Projection(state: State, dispatch: Msg -> unit) =
             let calc =
                 fun _ w meds ->
                     match w with
-                    | Some w' -> ContinuousMedication.calculate w' meds
+                    | Some w' -> ContinuousMedicationList.calculate w' meds
                     | None -> []
 
             calculateInterventions calc (Client.continuousMedication state) (Client.draft state)

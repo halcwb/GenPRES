@@ -20,6 +20,11 @@
     <Compile Include="Helpers/UrlTests.fs" />
     <Compile Include="Helpers/CommandPreviewTests.fs" />
 
+    <!-- the code from Shared -->
+    <Compile Include="Models/ContinuousBaseline.fs" />
+    <Compile Include="Models/ContinuousBaselineTests.fs" />
+    <Compile Include="Models/TextBlockParserTests.fs" />
+
     <!-- policies over the contract -->
     <Compile Include="Policies/LanguagePolicyTests.fs" />
     <Compile Include="Policies/OrderContextRefusalPolicyTests.fs" />
@@ -69,6 +74,9 @@
     <Compile Include="TrailTests.fs" />
 
     <Compile Include="Main.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="fixtures\*.csv;fixtures\*.tsv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

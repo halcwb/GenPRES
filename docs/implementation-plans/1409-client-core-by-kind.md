@@ -225,13 +225,16 @@ comment with the new location.
    the `Deferred` cases open `Helpers`; the root files are reached through module aliases. The
    test project mirrored and its fixtures split out. No logic change.
 5. **Group A and the #1209 baseline.** First, #1209: a script runs `EmergencyTreatment.calculate`
-   and `ContinuousMedication.calculate` once, over the live `emergencylist`, `continuousmeds` and
-   `products` sheets, a weight grid and relevant ages, and writes the input rows and the TSV
-   output into fixture files in the repo, marking the tenfold-dilution fallback, the min/max
-   clamps and the morphine case. Tests never load the live sheets: Expecto tests read the
-   fixture, run the calculation on the stored input rows and compare with the stored output.
-   The emergency tests go to Shared.Tests (the code stays), the continuous tests to
-   Client.Core.Tests. Then `ContinuousMedication.calculate` and `TextBlock.fromString` move,
+   and `ContinuousMedication.calculate` once, over the live `emergencylist` and `continuousmeds`
+   sheets, a weight grid and relevant ages, and writes the input rows and the TSV output into
+   fixture files in the repo. The `products` sheet is left out: neither calculation reads it.
+   The TSV holds only what the calculation returns. The script prints the tenfold-dilution
+   fallback, the fixed doses, the min/max clamps and the morphine case, each worked out for one
+   sheet entry at a time, and the list is recorded on #1209. Tests never load the live sheets:
+   Expecto tests read the fixture, run the calculation on the stored input rows and compare
+   with the stored output. The emergency tests go to Shared.Tests (the code stays), the
+   continuous tests to Client.Core.Tests. Then `ContinuousMedication.calculate` and
+   `TextBlock.fromString` move to `Models/ContinuousMedicationList` and `Models/TextBlockParser`,
    with their tests green before and after. Closes #1209; the TSV stays the reference #1208
    diffs against.
 6. **Group B**, with its tests.
