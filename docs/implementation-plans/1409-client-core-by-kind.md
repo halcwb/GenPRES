@@ -39,7 +39,7 @@ Taken 2026-10-10 by the maintainer.
 
 | Question | Decision |
 |---|---|
-| Folders and namespaces | A folder is a namespace: `Informedica.GenPRES.Client.Core.<Folder>`. A file at the project root is in the root namespace `Informedica.GenPRES.Client.Core`. Every file declares its namespace explicitly, `namespace ...` on its own line with `module X =` below it. The root stays long, so no namespace is called `Client` and the `Client` module keeps its name |
+| Folders and namespaces | A folder is a namespace: `Informedica.GenPRES.Client.Core.<Folder>`. A file at the project root is in the root namespace `Informedica.GenPRES.Client.Core`. Every file declares its namespace explicitly, `namespace ...` on its own line, followed by its types and modules, with the opens inside each module. The root stays long, so no namespace is called `Client` and the `Client` module keeps its name |
 | Opening namespaces | Code opens the folder namespaces only, never the root `Informedica.GenPRES.Client.Core`. A caller reaches a root file through a module alias, `module Client = Informedica.GenPRES.Client.Core.Client`, or opens it by its full name, `open Informedica.GenPRES.Client.Core.Lanes`; an alias cannot be opened. With the root and Shared both opened, a name found in both (`Models.Severity`) resolves to whichever was opened last, without an error or warning. The rule lives in this plan and the 1157 addendum; no CI check |
 | Folders | `Models/` (the code from Shared, which reads only Shared and so compiles first, before the helpers that use it), `Helpers/`, `Policies/`, `StateMachines/`, `MachinePolicies/` (the policies over machines, a namespace of their own). The entry files Lanes, Client and Trail sit at the project root, in the root namespace, so the root shows where the client starts |
 | `Models/` and `Shared.Models` | The folder keeps its name. A moved module keeps its Shared name when Shared keeps nothing of that name (`Severity`, `OrderLoader`), and gets a name of its own when Shared still has a module or type of that name (`PatientText`, `DoseTypeText`, ...); code that means Shared opens `Informedica.GenPRES.Shared` and writes `Models.X`, the same in the Client, Client.Core and the tests. Proved on 2026-10-10 with a scratch build of this layout: F# does not bring parent or sibling namespaces into scope (only the file's own namespace), so with Shared opened and the root not, `Models.X` always resolves to Shared, also for a name both have. `Shared.Models.X` without an open does not compile |
@@ -294,3 +294,19 @@ Per step:
   also `dotnet build` the Client fsproj
 - `Client.Core/Scripts/load.fsx` loads in FSI
 - the maintainer checks the app in the browser before any push
+
+
+## As built
+
+| Step | Pull request | Note |
+|---|---|---|
+| The plan | #1411 | From the review: `Age.create` stays in Shared, and so does all of `Csv`. |
+| 1, unused Shared code | #1412 | Also the Client's dead `Configuration` field and the stale `tryParse` draft in the Localization script. |
+| 2, the Shared namespace | #1413 | A rename and a Fantomas reflow; the dependency check finds the contract by `GenPRES.Shared`. |
+| 3, the cross-kind edges | #1414 | The helper is `Loads`: in FSI a script named `load.fsx` is the module `Load`. The readiness `canCalculate` was deleted, not delegated. The fsproj was ordered by kind in this step. |
+| 4, folders and namespaces | #1415 | Lanes, Client and Trail at the root instead of `Wiring/` and `Diagnostics/`; the explicit namespace form; three commits, so the moves keep their history. |
+| 5, group A and the #1209 baseline | #1416 | No `products` sheet; the marks are printed by the script and recorded on #1209. |
+| 6, group B | #1417 | `Models/` compiles before `Helpers/`; `Severity` and `OrderLoader` keep their names; the opens moved inside the modules. |
+| 7, group C | #1418 | `PatientRead` beside `PatientText` and `PatientEdit`; three estimate tests moved with the setters; the Terms draft script moved to Client.Core. |
+| 8, docs | #1419 | Also a client architecture section in ARCHITECTURE.md, and the project diagram colours its arrows: green inward, red for a tolerated outward reference. |
+
