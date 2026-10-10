@@ -6,8 +6,8 @@ module SessionGatePolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
     open SessionMachine
     open SessionGatePolicy
 

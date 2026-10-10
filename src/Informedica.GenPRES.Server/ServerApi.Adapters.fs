@@ -1,7 +1,7 @@
 namespace ServerApi
 
 open System
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 module Adapters =
@@ -48,7 +48,10 @@ module Adapters =
         }
 
 
-    let toSharedDrugInteraction (di: Informedica.GenInteract.Lib.DrugInteraction) : Shared.Types.DrugInteraction =
+    let toSharedDrugInteraction
+        (di: Informedica.GenInteract.Lib.DrugInteraction)
+        : Informedica.GenPRES.Shared.Types.DrugInteraction
+        =
         {
             Name = di.Name
             Drug1 = di.Drug1
@@ -251,11 +254,15 @@ module Adapters =
 
     /// The normal values of weight and height from the provider's tables, while it is loaded;
     /// none when it is not.
-    let normalValuesOf (provider: Resources.IResourceProvider) () : Shared.Types.NormalValues option =
+    let normalValuesOf
+        (provider: Resources.IResourceProvider)
+        ()
+        : Informedica.GenPRES.Shared.Types.NormalValues option
+        =
         match notLoaded provider with
         | None ->
             provider.Get Informedica.GenForm.Lib.Resources.Keys.normalValueRows
-            |> Shared.Models.NormalValues.ofRows
+            |> Informedica.GenPRES.Shared.Models.NormalValues.ofRows
             |> Some
         | Some _ -> None
 

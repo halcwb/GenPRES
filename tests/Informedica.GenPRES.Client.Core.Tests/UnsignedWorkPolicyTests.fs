@@ -6,16 +6,16 @@ module UnsignedWorkPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Api
     open PlanWorkPolicy
     open SigningMachine
     open UnsignedWorkPolicy
 
 
-    let patient = Shared.Models.Patient.empty
-    let plan = Shared.Models.OrderPlan.create patient [||]
-    let context = Shared.Models.OrderContext.empty
+    let patient = Informedica.GenPRES.Shared.Models.Patient.empty
+    let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [||]
+    let context = Informedica.GenPRES.Shared.Models.OrderContext.empty
 
     let prescribing = { context with OrderContext.Filter.Generic = Some "paracetamol" }
 
@@ -34,7 +34,7 @@ module UnsignedWorkPolicyTests =
             OrderPlanCommand.Navigate(
                 plan,
                 "c-1",
-                OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Route, 0),
+                OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Route, 0),
                 context
             ),
             true

@@ -3,8 +3,8 @@ module Informedica.GenPRES.Client.Core.Tests.ArgumentationPolicyTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open Informedica.GenPRES.Client.Core.Tests.OrderFixtures
 
 

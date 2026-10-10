@@ -7,7 +7,7 @@ module Informedica.GenPRES.Server.Tests.IdleSessionTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 open Informedica.GenPRES.Server.Tests.StubAdapterTests.SessionStubTests
 
@@ -310,9 +310,9 @@ let signingTests =
                 let env =
                     { Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters.makeEnv
                           (Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters.formularyAlwaysOk
-                              Shared.Models.Formulary.empty)
+                              Informedica.GenPRES.Shared.Models.Formulary.empty)
                           (Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters.orderContextAlwaysOk
-                              Shared.Models.OrderContext.empty) with
+                              Informedica.GenPRES.Shared.Models.OrderContext.empty) with
                         session = port
                     }
 
@@ -329,10 +329,12 @@ let signingTests =
                     SigningCommand.processCmd
                         env
                         cookie
-                        (Shared.Api.SigningCommand.RequestSignChallenge(plan, OpenedToken "t", None))
+                        (Informedica.GenPRES.Shared.Api.SigningCommand.RequestSignChallenge(plan, OpenedToken "t", None))
 
                 response
-                |> Expect.equal "refused" (Shared.Types.SigningResponse.Refused SigningRefusal.StoreFailed)
+                |> Expect.equal
+                    "refused"
+                    (Informedica.GenPRES.Shared.Types.SigningResponse.Refused SigningRefusal.StoreFailed)
             }
         ]
 

@@ -32,7 +32,7 @@
 open System
 open System.IO
 open Microsoft.FSharp.Reflection
-open Shared
+open Informedica.GenPRES.Shared
 
 
 /// One row of the file: the term key, then one cell per header column after Term.

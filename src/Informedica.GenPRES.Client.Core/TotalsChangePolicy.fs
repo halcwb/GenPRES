@@ -2,8 +2,8 @@
 /// them up. Totals from another source, such as another patient, never count as a change.
 module TotalsChangePolicy
 
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// The totals last shown and where they came from.

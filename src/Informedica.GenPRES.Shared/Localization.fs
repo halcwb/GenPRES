@@ -3,7 +3,7 @@
 // The client fetches the "Localization" sheet at startup and keeps it as a string[][] matrix,
 // one row per term. getTerm reads a language from a fixed column, so the sheet's column order
 // matters.
-namespace Shared
+namespace Informedica.GenPRES.Shared
 
 
 /// Compile-time-safe enumeration of all localizable UI strings.

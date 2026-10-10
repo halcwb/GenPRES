@@ -3,9 +3,9 @@
 /// continuous list, which have no order context, as for prescribe, nutrition and the plan.
 module PatientReadiness
 
-open Shared
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// What the calculations of a patient still miss. They go on without it, so this is a warning,

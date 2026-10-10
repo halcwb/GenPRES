@@ -1,4 +1,4 @@
-namespace Shared
+namespace Informedica.GenPRES.Shared
 
 
 module Models =
@@ -1188,7 +1188,7 @@ module Models =
     /// </summary>
     module ContinuousMedication =
 
-        open Shared
+        open Informedica.GenPRES.Shared
 
 
         let toStr = decimal >> Decimal.toStringNumberNLWithoutTrailingZeros
@@ -1348,7 +1348,7 @@ module Models =
     /// </summary>
     module Products =
 
-        open Shared
+        open Informedica.GenPRES.Shared
 
 
         let create ind med conc unit =
@@ -1386,7 +1386,7 @@ module Models =
     /// </summary>
     module NormalValues =
 
-        open Shared
+        open Informedica.GenPRES.Shared
 
 
         let create sex age p3 mean p97 =
@@ -1442,7 +1442,7 @@ module Models =
 
         module ValueUnit =
 
-            // create Shared.Types.ValueUnit
+            // create Informedica.GenPRES.Shared.Types.ValueUnit
             let create v u g s l j =
                 {
                     Value = v

@@ -2,7 +2,7 @@
 /// picked. A field reads from them whether the user constrained its variable.
 module PickList
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 /// The number of values an order variable holds; 0 for a range or nothing.
 let valuesOf (ovar: OrderVariable) =

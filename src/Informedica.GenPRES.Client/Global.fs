@@ -1,7 +1,7 @@
 module Global
 
 open Feliz
-open Shared
+open Informedica.GenPRES.Shared
 
 
 type Pages = Page.Page

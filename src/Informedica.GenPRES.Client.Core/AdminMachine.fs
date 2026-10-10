@@ -3,9 +3,9 @@
 /// an earlier attempt is dropped, and a token the server no longer takes logs out.
 module AdminMachine
 
-open Shared
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open Busy
 
 

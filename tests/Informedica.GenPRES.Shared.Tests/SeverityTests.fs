@@ -2,8 +2,8 @@ module Informedica.GenPRES.Shared.Tests.SeverityTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 let private levels = [ IsNormal; IsCaution; IsWarning; IsAlert ]

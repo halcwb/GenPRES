@@ -8,9 +8,9 @@ module Parenteralia =
     open Feliz
     open Feliz.UseElmish
     open Elmish
-    open Shared.Types
-    open Shared
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Models
     open OrderContextMachine
 
 

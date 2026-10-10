@@ -8,8 +8,8 @@ module SectionFoldPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
 
 
     let vu vals =

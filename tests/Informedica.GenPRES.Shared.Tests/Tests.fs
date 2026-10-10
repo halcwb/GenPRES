@@ -6,7 +6,7 @@ module Tests =
     open Expecto
     open Expecto.Flip
 
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Models
 
     let testHelloWorld =
         test "hello world test" { "Hello World" |> Expect.equal "Strings should be equal" "Hello World" }
@@ -16,7 +16,7 @@ module Tests =
 
         module VariableRenderTests =
 
-            open Shared.Types
+            open Informedica.GenPRES.Shared.Types
 
             /// A value unit with an explicit unit, one value per element
             let vu u vals =

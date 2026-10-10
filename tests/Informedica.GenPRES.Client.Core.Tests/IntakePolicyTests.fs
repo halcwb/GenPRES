@@ -6,7 +6,7 @@ module IntakePolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
 
     let one v =

@@ -3,7 +3,7 @@
 /// the scenario only when it opens or shows another order.
 module DialogTabPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// The component and the item a dialog shows, for the order with this id.

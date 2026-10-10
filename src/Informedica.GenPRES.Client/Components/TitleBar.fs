@@ -7,8 +7,8 @@ module TitleBar =
     open Fable.Core
     open Feliz
     open Fable.Core.JsInterop
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
     open SessionMachine
 
 
@@ -18,9 +18,9 @@ module TitleBar =
             {|
                 title: string
                 toggleSideMenu: unit -> unit
-                languages: Shared.Localization.Locales[]
+                languages: Informedica.GenPRES.Shared.Localization.Locales[]
                 hospitals: Deferred<string[]>
-                switchLang: Shared.Localization.Locales -> unit
+                switchLang: Informedica.GenPRES.Shared.Localization.Locales -> unit
                 switchHosp: string -> unit
                 isAuthenticated: bool
                 onLogin: string -> unit
@@ -123,8 +123,8 @@ module TitleBar =
 
             props.languages
             |> Array.mapi (fun i l ->
-                let flag = l |> Shared.Localization.toFlag
-                let name = l |> Shared.Localization.toString
+                let flag = l |> Informedica.GenPRES.Shared.Localization.toFlag
+                let name = l |> Informedica.GenPRES.Shared.Localization.toString
 
                 JSX.jsx
                     $"""
@@ -415,7 +415,7 @@ module TitleBar =
                                 {Mui.Icons.Language}
                             </IconButton>
                             <Typography variant="body1" component="div" sx={sxLangLabel} onClick={handleOpenLangMenu}>
-                                {context.Localization |> Shared.Localization.toShortCode}
+                                {context.Localization |> Informedica.GenPRES.Shared.Localization.toShortCode}
                             </Typography>
                             <Menu
                                 sx={menuSx}

@@ -10,7 +10,7 @@ module ValueChip =
 
     open Fable.Core
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The chip: the value as text, its severity, and a name before it when it needs one.

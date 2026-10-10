@@ -7,7 +7,7 @@ module PlanContextPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open HeldContextPolicy
 
 
@@ -15,18 +15,19 @@ module PlanContextPolicyTests =
     let scenario = OrderFixtures.scenario
 
 
-    let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
-    let eleven = { Shared.Models.Patient.Age.ageZero with Age.Years = 11<year> }
-    let patient = { Shared.Models.Patient.empty with Age = Some ten }
+    let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+    let eleven = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 11<year> }
+    let patient = { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
 
     let context id name =
-        { Shared.Models.OrderContext.empty with
+        { Informedica.GenPRES.Shared.Models.OrderContext.empty with
             Id = id
             Patient = patient
             Scenarios = [| scenario $"o-{id}" name |]
         }
 
-    let plan contexts = Shared.Models.OrderPlan.create patient contexts
+    let plan contexts =
+        Informedica.GenPRES.Shared.Models.OrderPlan.create patient contexts
 
     /// One value in a unit, as an order variable holds it once it is solved.
     let valueIn (json: string) (v: decimal) =
@@ -219,7 +220,10 @@ module PlanContextPolicyTests =
                         }
 
                         test "an intake difference alone does not change it" {
-                            let intake = { Shared.Models.Totals.empty with Volume = [| TextItem.Normal "10 mL" |] }
+                            let intake =
+                                { Informedica.GenPRES.Shared.Models.Totals.empty with
+                                    Volume = [| TextItem.Normal "10 mL" |]
+                                }
 
                             PlanContextPolicy.changed para { para with Intake = intake }
                             |> Expect.isFalse "the intake is no change to an order in the plan"
@@ -352,7 +356,10 @@ module PlanContextPolicyTests =
                     let now =
                         { plan opened with
                             Filtered = [| "c1" |]
-                            Totals = { Shared.Models.Totals.empty with Volume = [| TextItem.Normal "10 mL" |] }
+                            Totals =
+                                { Informedica.GenPRES.Shared.Models.Totals.empty with
+                                    Volume = [| TextItem.Normal "10 mL" |]
+                                }
                         }
 
                     differences opened now

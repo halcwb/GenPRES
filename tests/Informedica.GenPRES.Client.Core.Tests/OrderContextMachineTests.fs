@@ -2,20 +2,20 @@ module Informedica.GenPRES.Client.Core.Tests.OrderContextMachineTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open OrderContextMachine
 
 
 module Fixtures =
 
-    let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+    let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
 
     /// The data a context carries, and the patient it is: an age makes the draft a patient.
-    let draft = { Shared.Models.Patient.empty with Age = Some ten }
+    let draft = { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
 
     let asPatient (dto: Patient) =
-        match dto |> Shared.Models.Patient.validate with
+        match dto |> Informedica.GenPRES.Shared.Models.Patient.validate with
         | Ok pat -> pat
         | Error err -> invalidOp $"the fixture is no patient: %A{err}"
 
@@ -203,7 +203,11 @@ let tests =
                 "a command"
                 [
                     test "a filter pick goes over the context held and takes the pages along; a step calls alone" {
-                        let pick = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Route, 0)
+                        let pick =
+                            OrderViewCommand.SetNthFilterProperty(
+                                Informedica.GenPRES.Shared.Models.OrderContext.Route,
+                                0
+                            )
 
                         let busy, effects = transition (OrderContextMsg.Command(pick, "r-1")) shown
 
@@ -319,7 +323,7 @@ let viewTests =
 
             test "the order dialog's context: the selected context, settled or changing as the plan is" {
                 let inPlan = { paracetamol with Id = "c-1" }
-                let plan = Shared.Models.OrderPlan.create patient [| inPlan |]
+                let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [| inPlan |]
 
                 OrderPlanMachine.OrderPlanState.held patient plan (Some "c-1")
                 |> OrderPlanMachine.OrderPlanState.view
@@ -634,7 +638,9 @@ let refusalTests =
 [<Tests>]
 let argueTests =
     let text = "Sepsis, hogere dosis in overleg met de apotheek"
-    let argued = paracetamol |> Shared.Models.OrderContext.Argumentation.write text
+    let argued =
+        paracetamol
+        |> Informedica.GenPRES.Shared.Models.OrderContext.Argumentation.write text
     let argue = OrderViewCommand.SetArgumentationProperty text
 
     testList
@@ -764,8 +770,8 @@ let reopenTests =
 let specificCommandTests =
     let newCases =
         [
-            OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 0)
-            OrderViewCommand.ClearFilterProperty Shared.Models.OrderContext.Route
+            OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 0)
+            OrderViewCommand.ClearFilterProperty Informedica.GenPRES.Shared.Models.OrderContext.Route
             OrderViewCommand.ClearAllFilterProperty
             OrderViewCommand.SetNthDiluentProperty 0
             OrderViewCommand.ClearDiluentProperty
@@ -812,7 +818,7 @@ let specificCommandTests =
 
         let freq =
             sc.Order.Schedule.Frequency
-            |> Shared.Models.Order.OrderVariable.setOvar (Some "2")
+            |> Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar (Some "2")
 
         { twoFrequencies with Scenarios = [| sc |> withFrequency freq |] }
 
@@ -822,8 +828,11 @@ let specificCommandTests =
         "the specific commands"
         [
             test "a filter pick goes out as is and shows the filter it makes; the pages wait for the answer" {
-                let cmd = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 1)
-                let picked = twoGenerics |> Shared.Models.OrderContext.medicationChange (Some "paracetamol")
+                let cmd =
+                    OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 1)
+                let picked =
+                    twoGenerics
+                    |> Informedica.GenPRES.Shared.Models.OrderContext.medicationChange (Some "paracetamol")
 
                 let state, effects = transition (OrderContextMsg.Command(cmd, "r-1")) (held twoGenerics)
 
@@ -858,7 +867,8 @@ let syncTests =
         "the pages follow the answer"
         [
             test "a filter command syncs on its answer and not before" {
-                let pick = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 0)
+                let pick =
+                    OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 0)
                 let busy, effects = transition (OrderContextMsg.Command(pick, "r-1")) (held empty)
 
                 effects |> Expect.equal "the call alone" (replacing pick empty "r-1")
@@ -892,7 +902,8 @@ let syncTests =
             }
 
             test "a failure syncs nothing" {
-                let pick = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 0)
+                let pick =
+                    OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 0)
                 let busy, _ = transition (OrderContextMsg.Command(pick, "r-1")) (held paracetamol)
 
                 transition (OrderContextMsg.Answered("r-1", Error [| "not loaded" |])) busy
@@ -901,7 +912,8 @@ let syncTests =
             }
 
             test "a stale answer syncs nothing" {
-                let pick = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 0)
+                let pick =
+                    OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 0)
                 let busy, _ = transition (OrderContextMsg.Command(pick, "r-1")) (held paracetamol)
 
                 transition (OrderContextMsg.Answered("r-9", answered paracetamol)) busy
@@ -917,7 +929,8 @@ let answeredTests =
         "the context last answered"
         [
             test "is the one held while a request is under way, not the one sent" {
-                let pick = OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Generic, 0)
+                let pick =
+                    OrderViewCommand.SetNthFilterProperty(Informedica.GenPRES.Shared.Models.OrderContext.Generic, 0)
                 let busy, _ = transition (OrderContextMsg.Command(pick, "r-1")) (held paracetamol)
 
                 busy

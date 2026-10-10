@@ -4,7 +4,7 @@ namespace Views
 /// The words of what the snackbar shows.
 module AlertText =
 
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The sentence of an alert; terms gives the localized text of a term, or the default given

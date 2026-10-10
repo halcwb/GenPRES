@@ -8,7 +8,7 @@ open Informedica.Utils.Lib.BCL
 open Informedica.GenForm.Lib
 open Informedica.GenOrder.Lib
 // after Expecto, whose FocusState has a Normal case too
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 
 
@@ -24,7 +24,7 @@ let order: Order =
 
 
 let scenario: OrderScenario =
-    Shared.Models.OrderScenario.create
+    Informedica.GenPRES.Shared.Models.OrderScenario.create
         "koorts"
         "paracetamol"
         "zetpil"
@@ -48,12 +48,12 @@ let scenario: OrderScenario =
 
 
 let context: OrderContext =
-    { Shared.Models.OrderContext.empty with
+    { Informedica.GenPRES.Shared.Models.OrderContext.empty with
         Id = "c-1"
         Category = OrderCategory.Nutrition NutritionCategory.TPN
         DemoVersion = false
         Filter =
-            { Shared.Models.OrderContext.filter with
+            { Informedica.GenPRES.Shared.Models.OrderContext.filter with
                 Indications = [| "koorts"; "pijn" |]
                 Generics = [| "paracetamol" |]
                 DoseTypes = [| Discontinuous "3-4 x/dag"; Once "eenmalig" |]
@@ -66,7 +66,7 @@ let context: OrderContext =
         Patient = StubPatientData.patient
         Scenarios = [| scenario |]
         Intake =
-            { Shared.Models.Totals.empty with
+            { Informedica.GenPRES.Shared.Models.Totals.empty with
                 Volume = [| Normal "100 ml" |]
                 Energy = [| Bold "50 kcal"; Normal "/dag" |]
             }
@@ -154,7 +154,7 @@ let tests =
                 |> Result.map ignore
                 |> Expect.equal "the context" refused
 
-                { Shared.Models.OrderPlan.empty with OrderContexts = [| context; over |] }
+                { Informedica.GenPRES.Shared.Models.OrderPlan.empty with OrderContexts = [| context; over |] }
                 |> OrderPlanCommand.parsePlan
                 |> Result.map ignore
                 |> Expect.equal "the plan, on any of its contexts" refused
@@ -260,91 +260,124 @@ let tests =
 
                 let verbs =
                     [
-                        Shared.Api.OrderViewCommand.ResetOrderScenario, Domain.ResetOrderScenario ctx
-                        Shared.Api.OrderViewCommand.DecreaseScheduleFrequencyProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ResetOrderScenario,
+                        Domain.ResetOrderScenario ctx
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.DecreaseScheduleFrequencyProperty,
                         Domain.DecreaseScheduleFrequencyProperty ctx
-                        Shared.Api.OrderViewCommand.IncreaseScheduleFrequencyProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.IncreaseScheduleFrequencyProperty,
                         Domain.IncreaseScheduleFrequencyProperty ctx
-                        Shared.Api.OrderViewCommand.SetMinScheduleFrequencyProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMinScheduleFrequencyProperty,
                         Domain.SetMinScheduleFrequencyProperty ctx
-                        Shared.Api.OrderViewCommand.SetMaxScheduleFrequencyProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMaxScheduleFrequencyProperty,
                         Domain.SetMaxScheduleFrequencyProperty ctx
-                        Shared.Api.OrderViewCommand.SetMedianScheduleFrequencyProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMedianScheduleFrequencyProperty,
                         Domain.SetMedianScheduleFrequencyProperty ctx
-                        Shared.Api.OrderViewCommand.DecreaseOrderableDoseQuantityProperty(2, true),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.DecreaseOrderableDoseQuantityProperty(2, true),
                         Domain.DecreaseOrderableDoseQuantityProperty(ctx, 2, true)
-                        Shared.Api.OrderViewCommand.IncreaseOrderableDoseQuantityProperty(3, false),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.IncreaseOrderableDoseQuantityProperty(3, false),
                         Domain.IncreaseOrderableDoseQuantityProperty(ctx, 3, false)
-                        Shared.Api.OrderViewCommand.SetMinOrderableDoseQuantityProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMinOrderableDoseQuantityProperty,
                         Domain.SetMinOrderableDoseQuantityProperty ctx
-                        Shared.Api.OrderViewCommand.SetMaxOrderableDoseQuantityProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMaxOrderableDoseQuantityProperty,
                         Domain.SetMaxOrderableDoseQuantityProperty ctx
-                        Shared.Api.OrderViewCommand.SetMedianOrderableDoseQuantityProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMedianOrderableDoseQuantityProperty,
                         Domain.SetMedianOrderableDoseQuantityProperty ctx
-                        Shared.Api.OrderViewCommand.SetOrderableDoseQuantityPercProperty 50,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetOrderableDoseQuantityPercProperty 50,
                         Domain.SetOrderableDoseQuantityPercProperty(ctx, 50)
-                        Shared.Api.OrderViewCommand.DecreaseOrderableDoseRateProperty(1, true),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.DecreaseOrderableDoseRateProperty(1, true),
                         Domain.DecreaseOrderableDoseRateProperty(ctx, 1, true)
-                        Shared.Api.OrderViewCommand.IncreaseOrderableDoseRateProperty(1, false),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.IncreaseOrderableDoseRateProperty(1, false),
                         Domain.IncreaseOrderableDoseRateProperty(ctx, 1, false)
-                        Shared.Api.OrderViewCommand.SetMinOrderableDoseRateProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMinOrderableDoseRateProperty,
                         Domain.SetMinOrderableDoseRateProperty ctx
-                        Shared.Api.OrderViewCommand.SetMaxOrderableDoseRateProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMaxOrderableDoseRateProperty,
                         Domain.SetMaxOrderableDoseRateProperty ctx
-                        Shared.Api.OrderViewCommand.SetMedianOrderableDoseRateProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMedianOrderableDoseRateProperty,
                         Domain.SetMedianOrderableDoseRateProperty ctx
-                        Shared.Api.OrderViewCommand.DecreaseComponentOrderableQuantityProperty("cmp", 2, true),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.DecreaseComponentOrderableQuantityProperty(
+                            "cmp",
+                            2,
+                            true
+                        ),
                         Domain.DecreaseComponentQuantityProperty(ctx, "cmp", 2, true)
-                        Shared.Api.OrderViewCommand.IncreaseComponentOrderableQuantityProperty("cmp", 2, false),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.IncreaseComponentOrderableQuantityProperty(
+                            "cmp",
+                            2,
+                            false
+                        ),
                         Domain.IncreaseComponentQuantityProperty(ctx, "cmp", 2, false)
-                        Shared.Api.OrderViewCommand.SetMinComponentOrderableQuantityProperty "cmp",
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMinComponentOrderableQuantityProperty "cmp",
                         Domain.SetMinComponentQuantityProperty(ctx, "cmp")
-                        Shared.Api.OrderViewCommand.SetMaxComponentOrderableQuantityProperty "cmp",
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMaxComponentOrderableQuantityProperty "cmp",
                         Domain.SetMaxComponentQuantityProperty(ctx, "cmp")
-                        Shared.Api.OrderViewCommand.SetMedianComponentOrderableQuantityProperty "cmp",
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetMedianComponentOrderableQuantityProperty
+                            "cmp",
                         Domain.SetMedianComponentQuantityProperty(ctx, "cmp")
-                        Shared.Api.OrderViewCommand.SetNthFilterProperty(Shared.Models.OrderContext.Route, 1),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthFilterProperty(
+                            Informedica.GenPRES.Shared.Models.OrderContext.Route,
+                            1
+                        ),
                         Domain.ChangeFilter(ctx, Types.OrderCategory.Drug, FilterField.Route, Some 1)
-                        Shared.Api.OrderViewCommand.ClearFilterProperty Shared.Models.OrderContext.Generic,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearFilterProperty
+                            Informedica.GenPRES.Shared.Models.OrderContext.Generic,
                         Domain.ChangeFilter(ctx, Types.OrderCategory.Drug, FilterField.Generic, None)
-                        Shared.Api.OrderViewCommand.ClearAllFilterProperty, Domain.ClearAllFilter ctx
-                        Shared.Api.OrderViewCommand.SetNthDiluentProperty 0,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearAllFilterProperty,
+                        Domain.ClearAllFilter ctx
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthDiluentProperty 0,
                         Domain.ChangeFilter(ctx, Types.OrderCategory.Drug, FilterField.Diluent, Some 0)
-                        Shared.Api.OrderViewCommand.ClearDiluentProperty,
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearDiluentProperty,
                         Domain.ChangeFilter(ctx, Types.OrderCategory.Drug, FilterField.Diluent, None)
-                        Shared.Api.OrderViewCommand.SetNthComponentsProperty [| 0; 2 |],
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthComponentsProperty [| 0; 2 |],
                         Domain.SetNthComponents(ctx, [| 0; 2 |])
-                        Shared.Api.OrderViewCommand.SelectNthOrderScenario 1, Domain.SelectNthOrderScenario(ctx, 1)
-                        Shared.Api.OrderViewCommand.SetNthScheduleProperty(ScheduleProperty.Frequency, 2),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SelectNthOrderScenario 1,
+                        Domain.SelectNthOrderScenario(ctx, 1)
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthScheduleProperty(
+                            ScheduleProperty.Frequency,
+                            2
+                        ),
                         Domain.SetNthOrderValue(ctx, SetNthScheduleFrequency 2)
-                        Shared.Api.OrderViewCommand.ClearScheduleProperty(ScheduleProperty.Time, [| "a" |]),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearScheduleProperty(
+                            ScheduleProperty.Time,
+                            [| "a" |]
+                        ),
                         Domain.ClearOrderValue(ctx, ClearScheduleTime, [ "a" ])
-                        Shared.Api.OrderViewCommand.SetNthOrderableProperty(OrderableProperty.DoseRate, 1),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthOrderableProperty(
+                            OrderableProperty.DoseRate,
+                            1
+                        ),
                         Domain.SetNthOrderValue(ctx, SetNthOrderableDoseRate 1)
-                        Shared.Api.OrderViewCommand.ClearOrderableProperty(OrderableProperty.Quantity, [||]),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearOrderableProperty(
+                            OrderableProperty.Quantity,
+                            [||]
+                        ),
                         Domain.ClearOrderValue(ctx, ClearOrderableQuantity, [])
-                        Shared.Api.OrderViewCommand.SetNthComponentProperty(
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthComponentProperty(
                             "cmp",
                             ComponentProperty.OrderableQuantity,
                             0
                         ),
                         Domain.SetNthOrderValue(ctx, SetNthComponentOrderableQuantity("cmp", 0))
-                        Shared.Api.OrderViewCommand.ClearComponentProperty(
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearComponentProperty(
                             "cmp",
                             ComponentProperty.DoseQuantityAdjust,
                             [||]
                         ),
                         Domain.ClearOrderValue(ctx, ClearComponentDoseQuantityAdjust "cmp", [])
-                        Shared.Api.OrderViewCommand.SetNthItemProperty("cmp", "itm", ItemProperty.DoseRate, 3),
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SetNthItemProperty(
+                            "cmp",
+                            "itm",
+                            ItemProperty.DoseRate,
+                            3
+                        ),
                         Domain.SetNthOrderValue(ctx, SetNthItemDoseRate("cmp", "itm", 3))
-                        Shared.Api.OrderViewCommand.ClearItemProperty(
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearItemProperty(
                             "cmp",
                             "itm",
                             ItemProperty.ComponentConcentration,
                             [||]
                         ),
                         Domain.ClearOrderValue(ctx, ClearItemComponentConcentration("cmp", "itm"), [])
-                        Shared.Api.OrderViewCommand.SeedFilter(
+                        Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
                             SeedSource.Formulary,
                             Some "pijn",
                             Some "morfine",
@@ -376,7 +409,7 @@ let tests =
                 (fun () ->
                     OrderContextMapper.Command.toDomain
                         OrderCategory.Drug
-                        (Shared.Api.OrderViewCommand.SetArgumentationProperty "text")
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SetArgumentationProperty "text")
                     |> ignore
                 )
                 |> Expect.throwsT<System.ArgumentException> "answered by the server"
@@ -386,10 +419,19 @@ let tests =
 
 [<Tests>]
 let clearMarkTests =
-    let vu = Shared.Models.Order.ValueUnit.create [| "10", 10m |] "mg" "Mass" true "dutch" ""
+    let vu =
+        Informedica.GenPRES.Shared.Models.Order.ValueUnit.create [| "10", 10m |] "mg" "Mass" true "dutch" ""
 
     let variable isNonZeroPositive =
-        Shared.Models.Order.Variable.create "dose" isNonZeroPositive (Some vu) true (Some vu) (Some vu) true None
+        Informedica.GenPRES.Shared.Models.Order.Variable.create
+            "dose"
+            isNonZeroPositive
+            (Some vu)
+            true
+            (Some vu)
+            (Some vu)
+            true
+            None
 
     testList
         "the clear mark"

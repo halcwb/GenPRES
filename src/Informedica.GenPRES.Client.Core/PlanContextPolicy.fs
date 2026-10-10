@@ -3,7 +3,7 @@
 /// calculated with match the plan's.
 module PlanContextPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// What the order dialog lets the user change.
@@ -87,7 +87,7 @@ let values (ovar: OrderVariable) =
 /// The values of the editable order variables of the order a context contributes; nothing
 /// when it contributes no order.
 let editableValues (ctx: OrderContext) =
-    Shared.Models.OrderContext.contribution ctx
+    Informedica.GenPRES.Shared.Models.OrderContext.contribution ctx
     |> Option.map (fun sc ->
         [
             sc.Order.Schedule.Frequency |> values
@@ -101,7 +101,8 @@ let editableValues (ctx: OrderContext) =
 /// created anew from the rules, for another medication or rebuilt, gets a new id; a step keeps
 /// it.
 let orderId (ctx: OrderContext) =
-    Shared.Models.OrderContext.contribution ctx |> Option.map _.Order.Id
+    Informedica.GenPRES.Shared.Models.OrderContext.contribution ctx
+    |> Option.map _.Order.Id
 
 
 /// Whether an order context in the plan changed against its opened or signed version: it holds

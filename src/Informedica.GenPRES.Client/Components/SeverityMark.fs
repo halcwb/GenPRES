@@ -9,7 +9,7 @@ module SeverityMark =
 
     open Fable.Core
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// The severity, and the reason as the caller words it; none when the caller cannot say.

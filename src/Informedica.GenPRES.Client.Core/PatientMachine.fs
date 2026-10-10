@@ -8,8 +8,8 @@
 ///   draft.
 module PatientMachine
 
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// What moves the patient machine. A message that starts a request carries its request id, so

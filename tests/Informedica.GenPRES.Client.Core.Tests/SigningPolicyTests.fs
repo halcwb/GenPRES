@@ -3,8 +3,8 @@ module Informedica.GenPRES.Client.Core.Tests.SigningPolicyTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared
-open Shared.Types
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
 open SessionMachine
 open SigningMachine
 open SigningPolicy
@@ -12,7 +12,7 @@ open SigningPolicy
 
 module Fixtures =
 
-    let patient = Shared.Models.Patient.empty
+    let patient = Informedica.GenPRES.Shared.Models.Patient.empty
 
     let userOf role =
         {
@@ -223,15 +223,15 @@ let tests =
 
             test "canSign: an open Session as Prescriber for a patient with at least one order" {
                 let withOrders =
-                    Shared.Models.OrderPlan.create
+                    Informedica.GenPRES.Shared.Models.OrderPlan.create
                         patient
                         [|
-                            { Shared.Models.OrderContext.empty with
+                            { Informedica.GenPRES.Shared.Models.OrderContext.empty with
                                 Scenarios = [| Unchecked.defaultof<OrderScenario> |]
                             }
                         |]
 
-                let empty = Shared.Models.OrderPlan.create patient [||]
+                let empty = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [||]
 
                 canSign (SessionView.Open(openedAs UserRole.Prescriber true)) withOrders
                 |> Expect.isTrue "prescriber"
@@ -258,7 +258,7 @@ let tests =
             }
 
             test "the dialog is up from the sign on: requesting, noticed, challenged or submitting" {
-                let plan = Shared.Models.OrderPlan.create patient [||]
+                let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [||]
                 dialogOpen SigningView.Idle |> Expect.isFalse "idle"
                 dialogOpen SigningView.RequestingChallenge
                 |> Expect.isTrue "requesting: modal from the sign on"
@@ -283,7 +283,7 @@ let tests =
             }
 
             test "a signature is under way from the sign until it is answered or cancelled" {
-                let plan = Shared.Models.OrderPlan.create patient [||]
+                let plan = Informedica.GenPRES.Shared.Models.OrderPlan.create patient [||]
 
                 underWay SigningView.Idle |> Expect.isFalse "idle"
                 underWay SigningView.RequestingChallenge |> Expect.isTrue "requesting"

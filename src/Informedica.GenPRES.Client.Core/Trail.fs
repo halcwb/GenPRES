@@ -8,9 +8,9 @@
 module Trail
 
 open System
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 
 
 /// A machine step, described.
@@ -952,7 +952,8 @@ module Shell =
 
 
     /// A language by its name.
-    let language (l: Shared.Localization.Locales) = Shared.Localization.toString l
+    let language (l: Informedica.GenPRES.Shared.Localization.Locales) =
+        Informedica.GenPRES.Shared.Localization.toString l
 
 
     /// What a url carries, by page and language and by kind for the rest, never a value: the values

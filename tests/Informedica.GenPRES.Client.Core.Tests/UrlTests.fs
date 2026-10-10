@@ -3,8 +3,8 @@ module Informedica.GenPRES.Client.Core.Tests.UrlTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared
-open Shared.Types
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
 open Url
 
 

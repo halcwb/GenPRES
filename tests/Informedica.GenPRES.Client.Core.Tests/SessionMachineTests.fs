@@ -6,7 +6,7 @@ module SessionMachineTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open SessionMachine
 
 
@@ -38,7 +38,7 @@ module SessionMachineTests =
             Head = None
         }
 
-    let patient = Shared.Models.Patient.empty
+    let patient = Informedica.GenPRES.Shared.Models.Patient.empty
 
     let full = sessionWith (Some "thumb") (Some patient)
 
@@ -47,7 +47,7 @@ module SessionMachineTests =
         { patient with
             Age =
                 Some
-                    { Shared.Models.Patient.Age.ageZero with
+                    { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with
                         Age.Years = 10<year>
                         Age.Days = 1<day>
                     }

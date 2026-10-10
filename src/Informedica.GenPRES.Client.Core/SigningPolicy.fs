@@ -2,8 +2,8 @@
 /// texts are Terms, translated by the caller.
 module SigningPolicy
 
-open Shared
-open Shared.Types
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
 open SessionMachine
 open SigningMachine
 
@@ -116,7 +116,7 @@ let canSign (session: SessionView) (plan: OrderPlan) =
     | SessionView.Open opened ->
         (opened.User |> Option.map _.Role) = Some UserRole.Prescriber
         && opened.PatientContext.IsSome
-        && (Shared.Models.OrderPlan.orders plan).Length > 0
+        && (Informedica.GenPRES.Shared.Models.OrderPlan.orders plan).Length > 0
     | _ -> false
 
 

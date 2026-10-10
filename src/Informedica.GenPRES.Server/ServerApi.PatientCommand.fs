@@ -4,8 +4,8 @@ namespace ServerApi
 /// The patient member: a patient change, answered with the patient made complete.
 module PatientCommand =
 
-    open Shared.Types
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Api
 
 
     /// The patient the request edits: the change's own.

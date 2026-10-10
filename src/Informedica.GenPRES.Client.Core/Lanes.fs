@@ -5,7 +5,7 @@
 /// the part that leaves the client.
 module Lanes
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open PatientMachine
 open SessionMachine
 open SigningMachine

@@ -8,9 +8,9 @@ module Patient =
     open Feliz
     open Fable.Core.JsInterop
     open Elmish
-    open Shared
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
     open OrderPlanMachine
     open OrderContextMachine
     open PatientDraftPolicy

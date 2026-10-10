@@ -2,7 +2,7 @@
 /// of a case is written where the client turns it into words.
 module Alert
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// How serious a sentence on the snackbar is.

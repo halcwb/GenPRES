@@ -3,7 +3,7 @@ namespace ServerApi
 
 module CompositionRoot =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
 
 
     /// The api of one request: the settings and the env are built once per host, the cookie
@@ -16,7 +16,7 @@ module CompositionRoot =
         (enrolment: EnrolmentCookie)
         : IServerApi
         =
-        let noPatient _ : Shared.Types.Patient option = None
+        let noPatient _ : Informedica.GenPRES.Shared.Types.Patient option = None
 
         {
             // every computing member goes through Compute.bound: the log, the Session marked seen

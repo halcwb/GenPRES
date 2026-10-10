@@ -8,21 +8,23 @@ open Expecto
 open Expecto.Flip
 open Informedica.GenOrder.Lib
 // after the domain, so that the contract model's cases win unqualified
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 open Informedica.GenPRES.Server.Tests.StubAdapterTests.SessionStubTests
 
 
-let ten = { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
-let eleven = { Shared.Models.Patient.Age.ageZero with Age.Years = 11<year> }
+let ten = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+let eleven = { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 11<year> }
 
 let weighing (kg: int) (p: Patient) =
     { p with Weight = { p.Weight with Measured = Some(kg * 1000<gram>) } }
 
-let patient = { Shared.Models.Patient.empty with Age = Some ten } |> weighing 30
+let patient =
+    { Informedica.GenPRES.Shared.Models.Patient.empty with Age = Some ten }
+    |> weighing 30
 
 let context (pat: Patient) (id: string) =
-    { Shared.Models.OrderContext.empty with
+    { Informedica.GenPRES.Shared.Models.OrderContext.empty with
         Id = id
         Patient = pat
         Scenarios = [| scenarioWithOrder $"o-%s{id}" |]
@@ -43,7 +45,7 @@ let parsedAt (age: Age option) (plan: OrderPlan) =
 
 /// A head as the record holds it: the order plan signed, in the domain.
 let head =
-    Shared.Models.OrderPlan.create patient [| context patient "c1"; context patient "c2" |]
+    Informedica.GenPRES.Shared.Models.OrderPlan.create patient [| context patient "c1"; context patient "c2" |]
     |> parsedAt (Some ten)
 
 
@@ -118,7 +120,9 @@ let tests =
             }
 
             test "a plan without a head is checked whole" {
-                Shared.Models.OrderPlan.create patient [| context patient "c1"; context (patient |> weighing 35) "c2" |]
+                Informedica.GenPRES.Shared.Models.OrderPlan.create
+                    patient
+                    [| context patient "c1"; context (patient |> weighing 35) "c2" |]
                 |> parsedAt (Some ten)
                 |> Session.differingContexts None
                 |> Expect.equal "every context is new" [| "c2" |]

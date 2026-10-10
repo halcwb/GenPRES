@@ -2,8 +2,8 @@
 /// chosen, folded once all are, and the user can toggle it in between.
 module SectionFoldPolicy
 
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 /// Whether a section is folded: what the last answer said, and the user's toggle since.

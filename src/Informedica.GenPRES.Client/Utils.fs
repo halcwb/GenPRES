@@ -40,8 +40,8 @@ module Logging =
 module GoogleDocs =
 
     open Fable.SimpleHttp
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
 
     // a sheet that cannot be read or parsed answers as a failure: an exception that escaped
     // would send no message at all, and the load would stay out for good
@@ -78,7 +78,7 @@ module GoogleDocs =
     let private dataGPUrlId = "1M90b_kPmANIdPFTvsDVaEGIEeQQ3md-Bt359Dmc2vIE"
 
 
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Models
 
 
     let loadBolusMedication () =

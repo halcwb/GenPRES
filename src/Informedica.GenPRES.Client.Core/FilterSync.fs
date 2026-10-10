@@ -2,7 +2,7 @@
 /// either page reaches the prescribing filter as a seed of the filter, which the server applies.
 module FilterSync
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// The formulary with the choices of the prescribing filter.

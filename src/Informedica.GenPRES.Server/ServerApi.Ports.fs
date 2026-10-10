@@ -1,7 +1,7 @@
 namespace ServerApi
 
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 // The ports on domain values name the domain through these; unqualified, the names below
 // are the contract model's, which the other ports still take.

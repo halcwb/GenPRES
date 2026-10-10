@@ -2,7 +2,7 @@ module Informedica.GenPRES.Client.Core.Tests.StartupPolicyTests
 
 open Expecto
 open Expecto.Flip
-open Shared
+open Informedica.GenPRES.Shared
 open Busy
 open SessionMachine
 open StartupPolicy
@@ -88,7 +88,7 @@ let tests =
             }
 
             test "the session's gate waits for a submission out when the session ended" {
-                let ended = SessionView.Ended Shared.Types.SessionEnding.WrongPinLimit
+                let ended = SessionView.Ended Informedica.GenPRES.Shared.Types.SessionEnding.WrongPinLimit
                 let submitting = SigningMachine.SigningView.Submitting SigningMachineTests.Fixtures.plan
 
                 isGated Startup.Started ended submitting |> Expect.isFalse "the outcome first"

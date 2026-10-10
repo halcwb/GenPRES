@@ -8,8 +8,8 @@ module GenPres =
     open Fable.React
     open Feliz
     open Elmish
-    open Shared
-    open Shared.Types
+    open Informedica.GenPRES.Shared
+    open Informedica.GenPRES.Shared.Types
     open OrderPlanMachine
     open OrderContextMachine
 

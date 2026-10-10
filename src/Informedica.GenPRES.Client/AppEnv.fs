@@ -1,7 +1,7 @@
 module AppEnv
 
-open Shared
-open Shared.Types
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
 
 
 /// Downcast appEnv to the requested interface.

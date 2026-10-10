@@ -2,9 +2,9 @@ module Informedica.GenPRES.Client.Core.Tests.LoaderMachineTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 open Busy
 open LoaderMachine
 

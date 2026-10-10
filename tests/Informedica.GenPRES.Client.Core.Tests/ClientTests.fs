@@ -3,9 +3,9 @@ module Informedica.GenPRES.Client.Core.Tests.ClientTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 open Lanes
 open PatientMachine
 open SessionMachine
@@ -48,7 +48,7 @@ let landed landing = ClientMsg.Loader(LoaderMsg.Landed landing)
 /// Every load the page load asks for, landed.
 let everyLoad =
     [
-        landed (Landing.Settings(Ok(ShellMachineTests.settings Shared.Localization.Dutch)))
+        landed (Landing.Settings(Ok(ShellMachineTests.settings Informedica.GenPRES.Shared.Localization.Dutch)))
         landed (Landing.Localization(Ok [||]))
         landed (
             Landing.NormalValues(
@@ -167,7 +167,7 @@ let tests =
                         (stateOf state |> startup, (stateOf state).Shell.Language.Current)
                         |> Expect.equal
                             "started, the settings' language"
-                            (StartupPolicy.Startup.Started, Shared.Localization.Dutch)
+                            (StartupPolicy.Startup.Started, Informedica.GenPRES.Shared.Localization.Dutch)
                     }
                 ]
 

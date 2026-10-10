@@ -16,8 +16,8 @@
 #load "../Utils.fs"
 #load "../Localization.fs"
 
-open Shared
-open Shared.Localization
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Localization
 
 
 /// The proposed cases. Same naming as the sheet: an area prefix, then the term. Every sentence is

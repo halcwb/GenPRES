@@ -471,7 +471,7 @@ module SqlSessions =
 
     open System
     open Microsoft.Data.Sqlite
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     // the canonical serializer the stored Dtos are written with
     open Informedica.GenOrder.Lib
 
@@ -659,13 +659,15 @@ module SqlSessions =
                 let at = at (r.GetInt64 3)
 
                 match r.GetString 0, value, days with
-                | "weight", _, _ -> Ok(Measurement.Weight(value |> Option.map Shared.Measures.toGram), at)
-                | "height", _, _ -> Ok(Measurement.Height(value |> Option.map Shared.Measures.toCm), at)
+                | "weight", _, _ ->
+                    Ok(Measurement.Weight(value |> Option.map Informedica.GenPRES.Shared.Measures.toGram), at)
+                | "height", _, _ ->
+                    Ok(Measurement.Height(value |> Option.map Informedica.GenPRES.Shared.Measures.toCm), at)
                 | "gestage", Some w, Some d ->
                     let gestAge: GestAge =
                         {
-                            Weeks = Shared.Measures.toWeek w
-                            Days = Shared.Measures.toDay d
+                            Weeks = Informedica.GenPRES.Shared.Measures.toWeek w
+                            Days = Informedica.GenPRES.Shared.Measures.toDay d
                         }
 
                     Ok(Measurement.GestAge(Some gestAge), at)

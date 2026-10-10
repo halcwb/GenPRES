@@ -4,9 +4,9 @@ open System
 open Expecto
 open Expecto.Flip
 open Informedica.GenForm.Lib
-open Shared
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 open ServerApi
 
 /// Stub adapters for isolated application-layer testing.
@@ -239,7 +239,14 @@ let commandRoutingTests =
                 let! result =
                     OrderContextCommand.processViewCmd
                         env
-                        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                        (Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None
+                         ),
                          emptyCtx)
 
                 match result with
@@ -270,7 +277,14 @@ let errorPropagationTests =
                 let! result =
                     OrderContextCommand.processViewCmd
                         env
-                        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                        (Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None
+                         ),
                          emptyCtx)
 
                 match result with
@@ -313,7 +327,14 @@ let requireLoadedTests =
                 let! result =
                     bound
                         env
-                        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                        (Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None
+                         ),
                          emptyCtx)
 
                 match result with
@@ -327,7 +348,14 @@ let requireLoadedTests =
                 let! result =
                     bound
                         env
-                        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                        (Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None
+                         ),
                          emptyCtx)
 
                 match result with
@@ -339,7 +367,7 @@ let requireLoadedTests =
 
 module SessionStubTests =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
 
 
     let lifetime = TimeSpan.FromMinutes 2.0
@@ -365,7 +393,7 @@ module SessionStubTests =
             |> Informedica.GenOrder.Lib.Medication.toOrderDto Scenarios.testStart
             |> Mappers.Order.mapFromOrderToShared [| "paracetamol" |]
 
-        Shared.Models.OrderScenario.create
+        Informedica.GenPRES.Shared.Models.OrderScenario.create
             "koorts"
             "paracetamol"
             "zetpil"
@@ -3799,7 +3827,7 @@ module SessionStubTests =
                 testAsync "getSettings answers the settings the host composed with, the default alone before a load" {
                     let settings =
                         {
-                            ServerSettings.Language = Shared.Localization.French
+                            ServerSettings.Language = Informedica.GenPRES.Shared.Localization.French
                             IsDemo = false
                             Departments = [||]
                             DefaultDepartment = ""
@@ -3829,7 +3857,7 @@ module SessionStubTests =
                 testAsync "getSettings carries the departments once the resources are loaded, the rest as composed" {
                     let settings =
                         {
-                            ServerSettings.Language = Shared.Localization.French
+                            ServerSettings.Language = Informedica.GenPRES.Shared.Localization.French
                             IsDemo = false
                             Departments = [||]
                             DefaultDepartment = ""
@@ -4747,7 +4775,7 @@ module SessionStubTests =
     let computeCompositionTests (newStore: unit -> StubDatabase.SessionStore) =
         let settings =
             {
-                ServerSettings.Language = Shared.Localization.Dutch
+                ServerSettings.Language = Informedica.GenPRES.Shared.Localization.Dutch
                 IsDemo = true
                 Departments = [||]
                 DefaultDepartment = "ICK"
@@ -4910,7 +4938,7 @@ module SessionStubTests =
 /// behind `requireLoaded`.
 module AdminTests =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
 
     let secret = Some "a-sixteen-char-secret!"
     let t0 = DateTimeOffset(2026, 9, 12, 12, 0, 0, TimeSpan.Zero)
@@ -5139,7 +5167,7 @@ module AdminTests =
 
                     let settings =
                         {
-                            ServerSettings.Language = Shared.Localization.Dutch
+                            ServerSettings.Language = Informedica.GenPRES.Shared.Localization.Dutch
                             IsDemo = true
                             Departments = [||]
                             DefaultDepartment = "ICK"
@@ -5165,7 +5193,7 @@ module AdminTests =
 /// `Compute.bound`: what every computing member goes through.
 module BoundTests =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
     open Newtonsoft.Json
     open Fable.Remoting.Json
 
@@ -5201,7 +5229,15 @@ module BoundTests =
         |> Async.RunSynchronously
 
     let formulary =
-        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None), emptyCtx)
+        (Api.OrderViewCommand.SeedFilter(
+            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+            None,
+            None,
+            None,
+            None,
+            None
+         ),
+         emptyCtx)
 
     let runInteraction env cookie cmd =
         Compute.bound
@@ -5235,7 +5271,9 @@ module BoundTests =
                         reply.Notice |> Expect.isNone "nothing told without a cookie"
 
                         reply.Response
-                        |> Expect.equal "computed" (Shared.Types.OrderContextResponse.Evaluated emptyCtx)
+                        |> Expect.equal
+                            "computed"
+                            (Informedica.GenPRES.Shared.Types.OrderContextResponse.Evaluated emptyCtx)
                     | Error errs -> failtest $"expected Ok, got {errs}"
                 }
 
@@ -5248,7 +5286,9 @@ module BoundTests =
                         |> Expect.equal "the ending" (Some(RecordNotice.Ended SessionEnding.SupersededByLaunch))
 
                         reply.Response
-                        |> Expect.equal "computed" (Shared.Types.OrderContextResponse.Evaluated emptyCtx)
+                        |> Expect.equal
+                            "computed"
+                            (Informedica.GenPRES.Shared.Types.OrderContextResponse.Evaluated emptyCtx)
                     | Error errs -> failtest $"expected Ok, got {errs}"
                 }
 
@@ -5356,7 +5396,7 @@ module BoundTests =
 /// GenORDER now, with their tests.
 module PlanTests =
 
-    open Shared.Api
+    open Informedica.GenPRES.Shared.Api
 
     let scenarioWithOrder = SessionStubTests.scenarioWithOrder
 
@@ -5429,7 +5469,7 @@ module PlanTests =
                                 p,
                                 "c-1",
                                 Api.OrderViewCommand.SeedFilter(
-                                    Shared.Types.SeedSource.Reload,
+                                    Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                     None,
                                     None,
                                     None,
@@ -5537,7 +5577,14 @@ let ingressTests =
                 let! result =
                     OrderContextCommand.processViewCmd
                         env
-                        (Api.OrderViewCommand.SeedFilter(Shared.Types.SeedSource.Reload, None, None, None, None, None),
+                        (Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None
+                         ),
                          Models.OrderContext.empty)
 
                 result |> refusedAs Patient.noPatient
@@ -5559,7 +5606,7 @@ let ingressTests =
                             emptyPlan,
                             "c-1",
                             Api.OrderViewCommand.SeedFilter(
-                                Shared.Types.SeedSource.Reload,
+                                Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                                 None,
                                 None,
                                 None,

@@ -6,10 +6,10 @@
 /// launched Session or work not signed.
 module ShellMachine
 
-open Shared
-open Shared.Types
-open Shared.Api
-open Shared.Localization
+open Informedica.GenPRES.Shared
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
+open Informedica.GenPRES.Shared.Localization
 open Page
 open OrderContextMachine
 

@@ -1,7 +1,7 @@
 /// Decides whether leaving the page would lose work.
 module UnsignedWorkPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open PlanWorkPolicy
 open SigningMachine
 

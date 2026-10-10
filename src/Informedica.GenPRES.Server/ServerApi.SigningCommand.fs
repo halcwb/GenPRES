@@ -2,8 +2,8 @@ namespace ServerApi
 
 open Informedica.GenOrder.Lib
 // after the domain, so that the contract model's cases win unqualified
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 
 /// The signing member: the plan of a challenge and of a submission parsed at the inbound

@@ -7,13 +7,13 @@ open Expecto.Flip
 open Informedica.Utils.Lib
 open Informedica.GenOrder.Lib
 
-module Ctx = Shared.Models.OrderContext
+module Ctx = Informedica.GenPRES.Shared.Models.OrderContext
 
 
 /// Today's path, through Shared and the server's order mapper.
 module Today =
 
-    let toDomain (ord: Shared.Types.Order) =
+    let toDomain (ord: Informedica.GenPRES.Shared.Types.Order) =
         ord
         |> ServerApi.Mappers.Order.mapFromSharedToOrder
         |> Order.Dto.fromDto
@@ -31,7 +31,7 @@ module Today =
 
 
     /// Today's pick: the key at the index set on the wire order, which is then solved.
-    let setNth t n (shared: Shared.Types.Order) =
+    let setNth t n (shared: Informedica.GenPRES.Shared.Types.Order) =
         match shared |> Ctx.Target.tryGet t with
         | None -> Error "no target"
         | Some ovar ->
@@ -40,19 +40,19 @@ module Today =
             | keys when n >= keys.Length -> Error "out of range"
             | keys ->
                 shared
-                |> Ctx.Target.map t (Shared.Models.Order.OrderVariable.setOvar (Some keys[n]))
+                |> Ctx.Target.map t (Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar (Some keys[n]))
                 |> toDomain
                 |> SolveOrder
                 |> run
 
 
     /// Today's clear: the variable cleared on the wire order, which is then reopened.
-    let clear t picks (shared: Shared.Types.Order) =
+    let clear t picks (shared: Informedica.GenPRES.Shared.Types.Order) =
         match shared |> Ctx.Target.tryGet t with
         | None -> Error "no target"
         | Some _ ->
             (shared
-             |> Ctx.Target.map t (Shared.Models.Order.OrderVariable.setOvar None)
+             |> Ctx.Target.map t (Informedica.GenPRES.Shared.Models.Order.OrderVariable.setOvar None)
              |> toDomain,
              picks)
             |> Reopen
@@ -124,29 +124,29 @@ module Fixtures =
 
 
     /// Every wire target the order holds.
-    let targets (ord: Shared.Types.Order) =
+    let targets (ord: Informedica.GenPRES.Shared.Types.Order) =
         [
-            Ctx.Target.Schedule Shared.Types.ScheduleProperty.Frequency
-            Ctx.Target.Schedule Shared.Types.ScheduleProperty.Time
-            Ctx.Target.Orderable Shared.Types.OrderableProperty.Quantity
-            Ctx.Target.Orderable Shared.Types.OrderableProperty.DoseQuantity
-            Ctx.Target.Orderable Shared.Types.OrderableProperty.DoseRate
+            Ctx.Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Frequency
+            Ctx.Target.Schedule Informedica.GenPRES.Shared.Types.ScheduleProperty.Time
+            Ctx.Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.Quantity
+            Ctx.Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.DoseQuantity
+            Ctx.Target.Orderable Informedica.GenPRES.Shared.Types.OrderableProperty.DoseRate
             for c in ord.Orderable.Components do
-                Ctx.Target.Component(c.Name, Shared.Types.ComponentProperty.OrderableQuantity)
-                Ctx.Target.Component(c.Name, Shared.Types.ComponentProperty.DoseQuantityAdjust)
+                Ctx.Target.Component(c.Name, Informedica.GenPRES.Shared.Types.ComponentProperty.OrderableQuantity)
+                Ctx.Target.Component(c.Name, Informedica.GenPRES.Shared.Types.ComponentProperty.DoseQuantityAdjust)
 
                 for i in c.Items do
                     for prop in
                         [
-                            Shared.Types.ItemProperty.DoseQuantity
-                            Shared.Types.ItemProperty.DoseQuantityAdjust
-                            Shared.Types.ItemProperty.DosePerTime
-                            Shared.Types.ItemProperty.DosePerTimeAdjust
-                            Shared.Types.ItemProperty.DoseRate
-                            Shared.Types.ItemProperty.DoseRateAdjust
-                            Shared.Types.ItemProperty.ComponentConcentration
-                            Shared.Types.ItemProperty.OrderableConcentration
-                            Shared.Types.ItemProperty.OrderableQuantity
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantity
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DoseQuantityAdjust
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DosePerTime
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DosePerTimeAdjust
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DoseRate
+                            Informedica.GenPRES.Shared.Types.ItemProperty.DoseRateAdjust
+                            Informedica.GenPRES.Shared.Types.ItemProperty.ComponentConcentration
+                            Informedica.GenPRES.Shared.Types.ItemProperty.OrderableConcentration
+                            Informedica.GenPRES.Shared.Types.ItemProperty.OrderableQuantity
                         ] do
                         Ctx.Target.Item(c.Name, i.Name, prop)
         ]
@@ -164,9 +164,9 @@ module Fixtures =
 
 /// Whether today's client changes more than the one variable: a component concentration is also
 /// changed in the first component, when that is another component holding the item.
-let fansOut (ord: Shared.Types.Order) t =
+let fansOut (ord: Informedica.GenPRES.Shared.Types.Order) t =
     match t, ord.Orderable.Components |> Array.toList with
-    | Ctx.Target.Item(cmp, itm, Shared.Types.ItemProperty.ComponentConcentration), first :: _ ->
+    | Ctx.Target.Item(cmp, itm, Informedica.GenPRES.Shared.Types.ItemProperty.ComponentConcentration), first :: _ ->
         first.Name <> cmp && first.Items |> Array.exists (fun i -> i.Name = itm)
     | _ -> false
 
@@ -253,14 +253,16 @@ let tests =
                 let id = ord.Id |> WrappedString.Id.toString
 
                 let cmd =
-                    Shared.Api.OrderViewCommand.ClearScheduleProperty(
-                        Shared.Types.ScheduleProperty.Frequency,
+                    Informedica.GenPRES.Shared.Api.OrderViewCommand.ClearScheduleProperty(
+                        Informedica.GenPRES.Shared.Types.ScheduleProperty.Frequency,
                         [| "[.x]_dos_qty" |]
                     )
 
                 match
                     ctx
-                    |> ServerApi.OrderContextMapper.Command.toDomain Shared.Types.OrderCategory.Drug cmd
+                    |> ServerApi.OrderContextMapper.Command.toDomain
+                        Informedica.GenPRES.Shared.Types.OrderCategory.Drug
+                        cmd
                 with
                 | OrderContext.ClearOrderValue(_, ClearScheduleFrequency, picks) ->
                     picks |> Expect.equal "the order id put back" [ $"[%s{id}.x]_dos_qty" ]

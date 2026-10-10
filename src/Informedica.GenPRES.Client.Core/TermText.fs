@@ -1,7 +1,7 @@
 /// Builds page text from translated terms.
 module TermText
 
-open Shared
+open Informedica.GenPRES.Shared
 
 
 /// Fills {0}, {1}, ... in a translated sentence with the given values, in order.

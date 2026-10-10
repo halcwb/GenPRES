@@ -13,8 +13,8 @@ module Mappers =
     open Informedica.GenOrder.Lib
 
 
-    open Shared.Types
-    open Shared
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared
 
 
     module Order =

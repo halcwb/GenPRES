@@ -6,7 +6,7 @@ module SeverityReasonPolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
     open SeverityReasonPolicy
 
 

@@ -3,7 +3,7 @@
 /// change, of a context that is not locked, whose value can be stepped now.
 module PlanCellPolicy
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// A column of the order plan table.
@@ -55,7 +55,7 @@ let stepable (plan: OrderPlan) (ctx: OrderContext) (column: Column) =
     if PlanContextPolicy.locked plan ctx then
         None
     else
-        Shared.Models.OrderContext.contribution ctx
+        Informedica.GenPRES.Shared.Models.OrderContext.contribution ctx
         |> Option.bind (fun sc ->
             fieldOf column sc.Order
             |> Option.filter (fun (field, ovar) ->

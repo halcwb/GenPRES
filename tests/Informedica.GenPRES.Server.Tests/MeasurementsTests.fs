@@ -6,8 +6,8 @@ module Informedica.GenPRES.Server.Tests.MeasurementsTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 open Informedica.Utils.Lib.BCL
 open Informedica.GenUnits.Lib
 open ServerApi
@@ -323,7 +323,9 @@ let tests =
                         let captured = ref None
 
                         let env =
-                            { makeEnv (formularyAlwaysOk Shared.Models.Formulary.empty) (orderContextAlwaysOk emptyCtx) with
+                            { makeEnv
+                                  (formularyAlwaysOk Informedica.GenPRES.Shared.Models.Formulary.empty)
+                                  (orderContextAlwaysOk emptyCtx) with
                                 session =
                                     { sessionNone with
                                         seen =

@@ -10,9 +10,9 @@
 /// - a failed change leaves the plan as it was, so the next action is the retry.
 module OrderPlanMachine
 
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 open PlanWorkPolicy
 
 
@@ -289,7 +289,7 @@ module OrderPlanState =
     /// The check of the plan's drugs for interactions, always asked, so a plan down to one drug
     /// clears the old warnings.
     let interactions (tp: OrderPlan) =
-        Shared.Models.OrderPlan.orders tp
+        Informedica.GenPRES.Shared.Models.OrderPlan.orders tp
         |> Array.map _.Name
         |> Array.distinct
         |> Array.toList

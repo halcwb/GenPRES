@@ -1,8 +1,8 @@
 namespace ServerApi
 
 open Informedica.GenOrder.Lib
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 
 /// The order-context member: the prescribing workbench over the order-context port.
@@ -36,7 +36,7 @@ module OrderContextCommand =
         let ctx, domainCmd =
             match cmd with
             | OrderViewCommand.SetArgumentationProperty text ->
-                ctx |> Shared.Models.OrderContext.Argumentation.write text, None
+                ctx |> Informedica.GenPRES.Shared.Models.OrderContext.Argumentation.write text, None
             | OrderViewCommand.ResetOrderScenario ->
                 { ctx with Argumentation = None }, Some(OrderContextMapper.Command.toDomain ctx.Category cmd)
             | cmd -> ctx, Some(OrderContextMapper.Command.toDomain ctx.Category cmd)

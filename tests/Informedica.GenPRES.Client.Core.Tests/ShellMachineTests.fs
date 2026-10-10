@@ -2,9 +2,9 @@ module Informedica.GenPRES.Client.Core.Tests.ShellMachineTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Api
-open Shared.Localization
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
+open Informedica.GenPRES.Shared.Localization
 open ServerErrorPolicy
 open ShellMachine
 
@@ -26,13 +26,15 @@ let idle =
 
 
 let pat =
-    { Shared.Models.Patient.empty with Age = Some { Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> } }
+    { Informedica.GenPRES.Shared.Models.Patient.empty with
+        Age = Some { Informedica.GenPRES.Shared.Models.Patient.Age.ageZero with Age.Years = 10<year> }
+    }
 
 
 let patientUrl = { Url.none with Patient = Some pat }
 
 
-let launch = Shared.Types.Launch "abc"
+let launch = Informedica.GenPRES.Shared.Types.Launch "abc"
 
 
 let launchUrl = { Url.none with Launch = Some(Url.LaunchUrl.Launch launch) }
@@ -187,7 +189,12 @@ let tests =
                         )
                         |> Expect.equal
                             "seeded"
-                            [ Shared.Types.SeedSource.Url, Some "pijn", Some "paracetamol", Some "or" ]
+                            [
+                                Informedica.GenPRES.Shared.Types.SeedSource.Url,
+                                Some "pijn",
+                                Some "paracetamol",
+                                Some "or"
+                            ]
                     }
                 ]
 
@@ -257,7 +264,10 @@ let tests =
 
                     test "a refused launch is applied in full, whatever holds" {
                         let refused =
-                            { Url.none with Launch = Some(Url.LaunchUrl.Refused Shared.Types.LaunchRefusal.NoRole) }
+                            { Url.none with
+                                Launch =
+                                    Some(Url.LaunchUrl.Refused Informedica.GenPRES.Shared.Types.LaunchRefusal.NoRole)
+                            }
 
                         loaded [ "a" ]
                         |> transition (ShellMsg.UrlChanged([ "r" ], refused, { idle with SigningUnderWay = true }))
@@ -267,7 +277,7 @@ let tests =
                             [
                                 ShellEffect.EraseLaunch
                                 ShellEffect.PatientFromUrl None
-                                ShellEffect.LaunchRefused Shared.Types.LaunchRefusal.NoRole
+                                ShellEffect.LaunchRefused Informedica.GenPRES.Shared.Types.LaunchRefusal.NoRole
                             ]
                     }
 

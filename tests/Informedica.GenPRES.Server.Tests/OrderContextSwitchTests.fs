@@ -7,7 +7,7 @@ open Expecto.Flip
 open Informedica.GenForm.Lib
 open Informedica.GenOrder.Lib
 // after Expecto, whose FocusState has a Normal case too
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 open ServerApi
 open Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters
 
@@ -15,19 +15,19 @@ open Informedica.GenPRES.Server.Tests.StubAdapterTests.StubAdapters
 let patient = StubPatientData.patient
 
 let ctx: OrderContext =
-    { Shared.Models.OrderContext.empty with
+    { Informedica.GenPRES.Shared.Models.OrderContext.empty with
         Id = "c-1"
         Category = OrderCategory.Nutrition NutritionCategory.TPN
         DemoVersion = true
-        Filter = { Shared.Models.OrderContext.filter with Generic = Some "glucose" }
+        Filter = { Informedica.GenPRES.Shared.Models.OrderContext.filter with Generic = Some "glucose" }
         Patient = patient
-        Intake = { Shared.Models.Totals.empty with Volume = [| Normal "10 ml" |] }
+        Intake = { Informedica.GenPRES.Shared.Models.Totals.empty with Volume = [| Normal "10 ml" |] }
     }
 
 let echo: OrderContextPort = { evaluate = fun _ pc -> async { return Ok(Evaluated pc) } }
 
 let envOver demo (port: OrderContextPort) =
-    { makeEnv (formularyAlwaysOk Shared.Models.Formulary.empty) port with demo = demo }
+    { makeEnv (formularyAlwaysOk Informedica.GenPRES.Shared.Models.Formulary.empty) port with demo = demo }
 
 
 [<Tests>]
@@ -39,8 +39,8 @@ let tests =
                 let! answer =
                     OrderContextCommand.processViewCmd
                         (envOver false echo)
-                        (Shared.Api.OrderViewCommand.SeedFilter(
-                            Shared.Types.SeedSource.Reload,
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                             None,
                             None,
                             None,
@@ -58,8 +58,8 @@ let tests =
                 let! demo =
                     OrderContextCommand.processViewCmd
                         (envOver true echo)
-                        (Shared.Api.OrderViewCommand.SeedFilter(
-                            Shared.Types.SeedSource.Reload,
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                             None,
                             None,
                             None,
@@ -80,8 +80,8 @@ let tests =
                 let! answer =
                     OrderContextCommand.processViewCmd
                         (envOver false port)
-                        (Shared.Api.OrderViewCommand.SeedFilter(
-                            Shared.Types.SeedSource.Reload,
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                             None,
                             None,
                             None,
@@ -111,7 +111,7 @@ let tests =
                 let! _ =
                     OrderContextCommand.processViewCmd
                         (envOver false port)
-                        (Shared.Api.OrderViewCommand.SelectNthOrderScenario 0, ctx)
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SelectNthOrderScenario 0, ctx)
 
                 match seen.Value with
                 | Some(OrderContext.SelectNthOrderScenario(domainCtx, _), id, category) ->
@@ -140,15 +140,15 @@ let tests =
                 let! answer =
                     OrderContextCommand.processViewCmd
                         (envOver false port)
-                        (Shared.Api.OrderViewCommand.SeedFilter(
-                            Shared.Types.SeedSource.Reload,
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                             None,
                             None,
                             None,
                             None,
                             None
                          ),
-                         { ctx with Patient = Shared.Models.Patient.empty })
+                         { ctx with Patient = Informedica.GenPRES.Shared.Models.Patient.empty })
 
                 answer |> Expect.equal "no patient" (Error [| Patient.noPatient |])
                 asked.Value |> Expect.isFalse "the port never asked"
@@ -160,8 +160,8 @@ let tests =
                 let! answer =
                     OrderContextCommand.processViewCmd
                         (envOver false port)
-                        (Shared.Api.OrderViewCommand.SeedFilter(
-                            Shared.Types.SeedSource.Reload,
+                        (Informedica.GenPRES.Shared.Api.OrderViewCommand.SeedFilter(
+                            Informedica.GenPRES.Shared.Types.SeedSource.Reload,
                             None,
                             None,
                             None,

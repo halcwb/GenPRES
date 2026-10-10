@@ -8,7 +8,7 @@ module LanguagePolicyTests =
 
     open Expecto
     open Expecto.Flip
-    open Shared.Localization
+    open Informedica.GenPRES.Shared.Localization
     open LanguagePolicy
 
 

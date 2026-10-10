@@ -1,7 +1,7 @@
 /// Tracks whether the order plan has changed since the version last opened or signed.
 module PlanWorkPolicy
 
-open Shared.Api
+open Informedica.GenPRES.Shared.Api
 
 
 /// Whether the order plan has changed since the version last opened or signed.

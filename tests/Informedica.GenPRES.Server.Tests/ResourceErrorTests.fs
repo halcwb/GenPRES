@@ -2,7 +2,7 @@ module Informedica.GenPRES.Server.Tests.ResourceErrorTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Models
+open Informedica.GenPRES.Shared.Models
 open Informedica.Logging.Lib
 open Informedica.GenForm.Lib
 open Informedica.GenForm.Lib.Resources

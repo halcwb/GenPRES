@@ -572,8 +572,8 @@ module Colors =
 module Styles =
 
     open Fable.Core.JsInterop
-    open Shared.Types
-    open Shared.Models
+    open Informedica.GenPRES.Shared.Types
+    open Informedica.GenPRES.Shared.Models
 
     /// The four severities the client shows, as the palette names them.
     let validColor = "success.main"
@@ -749,14 +749,14 @@ module Themes =
 
 module TypoGraphy =
 
-    open Shared.Types
+    open Informedica.GenPRES.Shared.Types
 
     open Feliz
 
     let fromTextBlock (textBlock: TextBlock) =
         let print tb =
-            let severity = tb |> Shared.Models.Severity.ofTextBlock
-            let items = tb |> Shared.Models.Severity.items
+            let severity = tb |> Informedica.GenPRES.Shared.Models.Severity.ofTextBlock
+            let items = tb |> Informedica.GenPRES.Shared.Models.Severity.items
 
             // bold text takes the severity's colour, valid text the palette's success colour
             let color = severity |> Styles.severityColor |> Option.defaultValue Styles.validColor

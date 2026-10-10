@@ -3,9 +3,9 @@ module Informedica.GenPRES.Client.Core.Tests.TrailTests
 open System
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Models
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
+open Informedica.GenPRES.Shared.Api
 open SessionMachine
 open SigningMachine
 open OrderPlanMachine
@@ -498,7 +498,7 @@ let tests =
             test "a dropped client message says so, never the patient data" {
                 Client.ClientStep.Dropped(
                     Client.ClientMsg.PanelChanged(
-                        Some Shared.Models.Patient.empty,
+                        Some Informedica.GenPRES.Shared.Models.Patient.empty,
                         PatientDraftPolicy.Estimates.Kept,
                         "p-1"
                     )
@@ -520,7 +520,7 @@ let tests =
                 let url =
                     { Url.none with
                         Page = Some Page.Page.Prescribe
-                        Patient = Some Shared.Models.Patient.empty
+                        Patient = Some Informedica.GenPRES.Shared.Models.Patient.empty
                         Launch = Some(Url.LaunchUrl.Launch(Launch "secret"))
                     }
 

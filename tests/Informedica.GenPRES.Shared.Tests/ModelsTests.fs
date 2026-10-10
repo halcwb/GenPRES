@@ -2,8 +2,8 @@ module Informedica.GenPRES.Shared.Tests.ModelsTests
 
 open Expecto
 open Expecto.Flip
-open Shared.Types
-open Shared.Models
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Models
 
 
 [<Tests>]

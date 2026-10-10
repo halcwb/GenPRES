@@ -13,7 +13,7 @@ module PickField =
 
     open Fable.Core
     open Feliz
-    open Shared
+    open Informedica.GenPRES.Shared
 
 
     /// How the field is drawn. The rule does not change with it: a long list is easier to type

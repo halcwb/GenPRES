@@ -2,8 +2,8 @@ namespace ServerApi
 
 open Informedica.GenOrder.Lib
 // after the domain, so that the contract model's cases win unqualified
-open Shared.Types
-open Shared.Api
+open Informedica.GenPRES.Shared.Types
+open Informedica.GenPRES.Shared.Api
 
 
 /// The plan member: the one plan, nutrition included, over the plan port.
@@ -83,7 +83,7 @@ module OrderPlanCommand =
             | OrderViewCommand.SetArgumentationProperty text when
                 plan.OrderContexts |> Array.exists (fun c -> c.Id = contextId)
                 ->
-                let ctx = ctx |> Shared.Models.OrderContext.Argumentation.write text
+                let ctx = ctx |> Informedica.GenPRES.Shared.Models.OrderContext.Argumentation.write text
 
                 let written (c: OrderContext) =
                     if c.Id = contextId then

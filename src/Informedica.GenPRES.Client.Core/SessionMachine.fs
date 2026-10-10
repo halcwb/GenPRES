@@ -2,7 +2,7 @@
 /// time. The App carries out the effects.
 module SessionMachine
 
-open Shared.Types
+open Informedica.GenPRES.Shared.Types
 
 
 /// What the pages read of the SessionState: the session's phase combined with the request under
