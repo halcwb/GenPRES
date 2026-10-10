@@ -308,4 +308,5 @@ Per step:
 | 5, group A and the #1209 baseline | #1416 | No `products` sheet; the marks are printed by the script and recorded on #1209. |
 | 6, group B | #1417 | `Models/` compiles before `Helpers/`; `Severity` and `OrderLoader` keep their names; the opens moved inside the modules. |
 | 7, group C | #1418 | `PatientRead` beside `PatientText` and `PatientEdit`; three estimate tests moved with the setters; the Terms draft script moved to Client.Core. |
+| 8, docs | #1419 | Also a client architecture section in ARCHITECTURE.md, and the project diagram colours its arrows: green inward, red for a tolerated outward reference. |
 
