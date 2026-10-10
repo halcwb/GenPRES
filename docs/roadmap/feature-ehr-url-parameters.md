@@ -8,7 +8,7 @@ integration point used when an external Electronic Health Record (EHR) links
 into GenPRES for a specific patient.
 
 The parameter set before the redesign below (now parsed in
-[Url.fs](../../src/Informedica.GenPRES.Client.Core/Url.fs)) only covers
+[Url.fs](../../src/Informedica.GenPRES.Client.Core/Helpers/Url.fs)) only covers
 demographic/clinical values needed for dose calculation:
 
 | Param | Meaning |

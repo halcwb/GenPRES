@@ -1,5 +1,7 @@
 namespace Components
 
+open Informedica.GenPRES.Client.Core.Policies
+
 
 /// One quantity of an order as the user sees and moves it: the value picked from what the
 /// rules allow, its severity marked on it, the step buttons beside it, and the value the

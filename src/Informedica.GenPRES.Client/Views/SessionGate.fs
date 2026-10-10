@@ -1,5 +1,8 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
+
 
 /// <summary>
 /// The session gate: a modal over the app while a launch is being presented or resumed, and

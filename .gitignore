@@ -284,6 +284,10 @@
 # Informedica.GenPRES.Client.Core
 !/src/Informedica.GenPRES.Client.Core/
 !/src/Informedica.GenPRES.Client.Core/Scripts/
+!/src/Informedica.GenPRES.Client.Core/Helpers/
+!/src/Informedica.GenPRES.Client.Core/Policies/
+!/src/Informedica.GenPRES.Client.Core/StateMachines/
+!/src/Informedica.GenPRES.Client.Core/MachinePolicies/
 
 # tests
 !/tests/
@@ -352,6 +356,10 @@
 !/tests/Informedica.GenPRES.Shared.Tests/Scripts/
 # Informedica.GenPRES.Client.Core.Tests
 !/tests/Informedica.GenPRES.Client.Core.Tests/
+!/tests/Informedica.GenPRES.Client.Core.Tests/Helpers/
+!/tests/Informedica.GenPRES.Client.Core.Tests/Policies/
+!/tests/Informedica.GenPRES.Client.Core.Tests/StateMachines/
+!/tests/Informedica.GenPRES.Client.Core.Tests/MachinePolicies/
 # Add Informedica.GenPRES.Server
 !/tests/Informedica.GenPRES.Server.Tests
 !/tests/Informedica.GenPRES.Server.Tests/Scripts/

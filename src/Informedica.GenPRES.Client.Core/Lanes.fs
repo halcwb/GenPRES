@@ -3,8 +3,10 @@
 /// in the same transition, never left for a later update. Every effect still comes out: the
 /// transition has done what it means for the other machines, and the App does the rest of it,
 /// the part that leaves the client.
-module Lanes
+module Informedica.GenPRES.Client.Core.Lanes
 
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
 open Informedica.GenPRES.Shared.Types
 open PatientMachine
 open SessionMachine

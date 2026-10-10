@@ -1,5 +1,7 @@
 namespace Components
 
+open Informedica.GenPRES.Client.Core.Policies
+
 
 /// One choice among some options: what the field offers is the pick rule's answer, not the
 /// page's. A field with nothing to choose is disabled and empty; a field with one option shows

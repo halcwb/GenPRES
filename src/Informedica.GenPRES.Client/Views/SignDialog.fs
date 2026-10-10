@@ -1,5 +1,9 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
+
 
 /// <summary>
 /// The signing dialog: modal over the order plan while a challenge stands. It lists the

@@ -1,5 +1,11 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+
+module Trail = Informedica.GenPRES.Client.Core.Trail
+
 
 module Order =
 

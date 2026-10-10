@@ -1,5 +1,10 @@
 module Informedica.GenPRES.Client.Core.Tests.LanesTests
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
+open Informedica.GenPRES.Client.Core.Tests.StateMachines
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared.Types
@@ -9,9 +14,11 @@ open SessionMachine
 open SigningMachine
 open OrderPlanMachine
 open OrderContextMachine
-open Lanes
+open Informedica.GenPRES.Client.Core.Lanes
 open Informedica.GenPRES.Client.Core.Tests.OrderFixtures
-open Informedica.GenPRES.Client.Core.Tests.OrderPlanMachineTests.Fixtures
+open OrderPlanFixtures
+
+module Lanes = Informedica.GenPRES.Client.Core.Lanes
 
 
 /// Request ids counted from one, as the App's random ones would be distinct.
@@ -312,7 +319,7 @@ let tests =
             }
 
             test "the Session ended during a submission: the outcome is told when the answer lands, then idle" {
-                let submitting = SigningMachineTests.Fixtures.submitting
+                let submitting = SigningFixtures.submitting
 
                 let lanes =
                     { Lanes.initial (Some draft) with
@@ -343,7 +350,7 @@ let tests =
 
                 let lanes, effects, _ =
                     lanes
-                    |> Lanes.transition (counter ()) (LanesMsg.Signing(SigningMachineTests.Fixtures.submitted "k-1"))
+                    |> Lanes.transition (counter ()) (LanesMsg.Signing(SigningFixtures.submitted "k-1"))
 
                 lanes.Signing |> SigningState.view |> Expect.equal "idle" SigningView.Idle
 
@@ -353,19 +360,19 @@ let tests =
                     | LanesEffect.Signing e -> Some e
                     | _ -> None
                 )
-                |> Expect.equal "the outcome alone" [ SigningEffect.TellSigned SigningMachineTests.Fixtures.signed ]
+                |> Expect.equal "the outcome alone" [ SigningEffect.TellSigned SigningFixtures.signed ]
             }
 
             test "a signature answered: the token, the patient and the signed plan land in the same transition" {
                 let lanes =
                     { Lanes.initial (Some draft) with
                         Session = SessionState.opened SessionMachineTests.full None
-                        Signing = SigningMachineTests.Fixtures.submitting
+                        Signing = SigningFixtures.submitting
                     }
 
                 let lanes, effects, steps =
                     lanes
-                    |> Lanes.transition (counter ()) (LanesMsg.Signing(SigningMachineTests.Fixtures.submitted "k-1"))
+                    |> Lanes.transition (counter ()) (LanesMsg.Signing(SigningFixtures.submitted "k-1"))
 
                 steps
                 |> List.choose (
@@ -379,13 +386,13 @@ let tests =
                 |> Expect.equal "the Session, the patient and the plan" [ "token"; "patient"; "signed" ]
 
                 effects
-                |> List.contains (LanesEffect.Signing(SigningEffect.TellSigned SigningMachineTests.Fixtures.signed))
+                |> List.contains (LanesEffect.Signing(SigningEffect.TellSigned SigningFixtures.signed))
                 |> Expect.isTrue "the message comes out"
 
                 match SessionState.view lanes.Session with
                 | SessionView.Open opened ->
                     opened.Head
-                    |> Expect.equal "the head is the version signed" (Some SigningMachineTests.Fixtures.signed)
+                    |> Expect.equal "the head is the version signed" (Some SigningFixtures.signed)
                 | view -> failtest $"not open: %A{view}"
             }
 
@@ -400,7 +407,7 @@ let tests =
                         newId
                         { Lanes.initial (Some measured) with
                             Session = SessionState.opened SessionMachineTests.full None
-                            Signing = SigningMachineTests.Fixtures.submitting
+                            Signing = SigningFixtures.submitting
                         }
                         [
                             LanesMsg.Patient(
@@ -413,7 +420,7 @@ let tests =
                     |> List.last
 
                 // the signature answered with the patient as signed, the same data
-                let signed = { SigningMachineTests.Fixtures.signed with Patient = pat }
+                let signed = { SigningFixtures.signed with Patient = pat }
 
                 let submitted =
                     SigningMsg.SubmitAnswered("k-1", Ok(SigningResponse.Submitted(signed, OpenedToken "t2", pat)))
@@ -503,7 +510,7 @@ let tests =
                 let lanes =
                     { Lanes.initial (Some draft) with
                         Session = SessionState.opened SessionMachineTests.full None
-                        Signing = SigningMachineTests.Fixtures.submitting
+                        Signing = SigningFixtures.submitting
                     }
 
                 let _, effects, steps = lanes |> Lanes.transition (counter ()) (LanesMsg.Signing refused)

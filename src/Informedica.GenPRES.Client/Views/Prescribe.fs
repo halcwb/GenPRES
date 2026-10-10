@@ -1,5 +1,8 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+
 
 module Prescribe =
 

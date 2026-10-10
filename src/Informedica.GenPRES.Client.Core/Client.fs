@@ -3,8 +3,12 @@
 /// part that another acts on is passed on to that part in the same transition, one way. Every
 /// effect still comes out, in the order the parts emitted it, and the App carries out what leaves
 /// the client.
-module Client
+module Informedica.GenPRES.Client.Core.Client
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
 open Informedica.GenPRES.Shared.Types
 open Page
 open Loads

@@ -5,8 +5,11 @@
 ///
 /// A line never holds a patient's identity, a user's name, a PIN, a code, a token, a url, an error
 /// text or the argumentation: a patient shows as age and weight, a version as its number.
-module Trail
+module Informedica.GenPRES.Client.Core.Trail
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
 open System
 open Informedica.GenPRES.Shared.Types
 open Informedica.GenPRES.Shared.Models

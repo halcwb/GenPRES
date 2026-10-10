@@ -1,5 +1,10 @@
 namespace Views
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
+
 
 module Patient =
 

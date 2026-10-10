@@ -1,5 +1,7 @@
 namespace Components
 
+open Informedica.GenPRES.Client.Core.Policies
+
 
 /// What every page says when the patient data is not enough for it: one notice, decided by
 /// PatientReadinessPolicy from the draft alone, in the same words and the same place on every page.

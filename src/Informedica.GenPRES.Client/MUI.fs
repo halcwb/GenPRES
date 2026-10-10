@@ -1,5 +1,6 @@
 module Mui
 
+open Informedica.GenPRES.Client.Core.Helpers
 open Fable.Core
 
 module Icons =

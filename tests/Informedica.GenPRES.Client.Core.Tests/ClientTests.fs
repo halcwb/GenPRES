@@ -1,12 +1,18 @@
 /// The client as one transition: use cases played through it, as the lanes' tests play theirs.
 module Informedica.GenPRES.Client.Core.Tests.ClientTests
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.MachinePolicies
+open Informedica.GenPRES.Client.Core.Tests.StateMachines
+open Informedica.GenPRES.Client.Core.Tests.MachinePolicies
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared.Types
 open Informedica.GenPRES.Shared.Models
 open Informedica.GenPRES.Shared.Api
-open Lanes
+open Informedica.GenPRES.Client.Core.Lanes
 open PatientMachine
 open SessionMachine
 open SigningMachine
@@ -15,8 +21,10 @@ open OrderContextMachine
 open LoaderMachine
 open AdminMachine
 open ShellMachine
-open Client
+open Informedica.GenPRES.Client.Core.Client
 open Informedica.GenPRES.Client.Core.Tests.OrderFixtures
+
+module Lanes = Informedica.GenPRES.Client.Core.Lanes
 
 
 /// Messages played one after another over the state, with fresh request ids; the state, the effects
@@ -503,13 +511,13 @@ let tests =
                             |> play
                                 [
                                     ClientMsg.Sign(one, "s-1")
-                                    ClientMsg.Lanes(LanesMsg.Signing(SigningMachineTests.Fixtures.issued "s-1"))
+                                    ClientMsg.Lanes(LanesMsg.Signing(SigningFixtures.issued "s-1"))
                                     ClientMsg.Lanes(LanesMsg.Signing(SigningMsg.ConfirmPin("1234", "k-1")))
-                                    ClientMsg.Lanes(LanesMsg.Signing(SigningMachineTests.Fixtures.submitted "k-1"))
+                                    ClientMsg.Lanes(LanesMsg.Signing(SigningFixtures.submitted "k-1"))
                                 ]
 
                         (stateOf result).Shell.Snackbar
-                        |> Expect.equal "said" (Some(Alert.Alert.OrderPlanSigned SigningMachineTests.Fixtures.signed))
+                        |> Expect.equal "said" (Some(Alert.Alert.OrderPlanSigned SigningFixtures.signed))
 
                         result
                         |> hasStep (

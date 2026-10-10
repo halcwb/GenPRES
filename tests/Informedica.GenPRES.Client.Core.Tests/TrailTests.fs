@@ -1,5 +1,9 @@
 module Informedica.GenPRES.Client.Core.Tests.TrailTests
 
+open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Policies
+open Informedica.GenPRES.Client.Core.StateMachines
+open Informedica.GenPRES.Client.Core.Tests.StateMachines
 open System
 open Expecto
 open Expecto.Flip
@@ -10,6 +14,10 @@ open SessionMachine
 open SigningMachine
 open OrderPlanMachine
 open OrderContextMachine
+
+module Lanes = Informedica.GenPRES.Client.Core.Lanes
+module Client = Informedica.GenPRES.Client.Core.Client
+module Trail = Informedica.GenPRES.Client.Core.Trail
 
 
 let at = DateTime(2026, 9, 30, 10, 41, 7, 311)
