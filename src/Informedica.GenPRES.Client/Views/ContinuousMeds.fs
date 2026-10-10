@@ -1,6 +1,7 @@
 namespace Views
 
 open Informedica.GenPRES.Client.Core.Helpers
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Policies
 
 
@@ -38,12 +39,12 @@ module ContinuousMeds =
         let renderQuantityCell =
             fun (pars: obj) ->
                 let value: string = pars?value
-                value |> TextBlock.fromString |> Mui.TypoGraphy.fromTextBlock
+                value |> TextBlockParser.fromString |> Mui.TypoGraphy.fromTextBlock
 
         let renderSolutionCell =
             fun (pars: obj) ->
                 let value: string = pars?value
-                value |> TextBlock.fromString |> Mui.TypoGraphy.fromTextBlock
+                value |> TextBlockParser.fromString |> Mui.TypoGraphy.fromTextBlock
 
         let columns =
             [|

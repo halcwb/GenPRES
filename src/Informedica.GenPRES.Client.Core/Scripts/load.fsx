@@ -12,6 +12,8 @@
 #load "../Helpers/Url.fs"
 #load "../Helpers/CommandPreview.fs"
 #load "../Helpers/FilterSeed.fs"
+#load "../Models/TextBlockParser.fs"
+#load "../Models/ContinuousMedicationList.fs"
 #load "../Policies/LanguagePolicy.fs"
 #load "../Policies/OrderContextRefusalPolicy.fs"
 #load "../Policies/PatientDraftPolicy.fs"
