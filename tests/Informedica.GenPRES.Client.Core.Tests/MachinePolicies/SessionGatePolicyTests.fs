@@ -4,6 +4,7 @@ namespace Informedica.GenPRES.Client.Core.Tests.MachinePolicies
 /// The session gate's policy, linked in from the client project.
 module SessionGatePolicyTests =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.StateMachines
     open Informedica.GenPRES.Client.Core.MachinePolicies
 

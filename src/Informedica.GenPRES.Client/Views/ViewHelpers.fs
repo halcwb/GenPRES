@@ -778,7 +778,7 @@ module ViewHelpers =
         /// The patient's weight for the print, or the caller's word for not known.
         let patientWeight (unknown: string) (patient: Patient option) =
             patient
-            |> Option.bind Models.Patient.getWeightInKg
+            |> Option.bind PatientRead.getWeightInKg
             |> Option.map (fun w ->
                 let s = decimal w |> Decimal.toStringNumberNLWithoutTrailingZerosFixPrecision 1
                 s + " kg"

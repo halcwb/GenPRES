@@ -4,6 +4,7 @@ namespace Informedica.GenPRES.Client.Core.Policies
 /// weight and height the user did not enter are estimated again after it.
 module PatientDraftPolicy =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Shared.Types
     open Informedica.GenPRES.Shared.Models
 
@@ -68,20 +69,20 @@ module PatientDraftPolicy =
     let update (msg: Msg) (draft: Patient option) : Patient option =
         match msg with
         | Msg.Clear -> None
-        | Msg.UpdateYear s -> draft |> Patient.setYear s
-        | Msg.UpdateMonth s -> draft |> Patient.setMonth s
-        | Msg.UpdateWeek s -> draft |> Patient.setWeek s
-        | Msg.UpdateDay s -> draft |> Patient.setDay s
-        | Msg.UpdateWeight s -> draft |> Patient.setWeight s
-        | Msg.UpdateHeight s -> draft |> Patient.setHeight s
-        | Msg.UpdateGAWeek s -> draft |> Patient.setGAWeek s
-        | Msg.UpdateGADay s -> draft |> Patient.setGADay s
-        | Msg.UpdateRenal s -> draft |> Patient.setRenal s
-        | Msg.UpdateGender s -> draft |> Patient.setGender s
+        | Msg.UpdateYear s -> draft |> PatientEdit.setYear s
+        | Msg.UpdateMonth s -> draft |> PatientEdit.setMonth s
+        | Msg.UpdateWeek s -> draft |> PatientEdit.setWeek s
+        | Msg.UpdateDay s -> draft |> PatientEdit.setDay s
+        | Msg.UpdateWeight s -> draft |> PatientEdit.setWeight s
+        | Msg.UpdateHeight s -> draft |> PatientEdit.setHeight s
+        | Msg.UpdateGAWeek s -> draft |> PatientEdit.setGAWeek s
+        | Msg.UpdateGADay s -> draft |> PatientEdit.setGADay s
+        | Msg.UpdateRenal s -> draft |> PatientEdit.setRenal s
+        | Msg.UpdateGender s -> draft |> PatientEdit.setGender s
         | Msg.UpdateDepartment s -> draft |> setDepartment s
-        | Msg.ToggleCVL -> draft |> Patient.toggleCVL
-        | Msg.TogglePVL -> draft |> Patient.togglePVL
-        | Msg.ToggleET -> draft |> Patient.toggleET
+        | Msg.ToggleCVL -> draft |> PatientEdit.toggleCVL
+        | Msg.TogglePVL -> draft |> PatientEdit.togglePVL
+        | Msg.ToggleET -> draft |> PatientEdit.toggleET
 
 
     /// Whether the App estimates the weight and height again after the edit: after an edit of the

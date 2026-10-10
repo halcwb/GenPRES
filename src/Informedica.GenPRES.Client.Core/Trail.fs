@@ -9,6 +9,7 @@ namespace Informedica.GenPRES.Client.Core
 /// text or the argumentation: a patient shows as age and weight, a version as its number.
 module Trail =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.Policies
     open Informedica.GenPRES.Client.Core.StateMachines
@@ -110,7 +111,7 @@ module Trail =
         let patient (p: Patient) =
             let age =
                 p
-                |> Patient.getAgeInYears
+                |> PatientRead.getAgeInYears
                 |> Option.map (fun a -> $"%.1f{a} y")
                 |> Option.defaultValue "no age"
 

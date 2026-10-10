@@ -4,6 +4,7 @@ namespace Informedica.GenPRES.Client.Core.MachinePolicies
 /// texts are Terms, translated by the caller.
 module SigningPolicy =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.StateMachines
     open Informedica.GenPRES.Shared

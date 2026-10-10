@@ -1,8 +1,8 @@
 // Session terms for the gate and the title bar (plan 409 follow-up, uc-01 Refusals).
 //
-// Script-first draft of the new `Terms` cases: `Shared/Localization.fs` is non-UI source, so the
+// Script-first draft of the new `Terms` cases: `Client.Core/Models/Terms.fs` is source, so the
 // cases are proposed here as `SessionTerms` (a DU cannot be extended in a script), with their
-// English defaults and Dutch translations, and checked against `Localization.getTerm` over rows
+// English defaults and Dutch translations, and checked against `LocalizationText.getTerm` over rows
 // shaped like the "Localization" sheet. After review, `printCases ()` gives the lines to paste
 // into `Terms`, and `printTsv ()` the rows for the sheet and `data/localization/*.tsv`.
 //
@@ -12,12 +12,16 @@
 #I __SOURCE_DIRECTORY__
 #r "nuget: Expecto, 10.2.3"
 
-#load "../Types.fs"
-#load "../Utils.fs"
-#load "../Localization.fs"
+#load "../../Informedica.GenPRES.Shared/Types.fs"
+#load "../../Informedica.GenPRES.Shared/Utils.fs"
+#load "../../Informedica.GenPRES.Shared/Localization.fs"
+#load "../Models/Terms.fs"
+#load "../Models/LocalizationText.fs"
 
 open Informedica.GenPRES.Shared
 open Informedica.GenPRES.Shared.Localization
+open Informedica.GenPRES.Client.Core.Models
+open Informedica.GenPRES.Client.Core.Models.LocalizationText
 
 
 /// The proposed cases. Same naming as the sheet: an area prefix, then the term. Every sentence is
@@ -440,7 +444,7 @@ let printRenamedRow () =
 // missing. One sentence, its own term, → `Terms`, after ``Patient enter patient data``; the row
 // → the sheet and `data/localization/*.tsv`.
 
-/// → `Shared/Localization.fs`, `Terms`.
+/// → `Client.Core/Models/Terms.fs`, `Terms`.
 type PatientTerms = | ``Patient enter age or weight and height``
 
 
@@ -486,7 +490,7 @@ let printPatientRow () =
 // and height for the rules to gate on, and the server refuses it. The page says so, one
 // sentence each, → `Terms`, after ``Prescribe Administration``; the rows → the sheet.
 
-/// → `Shared/Localization.fs`, `Terms`.
+/// → `Client.Core/Models/Terms.fs`, `Terms`.
 type PrescribeTerms =
     | ``Prescribe Age unknown``
     | ``Prescribe Weight and height unknown``
@@ -570,7 +574,7 @@ let printPrescribeRows () =
 // act is offered on several pages. → `Terms`, beside `Delete`; the row → the sheet and
 // `data/localization/*.tsv`.
 
-/// → `Shared/Localization.fs`, `Terms`.
+/// → `Client.Core/Models/Terms.fs`, `Terms`.
 type ResetTerms = | ``Reset``
 
 
@@ -648,7 +652,7 @@ type OrderContextResponse =
     | Refused of Types.OrderContext * OrderContextRefusal
 
 
-/// → `Shared/Localization.fs`, `Terms`.
+/// → `Client.Core/Models/Terms.fs`, `Terms`.
 type RefusalTerms =
     // the title of the notice
     | ``Prescribe Refusal``
@@ -758,7 +762,7 @@ let printRefusalRows () =
 // dialog, and the line under the field that says what to write.
 // ---------------------------------------------------------------------------------------------
 
-/// → `Shared/Localization.fs`, `Terms`, after ``Order Administration time``.
+/// → `Client.Core/Models/Terms.fs`, `Terms`, after ``Order Administration time``.
 type ArgumentationTerms =
     | ``Order Argumentation``
     | ``Order Argumentation Helper``

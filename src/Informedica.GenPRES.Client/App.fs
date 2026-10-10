@@ -540,8 +540,8 @@ let private calculateInterventions calc meds pat =
         match pat with
         | None -> Resolved []
         | Some p ->
-            let a = p |> Patient.getAgeInYears
-            let w = p |> Patient.getWeightInKg
+            let a = p |> PatientRead.getAgeInYears
+            let w = p |> PatientRead.getWeightInKg
             xs |> calc a w |> Resolved
     )
 

@@ -7,6 +7,7 @@ namespace Views
 /// its fields on one row, in one section that folds.
 module EnteralNutrition =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.StateMachines
 

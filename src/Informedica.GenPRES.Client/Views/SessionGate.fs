@@ -13,6 +13,7 @@ namespace Views
 /// </summary>
 module SessionGate =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.StateMachines
     open Informedica.GenPRES.Client.Core.MachinePolicies
 

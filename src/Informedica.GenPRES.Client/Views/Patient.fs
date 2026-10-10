@@ -35,12 +35,12 @@ module Patient =
         let show lang terms pat =
             let term fallback t =
                 terms
-                |> Deferred.map (fun terms -> Localization.getTerm terms lang t |> Option.defaultValue fallback)
+                |> Deferred.map (fun terms -> LocalizationText.getTerm terms lang t |> Option.defaultValue fallback)
                 |> Deferred.defaultValue fallback
 
             let toString =
                 match terms with
-                | Resolved terms -> Patient.toString terms lang true
+                | Resolved terms -> PatientText.toString terms lang true
                 | _ -> fun _ -> ""
 
             // what the draft misses to be a patient, in the words every page uses
@@ -615,14 +615,14 @@ module Patient =
                 if
                     pat |> Option.isSome
                     && pat
-                       |> Option.map (fun p -> p |> Patient.getAgeInYears |> Option.defaultValue 0. < 1)
+                       |> Option.map (fun p -> p |> PatientRead.getAgeInYears |> Option.defaultValue 0. < 1)
                        |> Option.defaultValue false
                 then
                     [| 24..42 |]
                     |> Array.map (fun k -> $"{k}", $"{k}")
                     |> createMeasureSelect
                         (Terms.``Patient Age weeks`` |> getTerm "weken" |> (fun s -> $"GA {s}"))
-                        (pat |> Option.bind Patient.getGAWeeks |> zeroToNone)
+                        (pat |> Option.bind PatientRead.getGAWeeks |> zeroToNone)
                         (fun s ->
                             keepOpen ()
                             s |> Msg.UpdateGAWeek |> dispatch
@@ -632,7 +632,7 @@ module Patient =
                     |> Array.map (fun k -> $"{k}", $"{k}")
                     |> createMeasureSelect
                         (Terms.``Patient Age days`` |> getTerm "dagen" |> (fun s -> $"GA {s}"))
-                        (pat |> Option.bind Patient.getGADays |> zeroToNone)
+                        (pat |> Option.bind PatientRead.getGADays |> zeroToNone)
                         (fun s ->
                             keepOpen ()
                             s |> Msg.UpdateGADay |> dispatch
@@ -686,11 +686,11 @@ module Patient =
                 </Box>
                 """
 
-                Patient.RenalFunction.options
+                RenalFunctionText.options
                 |> Array.map (fun k -> $"{k}", $"{k}")
                 |> createSelect
                     (Terms.``Patient Renal Function`` |> getTerm "Nierfunctie")
-                    (pat |> Option.bind Patient.getRenalFunction)
+                    (pat |> Option.bind PatientRead.getRenalFunction)
                     (fun s ->
                         keepOpen ()
                         s |> Msg.UpdateRenal |> dispatch

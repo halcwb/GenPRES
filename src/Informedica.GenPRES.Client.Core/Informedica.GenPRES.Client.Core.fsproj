@@ -10,6 +10,13 @@
   -->
   <ItemGroup>
     <!-- the code from Shared the client alone uses; it reads only Shared -->
+    <Compile Include="Models/Terms.fs" />
+    <Compile Include="Models/LocalizationText.fs" />
+    <Compile Include="Models/BodySurfaceArea.fs" />
+    <Compile Include="Models/RenalFunctionText.fs" />
+    <Compile Include="Models/PatientRead.fs" />
+    <Compile Include="Models/PatientText.fs" />
+    <Compile Include="Models/PatientEdit.fs" />
     <Compile Include="Models/Severity.fs" />
     <Compile Include="Models/TextBlockDisplay.fs" />
     <Compile Include="Models/TextBlockParser.fs" />

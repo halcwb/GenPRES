@@ -3,6 +3,7 @@ namespace Components
 
 module TitleBar =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.StateMachines
     open Informedica.GenPRES.Client.Core.MachinePolicies
@@ -127,7 +128,7 @@ module TitleBar =
 
             props.languages
             |> Array.mapi (fun i l ->
-                let flag = l |> Informedica.GenPRES.Shared.Localization.toFlag
+                let flag = l |> LocalizationText.toFlag
                 let name = l |> Informedica.GenPRES.Shared.Localization.toString
 
                 JSX.jsx

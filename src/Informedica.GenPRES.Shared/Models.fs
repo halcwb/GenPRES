@@ -112,54 +112,6 @@ module Models =
                     (if dys > 0 then Some(dys * 1<day>) else None)
 
 
-            let fromBirthDate (now: DateTime) (bdt: DateTime) =
-                if bdt > now then
-                    invalidArg (nameof bdt) $"birthdate: {bdt} cannot be after current date: {now}"
-                // calculated last birthdate and number of years ago
-                let last, yrs =
-                    // set day one day back if not a leap year, and the birthdate is at Feb 29 in a leap year
-                    let day =
-                        if (bdt.Month = 2 && bdt.Day = 29) |> not then bdt.Day
-                        else if DateTime.IsLeapYear(now.Year) then bdt.Day
-                        else bdt.Day - 1
-
-                    if now.Year - bdt.Year <= 0 then
-                        bdt, 0
-                    else
-                        let cur = DateTime(now.Year, bdt.Month, day)
-
-                        if cur <= now then
-                            cur, cur.Year - bdt.Year
-                        else
-                            cur.AddYears(-1), cur.Year - bdt.Year - 1
-                // printfn $"last birthdate: {last|> printDate}"
-                // calculate the number of months since last birthdate
-                let mos =
-                    [ 1..11 ]
-                    |> List.fold
-                        (fun (mos, n) _ ->
-                            let n = n + 1
-                            // printfn $"folding: {last.AddMonths(n) |> printDate}, {mos}"
-                            if last.AddMonths(n) <= now then mos + 1, n else mos, n
-                        )
-                        (0, 0)
-                    |> fst
-
-                let last = last.AddMonths(mos)
-                // calculate number of days
-                let days =
-                    if now.Day >= last.Day && now.Month = last.Month then
-                        now.Day - last.Day
-                    else
-                        DateTime.DaysInMonth(last.Year, last.Month) - last.Day + now.Day
-
-                create
-                    (yrs * 1<year>)
-                    (Some(mos * 1<month>))
-                    (Some(days / 7 * 1<week>))
-                    (Some((days - 7 * (days / 7)) * 1<day>))
-
-
             let getYears { Age.Years = yrs } = yrs
 
 
@@ -176,95 +128,6 @@ module Models =
 
 
             let calcMonths a = (a |> getYears |> int) * 12 + (a |> getMonths |> int)
-
-            let gestAgeToString terms lang (age: GestationalAge) =
-                let getTerm = Localization.getTerm terms
-
-                $"""
-    {age.Weeks} {getTerm lang Terms.``Patient Age weeks``} {age.Days} {getTerm lang Terms.``Patient Age days``}
-                """
-
-
-            let toString terms lang (age: Age) =
-                let getTerm = Localization.getTerm terms lang
-
-                let inline plur s1 s2 n = if int n = 1 then $"{int n} {s1}" else $"{int n} {s2}"
-
-                let d =
-                    age.Days
-                    |> plur (getTerm Terms.``Patient Age day``) (getTerm Terms.``Patient Age days``)
-
-                let w =
-                    age.Weeks
-                    |> plur (getTerm Terms.``Patient Age week``) (getTerm Terms.``Patient Age weeks``)
-
-                let m =
-                    age.Months
-                    |> plur (getTerm Terms.``Patient Age month``) (getTerm Terms.``Patient Age months``)
-
-                let y =
-                    age.Years
-                    |> plur (getTerm Terms.``Patient Age year``) (getTerm Terms.``Patient Age years``)
-
-                match age with
-                | _ when age.Years = 0<year> && age.Months = 0<month> && age.Weeks = 0<week> -> $"{d}"
-                | _ when age.Years = 0<year> && age.Months = 0<month> ->
-                    if age.Days = 0<day> then $"{w}" else $"{w} en {d}"
-                | _ when age.Years = 0<year> ->
-                    match age.Weeks, age.Days with
-                    | ws, ds when ds > 0<day> && ws > 0<week> -> $"{m}, {w} en {d}"
-                    | ws, ds when ds = 0<day> && ws > 0<week> -> $"{m}, {w}"
-                    | ws, ds when ds > 0<day> && ws = 0<week> -> $"{m}, {d}"
-                    | _ -> $"{m}"
-                | _ ->
-                    match age.Months, age.Weeks, age.Days with
-                    | ms, ws, ds when ms = 0<month> && ds > 0<day> && ws > 0<week> -> $"{y}, {w}, {d}"
-                    | ms, ws, ds when ms = 0<month> && ds = 0<day> && ws > 0<week> -> $"{y}, {w}"
-                    | ms, ws, ds when ms = 0<month> && ds > 0<day> && ws = 0<week> -> $"{y}, {d}"
-                    | ms, ws, ds when ms > 0<month> && ds > 0<day> && ws > 0<week> -> $"{y}, {m}, {w}, {d}"
-                    | ms, ws, ds when ms > 0<month> && ds = 0<day> && ws > 0<week> -> $"{y}, {m}, {w}"
-                    | ms, ws, ds when ms > 0<month> && ds > 0<day> && ws = 0<week> -> $"{y}, {m}, {d}"
-                    | ms, ws, ds when ms > 0<month> && ds = 0<day> && ws = 0<week> -> $"{y}, {m}"
-                    | _ -> $"{y}"
-
-
-        module RenalFunction =
-
-            let options =
-                [|
-                    "> 50 mL/min/1,73 m2"
-                    "30 - 50 mL/min/1,73 m2"
-                    "10 - 30 mL/min/1,73 m2"
-                    "< 10 mL/min/1,73 m2"
-                    "Intermitterende Hemodialyse"
-                    "Continue Hemodialyse"
-                    "Peritioneaal dialyse"
-                |]
-
-
-            let renalToOption =
-                function
-                | EGFR(min, max) ->
-                    match min, max with
-                    | _, Some max when max <= 10 -> options[3]
-                    | _, Some max when max <= 30 -> options[2]
-                    | _, Some max when max <= 50 -> options[1]
-                    | _ -> options[0]
-                | IntermittentHemodialysis -> options[4]
-                | ContinuousHemodialysis -> options[5]
-                | PeritonealDialysis -> options[6]
-
-
-            let optionToRenal s =
-                match s with
-                | s when s = options[1] -> EGFR(Some 30, Some 50)
-                | s when s = options[2] -> EGFR(Some 10, Some 30)
-                | s when s = options[3] -> EGFR(None, Some 10)
-                | s when s = options[4] -> IntermittentHemodialysis
-                | s when s = options[5] -> ContinuousHemodialysis
-                | s when s = options[6] -> PeritonealDialysis
-                | _ -> EGFR(Some 50, None)
-
 
         let apply f (p: Patient) = f p
 
@@ -287,32 +150,10 @@ module Models =
         let getAgeDays p = p |> getAge |> Option.map _.Days
 
 
-        let getGAWeeks (p: Patient) = p.GestationalAge |> Option.map _.Weeks
-
-
-        let getGADays (p: Patient) = p.GestationalAge |> Option.map _.Days
-
-
-        let getRenalFunction (p: Patient) = p.RenalFunction |> Option.map RenalFunction.renalToOption
-
-
         let tryParse (s: string) =
             match Int32.TryParse(s) with
             | false, _ -> None
             | true, v -> v |> Some
-
-
-        let getAgeInYears p =
-            [
-                p |> getAgeYears |> Option.map float
-                p |> getAgeMonths |> Option.map (fun ms -> (ms |> float) / 12.)
-                p |> getAgeWeeks |> Option.map (fun ws -> (ws |> float) / 52.)
-                p |> getAgeDays |> Option.map (fun ds -> (ds |> float) / 365.)
-            ]
-            |> List.choose id
-            |> function
-                | [] -> None
-                | xs -> xs |> List.sum |> Some
 
 
         let getAgeInDays p =
@@ -350,9 +191,6 @@ module Models =
                 pat.Weight.Estimated
 
 
-        let getWeightInKg (pat: Patient) = pat |> getWeight |> Option.map (fun x -> float x / 1000.)
-
-
         /// Get either the measured height or the
         /// estimated height if measured weight = 0
         let getHeight (pat: Patient) =
@@ -360,156 +198,6 @@ module Models =
                 pat.Height.Measured
             else
                 pat.Height.Estimated
-
-
-        let calcBSA (pat: Patient) =
-            match pat.Weight.Measured, pat.Weight.Estimated, pat.Height.Measured, pat.Height.Estimated with
-            | None, None, _, _
-            | _, _, None, None -> None
-
-            | Some w, _, Some h, _
-            | Some w, _, None, Some h
-            | None, Some w, Some h, _
-            | None, Some w, None, Some h -> Calculations.BSA.calcDuBois w h |> Some
-
-
-        let toString terms lang markDown (pat: Patient) =
-            let getTerm = Localization.getTerm terms lang
-
-            let toStr s n =
-                n |> Option.map (Math.fixPrecision 3 >> string >> (fun s' -> $"{s}{s'}"))
-
-            let bold s = s |> Option.map (fun s -> if markDown then $"**{s}**" else s)
-
-            let italic s = s |> Option.map (fun s -> if markDown then $"*{s}*" else s)
-
-            let isAdult =
-                pat.Age
-                |> Option.map (fun a -> a.Years >= 18<year>)
-                |> Option.defaultValue false
-
-            [
-                match pat.Gender with
-                | Male -> if isAdult then Some "Man" else Some "Jongen"
-                | Female -> if isAdult then Some "Vrouw" else Some "Meisje"
-                | UnknownGender -> Some "Onbekend geslacht"
-                |> bold
-
-                Some $"{Terms.``Patient Age`` |> getTerm}:" |> italic
-
-                pat.Age
-                |> Option.map (Age.toString terms lang)
-                |> bold
-                |> Option.orElse ("" |> Some)
-
-                Some $"{Terms.``Patient Weight`` |> getTerm}:" |> italic
-
-                pat.Weight.Measured
-                |> Option.map (fun x -> float x / 1000.)
-                |> toStr ""
-                |> Option.map (fun s -> $"{s} kg")
-                |> bold
-
-
-                match pat.Weight.EstimatedP3, pat.Weight.EstimatedP97 with
-                | Some p3, Some p97 ->
-                    let capt = $"{Terms.``Patient Estimated`` |> getTerm}: "
-                    let p3 = float p3 / 1000. |> Math.fixPrecision 3
-                    let p97 = float p97 / 1000. |> Math.fixPrecision 3
-                    $"{capt}({p3} - {p97} kg)" |> Some
-                | _ ->
-                    pat.Weight.Estimated
-                    |> Option.map (fun x -> float x / 1000.)
-                    |> toStr $"{Terms.``Patient Estimated`` |> getTerm}: "
-                    |> Option.map (fun s -> $"({s} kg)")
-
-
-                Some $"{Terms.``Patient Length`` |> getTerm}:" |> italic
-
-                pat.Height.Measured
-                |> Option.map float
-                |> toStr ""
-                |> Option.map (fun s -> $"{s} cm")
-                |> bold
-
-
-                match pat.Height.EstimatedP3, pat.Height.EstimatedP97 with
-                | Some p3, Some p97 ->
-                    let capt = $"{Terms.``Patient Estimated`` |> getTerm}: "
-                    let p3 = float p3 |> Math.fixPrecision 3
-                    let p97 = float p97 |> Math.fixPrecision 3
-                    $"{capt}({p3} - {p97} cm)" |> Some
-                | _ ->
-                    pat.Height.Estimated
-                    |> Option.map float
-                    |> toStr $"{Terms.``Patient Estimated`` |> getTerm}: "
-                    |> Option.map (fun s -> $"({s} cm)")
-
-
-                (Some "BSA:") |> italic
-                pat
-                |> calcBSA
-                |> Option.map (fun x ->
-                    let x = x |> float |> Math.fixPrecision 2
-                    $"{x} m2"
-                )
-                |> bold
-
-                if
-                    pat
-                    |> getAgeInDays
-                    |> Option.map (fun ds -> ds < 365.)
-                    |> Option.defaultValue false
-                then
-                    (Some $", {Terms.``Patient GA Age`` |> getTerm}:") |> italic
-
-                    pat.GestationalAge
-                    |> Option.map (Age.gestAgeToString terms lang)
-                    |> Option.orElse ("" |> Some)
-
-                if pat.RenalFunction |> Option.isSome then
-                    Some "Nierfunctie:" |> italic
-                    pat.RenalFunction |> Option.map RenalFunction.renalToOption |> bold
-
-            ]
-            |> List.choose id
-            |> String.concat " "
-            |> String.replace "  " " "
-
-
-        let toggle item (p: Patient option) : Patient option =
-            p
-            |> Option.map (fun p ->
-                { p with
-                    Access =
-                        if p.Access |> List.exists ((=) item) then
-                            p.Access |> List.filter ((<>) item)
-                        else
-                            p.Access |> List.append [ item ]
-                }
-            )
-
-
-        let toggleCVL = toggle CVL
-
-
-        let togglePVL = toggle PVL
-
-
-        let toggleET = toggle EnteralTube
-
-
-        let setRenal (s: string option) (p: Patient option) : Patient option =
-            let set rf (p: Patient option) =
-                match p with
-                | None -> p
-                | Some p -> { p with RenalFunction = rf } |> Some
-
-            match s with
-            | None -> p |> set None
-            | Some s ->
-                let rf = s |> RenalFunction.optionToRenal |> Some
-                p |> set rf
 
 
         let create years months weeks days weight height gw gd gend cvl gfr dep : Patient option =
@@ -586,22 +274,6 @@ module Models =
                         EstimatedP97 = eh |> Option.map (fun (_, _, p97) -> p97)
                     }
             }
-
-
-        /// The gender chosen: the estimates go, since they follow the gender; the measured values
-        /// stay, since they do not.
-        let setGender (s: string) (p: Patient option) : Patient option =
-            let gender =
-                match s with
-                | "male" -> Male
-                | "female" -> Female
-                | _ -> UnknownGender
-
-            p
-            |> Option.defaultValue empty
-            |> withEstimates None None
-            |> fun p -> { p with Gender = gender }
-            |> Some
 
 
         let applyNormalValues
@@ -706,94 +378,6 @@ module Models =
 
             // the estimate stays an estimate: the measured values hold what was entered or read
             pat |> withEstimates ew eh
-
-
-        /// The rule every setter follows: the draft, or the blank one, with the estimates
-        /// blanked and one change applied. Nothing else on the patient is touched, so a value
-        /// that was measured is never lost to an edit of another field, and an estimate is never
-        /// written back as a measured value; the estimates follow the age and the gender, and the
-        /// next applyNormalValues fills them again.
-        let edit (change: Patient -> Patient) (p: Patient option) : Patient option =
-            p |> Option.defaultValue empty |> withEstimates None None |> change |> Some
-
-
-        /// One part of the age written from the field. A draft with no age gets one when the
-        /// part is given and stays without one when it is not; a part cleared while the age
-        /// exists reads as zero, so the age is never lost by emptying one field of it.
-        let editAgePart (write: int -> Age -> Age) (s: string option) (p: Patient) =
-            match p.Age, s |> Option.bind tryParse with
-            | None, None -> p
-            | age, v ->
-                let age = age |> Option.defaultValue Age.ageZero |> write (v |> Option.defaultValue 0)
-
-                { p with Age = Some age }
-
-
-        let setYear s (p: Patient option) =
-            p |> edit (editAgePart (fun v a -> { a with Years = v |> Measures.toYear }) s)
-
-
-        let setMonth s (p: Patient option) =
-            p |> edit (editAgePart (fun v a -> { a with Months = v |> Measures.toMonth }) s)
-
-
-        let setWeek s (p: Patient option) =
-            p |> edit (editAgePart (fun v a -> { a with Weeks = v |> Measures.toWeek }) s)
-
-
-        let setDay s (p: Patient option) =
-            p |> edit (editAgePart (fun v a -> { a with Days = v |> Measures.toDay }) s)
-
-
-        /// One part of the gestational age written from the field, as the age parts are, with
-        /// the term values, 37 weeks and 0 days, for a part that was never given.
-        let editGestAgePart (write: int option -> GestAge -> GestAge) (s: string option) (p: Patient) =
-            match p.GestationalAge, s |> Option.bind tryParse with
-            | None, None -> p
-            | ga, v ->
-                let term: GestAge =
-                    {
-                        Weeks = 37<week>
-                        Days = 0<day>
-                    }
-
-                { p with GestationalAge = ga |> Option.defaultValue term |> write v |> Some }
-
-
-        let setGAWeek s (p: Patient option) =
-            p
-            |> edit (
-                editGestAgePart
-                    (fun v ga -> { ga with Weeks = v |> Option.map Measures.toWeek |> Option.defaultValue 37<week> })
-                    s
-            )
-
-
-        let setGADay s (p: Patient option) =
-            p
-            |> edit (
-                editGestAgePart
-                    (fun v ga -> { ga with Days = v |> Option.map Measures.toDay |> Option.defaultValue 0<day> })
-                    s
-            )
-
-
-        /// The measured weight in grams from the field; the height, measured or not, untouched.
-        let setWeight s (p: Patient option) =
-            p
-            |> edit (fun p ->
-                { p with
-                    Weight = { p.Weight with Measured = s |> Option.bind tryParse |> Option.map Measures.toGram }
-                }
-            )
-
-
-        /// The measured height in centimetres from the field; the weight, measured or not, untouched.
-        let setHeight s (p: Patient option) =
-            p
-            |> edit (fun p ->
-                { p with Height = { p.Height with Measured = s |> Option.bind tryParse |> Option.map Measures.toCm } }
-            )
 
 
     module Intervention =

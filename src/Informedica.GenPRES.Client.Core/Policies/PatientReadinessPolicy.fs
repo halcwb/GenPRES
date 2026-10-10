@@ -5,6 +5,7 @@ namespace Informedica.GenPRES.Client.Core.Policies
 /// continuous list, which have no order context, as for prescribe, nutrition and the plan.
 module PatientReadinessPolicy =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Shared
     open Informedica.GenPRES.Shared.Types

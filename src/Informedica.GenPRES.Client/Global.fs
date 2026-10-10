@@ -1,5 +1,6 @@
 module Global
 
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Helpers
 open Feliz
 open Informedica.GenPRES.Shared
@@ -10,7 +11,7 @@ type Pages = Page.Page
 
 let getLocalizedTerm (localizationTerms: Deferred<string[][]>) (lang: Localization.Locales) defVal term =
     localizationTerms
-    |> Deferred.map (fun terms -> Localization.getTerm terms lang term |> Option.defaultValue defVal)
+    |> Deferred.map (fun terms -> LocalizationText.getTerm terms lang term |> Option.defaultValue defVal)
     |> Deferred.defaultValue defVal
 
 
