@@ -7,6 +7,7 @@ namespace Views
 module LeaveDialog =
 
 
+    open Informedica.GenPRES.Client.Core.Models
     open Fable.Core
     open Informedica.GenPRES.Shared
 

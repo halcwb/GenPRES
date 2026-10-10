@@ -5,6 +5,7 @@ namespace Informedica.GenPRES.Client.Core.MachinePolicies
 /// that failed keeps it on hold and is named, so a list is never silently empty.
 module StartupPolicy =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.Policies
     open Informedica.GenPRES.Shared

@@ -4,6 +4,7 @@ namespace Informedica.GenPRES.Client.Core.Tests.Policies
 /// What an edit of the patient panel does to the draft, and what the App holds after it.
 module PatientDraftPolicyTests =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
@@ -49,11 +50,15 @@ module PatientDraftPolicyTests =
 
 
         /// A ten-year-old boy as the App holds him: the age entered, weight and height estimated.
-        let estimatedBoy = None |> Patient.setYear (Some "10") |> Patient.setGender "male" |> appStep
+        let estimatedBoy =
+            None
+            |> PatientEdit.setYear (Some "10")
+            |> PatientEdit.setGender "male"
+            |> appStep
 
 
         /// The same boy with a measured weight; the height is still estimated.
-        let weighedBoy = estimatedBoy |> Patient.setWeight (Some "30000") |> appStep
+        let weighedBoy = estimatedBoy |> PatientEdit.setWeight (Some "30000") |> appStep
 
 
         let weight (draft: Patient option) = draft |> Option.map _.Weight
@@ -101,28 +106,28 @@ module PatientDraftPolicyTests =
             [
                 test "an estimated height cleared gives back the draft the App had" {
                     estimatedBoy
-                    |> Patient.setHeight None
+                    |> PatientEdit.setHeight None
                     |> appStep
                     |> Expect.equal "the same draft" estimatedBoy
                 }
 
                 test "an estimated weight cleared gives back the draft the App had" {
                     estimatedBoy
-                    |> Patient.setWeight None
+                    |> PatientEdit.setWeight None
                     |> appStep
                     |> Expect.equal "the same draft" estimatedBoy
                 }
 
                 test "the measured weight chosen again gives back the draft the App had" {
                     weighedBoy
-                    |> Patient.setWeight (Some "30000")
+                    |> PatientEdit.setWeight (Some "30000")
                     |> appStep
                     |> Expect.equal "the same draft" weighedBoy
                 }
 
                 test "a measured height cleared brings the height estimate back and keeps the measured weight" {
-                    let measured = weighedBoy |> Patient.setHeight (Some "135") |> appStep
-                    let cleared = measured |> Patient.setHeight None |> appStep
+                    let measured = weighedBoy |> PatientEdit.setHeight (Some "135") |> appStep
+                    let cleared = measured |> PatientEdit.setHeight None |> appStep
 
                     (measuredWeight cleared, measuredHeight cleared, estimatedHeight cleared)
                     |> Expect.equal
@@ -203,7 +208,7 @@ module PatientDraftPolicyTests =
                     measuredWeight edited |> Expect.equal "28 kg measured" (Some 28000<gram>)
 
                     edited
-                    |> Patient.setWeight None
+                    |> PatientEdit.setWeight None
                     |> Expect.equal "otherwise the estimated boy without estimates" (blanked estimatedBoy)
                 }
 
@@ -333,15 +338,15 @@ module PatientDraftPolicyTests =
 
                 test "a measured weight alone is no patient" {
                     None
-                    |> Patient.setWeight (Some "30000")
+                    |> PatientEdit.setWeight (Some "30000")
                     |> canCalculate
                     |> Expect.isFalse "no patient"
                 }
 
                 test "a measured weight and height are a patient" {
                     None
-                    |> Patient.setWeight (Some "30000")
-                    |> Patient.setHeight (Some "135")
+                    |> PatientEdit.setWeight (Some "30000")
+                    |> PatientEdit.setHeight (Some "135")
                     |> canCalculate
                     |> Expect.isTrue "a patient"
                 }

@@ -130,9 +130,9 @@ for the patient display. Everything else was removed: the other four BSA formula
 utilities except `weeksToDays`, the renal unit conversions, the eGFR formulas and the GFR
 classification.
 
-What is left in Shared is `BSA.calcDuBois`, the `Conversions` it needs, `Age.weeksToDays` and
-the `bsa` unit. These are client code: `calcDuBois` moves to Client.Core with the patient
-display. The single source of truth this ADR aimed for is GenCORE, on the server.
+What is left in Shared is `Age.weeksToDays`, which the patient readers use. `calcDuBois`, the
+`Conversions` it needs and the `bsa` unit moved to Client.Core with the patient display, as
+`BodySurfaceArea`. The single source of truth this ADR aimed for is GenCORE, on the server.
 
 ## Consequences
 

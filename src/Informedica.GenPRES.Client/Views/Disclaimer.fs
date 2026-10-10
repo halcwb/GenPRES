@@ -3,6 +3,7 @@ namespace Views
 
 module Disclaimer =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
 
     open Fable.Core

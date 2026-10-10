@@ -7,6 +7,7 @@ namespace Views
 /// a slot that folds, with its components, and a button that prints them.
 module ParenteralNutrition =
 
+    open Informedica.GenPRES.Client.Core.Models
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Client.Core.Policies
     open Informedica.GenPRES.Client.Core.StateMachines

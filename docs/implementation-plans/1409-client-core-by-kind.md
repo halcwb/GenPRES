@@ -242,9 +242,18 @@ comment with the new location.
    `OrderLoader` type with its module beside it, `TotalsDisplay`, `DoseTypeText`, `Severity` (type
    and module), `TextBlockDisplay` (`maxTb`, `flatten`) and `OrderContextText` (`label`). The
    Severity tests, the render tests and the label tests move to Client.Core.Tests.
-7. **Group C**, with its tests. `scripts/CheckLocalization.fsx` loads `Shared/Types.fs`,
-   `Utils.fs` and `Localization.fs` with `#load`; it loads the moved `Terms` file in the same
-   PR.
+7. **Group C**, with its tests. The code goes to `Models/`, named by the rule in the decisions:
+   the `Terms` type; `LocalizationText` (`getTerm`, `toFlag`); `BodySurfaceArea` (`calcDuBois`,
+   its conversions and the `bsa` unit, from `Calculations.fs`, which keeps `weeksToDays`);
+   `RenalFunctionText`; `PatientRead` (`Age.fromBirthDate`, `getAgeInYears`, `getWeightInKg` and
+   the panel's field reads); `PatientText` (`Age.toString`, `gestAgeToString`, `calcBSA`,
+   `toString`); `PatientEdit` (the toggles, setters and `edit*`). What the server uses stays in
+   Shared: `Patient.create`, `empty`, `validate`, `getWeight`, `getHeight`, `getAgeInDays`,
+   `getGestAgeInDays` and the readers they use, `Age.ageZero`, `create` and `fromDays`. The
+   `toString` cases of `AgeTests` and the setter tests of `ModelsTests` move, with the three
+   estimate tests that call a setter; their fixtures are copied, since the two test projects
+   cannot share a file. `scripts/CheckLocalization.fsx` loads the moved `Terms` file with
+   `#load`, and the `Terms` draft script moves to `Client.Core/Scripts/Localization.fsx`.
 8. **Docs.** The Client.Core paragraph in AGENTS.md, ARCHITECTURE.md, DEVELOPMENT.md (it names
    `Trail`), the `Shared.` names in AGENTS.md and ADR-0008 (including R1's mention of the
    ADR-0003 formulas), and an addendum to
@@ -262,7 +271,9 @@ comment with the new location.
 - **Pure logic still in the Client**, owned by other plans: the ViewHelpers stepping arithmetic
   (about 160 lines), `Interactions.getPlanDrugs`, which repeats `OrderPlanState.interactions`,
   `Global.pageToString`, the Order and NutritionSlot dialog updates and their trail describers.
-- **Untested today**: `FilterSync` and `Alert.severity`.
+- **Untested today**: `FilterSync` and `Alert.severity`; from group C, `PatientText.toString` and
+  `calcBSA`, the `PatientRead` getters, `RenalFunctionText` and `LocalizationText`, untested in
+  Shared as well.
 - **#1390** (a dose below 0.1 shows four significant digits) is a bug in `Decimal.fixPrecision`,
   which stays in Shared. Its fix is a logic change and stays out of the move PRs.
 - **#1127** names the layers; it may rename the `Models/` folder later.

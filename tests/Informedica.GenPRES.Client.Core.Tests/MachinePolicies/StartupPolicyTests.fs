@@ -1,5 +1,6 @@
 module Informedica.GenPRES.Client.Core.Tests.MachinePolicies.StartupPolicyTests
 
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Helpers
 open Informedica.GenPRES.Client.Core.StateMachines
 open Informedica.GenPRES.Client.Core.MachinePolicies

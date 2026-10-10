@@ -1,6 +1,7 @@
 /// The refusal's notice policy, linked in from the client project.
 module Informedica.GenPRES.Client.Core.Tests.Policies.OrderContextRefusalPolicyTests
 
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Policies
 open Expecto
 open Expecto.Flip

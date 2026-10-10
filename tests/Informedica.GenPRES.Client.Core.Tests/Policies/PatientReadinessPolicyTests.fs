@@ -1,6 +1,7 @@
 /// What the pages can do with the patient draft, and what they say when it is not enough.
 module Informedica.GenPRES.Client.Core.Tests.Policies.PatientReadinessPolicyTests
 
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Policies
 open Expecto
 open Expecto.Flip
@@ -17,20 +18,20 @@ let empty = Models.Patient.empty
 
 
 /// An age of five years, nothing else.
-let aged = Models.Patient.setYear (Some "5") None
+let aged = PatientEdit.setYear (Some "5") None
 
 
 /// An age of ten weeks, nothing else: younger than 28 weeks, so the gestational age matters.
-let infant = Models.Patient.setWeek (Some "10") None
+let infant = PatientEdit.setWeek (Some "10") None
 
 
-let withWeight (p: Patient option) = p |> Models.Patient.setWeight (Some "18000")
+let withWeight (p: Patient option) = p |> PatientEdit.setWeight (Some "18000")
 
 
-let withHeight (p: Patient option) = p |> Models.Patient.setHeight (Some "110")
+let withHeight (p: Patient option) = p |> PatientEdit.setHeight (Some "110")
 
 
-let withGestationalAge (p: Patient option) = p |> Models.Patient.setGAWeek (Some "36")
+let withGestationalAge (p: Patient option) = p |> PatientEdit.setGAWeek (Some "36")
 
 
 /// The weight and the height estimated, as the App fills them in from the age. Applied last,
@@ -65,7 +66,7 @@ let tests =
                     test "a draft with only a gender, a department or a renal function is no patient" {
                         for draft in
                             [
-                                Models.Patient.setGender "male" None
+                                PatientEdit.setGender "male" None
                                 PatientDraftPolicy.setDepartment (Some "ICK") None
                                 Some { empty with RenalFunction = Some Types.RenalFunction.PeritonealDialysis }
                             ] do
@@ -128,7 +129,7 @@ let tests =
                         // the setter blanks the estimates, as the panel's edit does
                         aged
                         |> estimated
-                        |> Models.Patient.setWeight None
+                        |> PatientEdit.setWeight None
                         |> readiness
                         |> Expect.equal "no estimate stands in" (Readiness.Patient [ Missing.Weight; Missing.Height ])
                     }
@@ -149,7 +150,7 @@ let tests =
                     }
 
                     test "a patient of 28 weeks or older needs no gestational age" {
-                        for draft in [ Models.Patient.setWeek (Some "28") None; aged ] do
+                        for draft in [ PatientEdit.setWeek (Some "28") None; aged ] do
                             draft
                             |> estimated
                             |> readiness

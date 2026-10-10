@@ -152,7 +152,7 @@ module Url =
             let month = parameters |> tryInt "bmo" |> Option.defaultValue 1
             let day = parameters |> tryInt "bdy" |> Option.defaultValue 1
 
-            Patient.Age.fromBirthDate now (DateTime(year, month, day)) |> Some
+            PatientRead.Age.fromBirthDate now (DateTime(year, month, day)) |> Some
         | _, Some days -> Patient.Age.fromDays days |> Some
         | _ -> None
 
