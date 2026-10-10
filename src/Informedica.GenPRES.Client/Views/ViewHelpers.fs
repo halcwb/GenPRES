@@ -1,10 +1,12 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
 
 #nowarn "1104"
 
 module ViewHelpers =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
     open System
     open Fable.Core
@@ -66,7 +68,7 @@ module ViewHelpers =
     /// cross as the reason.
     let markOf (ovar: OrderVariable) : Mark =
         {|
-            severity = ovar.Level |> Models.Severity.ofLevel
+            severity = ovar.Level |> Severity.ofLevel
             reason = ovar |> SeverityReasonPolicy.ofOrderVariable |> Option.bind reasonText
         |}
 
@@ -319,7 +321,7 @@ module ViewHelpers =
         ovar.Variable.Vals
         |> Option.map (fun v -> v.Value |> Array.map (fun (s, d) -> s, $"{d |> format} {v.Unit}"))
         |> Option.defaultValue (
-            match Variable.renderValue prec ovar.Variable with
+            match OrderDisplay.Variable.renderValue prec ovar.Variable with
             | "" -> [||]
             | s -> [| "range", s |]
         )
@@ -650,7 +652,7 @@ module ViewHelpers =
 
     /// The text of a block, its items joined, without their emphasis or the block's severity.
     let textBlockText block =
-        block |> Models.Severity.items |> Array.map textItemText |> String.concat ""
+        block |> Severity.items |> Array.map textItemText |> String.concat ""
 
 
     /// The command that picks the nth value of the variable the target addresses.

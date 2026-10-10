@@ -1,8 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Policies
 
+
 /// Decides what the prescribing page says when the server refuses an order context. The texts
 /// are Terms, translated by the caller.
 module OrderContextRefusalPolicy =
+
+    open Informedica.GenPRES.Client.Core.Models
 
     open Informedica.GenPRES.Client.Core.Helpers
     open Informedica.GenPRES.Shared
@@ -45,7 +48,7 @@ module OrderContextRefusalPolicy =
             filter.Generic
             filter.Route
             filter.Form
-            filter.DoseType |> Option.map DoseType.doseTypeToDescription
+            filter.DoseType |> Option.map DoseTypeText.doseTypeToDescription
         ]
         |> List.choose id
         |> String.concat ", "

@@ -1,7 +1,5 @@
 namespace Components
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// One quantity of an order as the user sees and moves it: the value picked from what the
 /// rules allow, its severity marked on it, the step buttons beside it, and the value the
@@ -13,6 +11,9 @@ open Informedica.GenPRES.Client.Core.Policies
 /// keeps the value and the buttons where they were on screen. A value whose large step is its
 /// small step is the exception: it never has outer buttons, so it leaves their slots out.
 module QuantityField =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
 
 
     open Fable.Core
@@ -96,7 +97,7 @@ module QuantityField =
             busy: bool
             disabled: bool
             isLoading: bool
-            severity: Types.Severity
+            severity: Severity
             // why the value is marked, as the caller words it; shown on hover
             reason: string option
             minWidth: int option

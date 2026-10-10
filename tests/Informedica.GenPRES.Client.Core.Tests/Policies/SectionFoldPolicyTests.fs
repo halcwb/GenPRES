@@ -1,12 +1,12 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// The fold of a section of order fields: folded once solved, open while a value is to be
 /// chosen, the user's toggle in between, and a server answer that changes the solved state
 /// dropping the toggle.
 module SectionFoldPolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open Expecto
     open Expecto.Flip

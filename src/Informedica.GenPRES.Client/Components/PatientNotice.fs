@@ -1,12 +1,12 @@
 namespace Components
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// What every page says when the patient data is not enough for it: one notice, decided by
 /// PatientReadinessPolicy from the draft alone, in the same words and the same place on every page.
 /// Nothing while the page has what it needs; the patient panel above is where the data goes in.
 module PatientNotice =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
 
     open Fable.Core

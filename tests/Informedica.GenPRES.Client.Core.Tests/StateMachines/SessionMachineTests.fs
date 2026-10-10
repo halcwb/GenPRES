@@ -1,11 +1,11 @@
 namespace Informedica.GenPRES.Client.Core.Tests.StateMachines
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.StateMachines
-
 
 /// The client's session state machine, linked in from the client project.
 module SessionMachineTests =
+
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Expecto
     open Expecto.Flip

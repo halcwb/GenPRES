@@ -1,5 +1,6 @@
 module Mui
 
+open Informedica.GenPRES.Client.Core.Models
 open Informedica.GenPRES.Client.Core.Helpers
 open Fable.Core
 
@@ -756,8 +757,8 @@ module TypoGraphy =
 
     let fromTextBlock (textBlock: TextBlock) =
         let print tb =
-            let severity = tb |> Informedica.GenPRES.Shared.Models.Severity.ofTextBlock
-            let items = tb |> Informedica.GenPRES.Shared.Models.Severity.items
+            let severity = tb |> Severity.ofTextBlock
+            let items = tb |> Severity.items
 
             // bold text takes the severity's colour, valid text the palette's success colour
             let color = severity |> Styles.severityColor |> Option.defaultValue Styles.validColor

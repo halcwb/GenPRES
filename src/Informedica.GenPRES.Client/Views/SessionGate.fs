@@ -1,8 +1,5 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-
 
 /// <summary>
 /// The session gate: a modal over the app while a launch is being presented or resumed, and
@@ -15,6 +12,9 @@ open Informedica.GenPRES.Client.Core.MachinePolicies
 /// MainEHR is one-way, so the Client cannot relaunch by itself.
 /// </summary>
 module SessionGate =
+
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
 
     open Fable.Core
     open Fable.Core.JsInterop

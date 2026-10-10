@@ -2,6 +2,14 @@
 // order the project compiles them. Build first (dotnet run build) so that the DLL is there.
 #r "../../Informedica.GenPRES.Shared/bin/Debug/net10.0/Informedica.GenPRES.Shared.dll"
 
+#load "../Models/Severity.fs"
+#load "../Models/TextBlockDisplay.fs"
+#load "../Models/TextBlockParser.fs"
+#load "../Models/OrderDisplay.fs"
+#load "../Models/TotalsDisplay.fs"
+#load "../Models/DoseTypeText.fs"
+#load "../Models/OrderContextText.fs"
+#load "../Models/ContinuousMedicationList.fs"
 #load "../Helpers/Deferred.fs"
 #load "../Helpers/TermText.fs"
 #load "../Helpers/TextFormat.fs"
@@ -12,8 +20,6 @@
 #load "../Helpers/Url.fs"
 #load "../Helpers/CommandPreview.fs"
 #load "../Helpers/FilterSeed.fs"
-#load "../Models/TextBlockParser.fs"
-#load "../Models/ContinuousMedicationList.fs"
 #load "../Policies/LanguagePolicy.fs"
 #load "../Policies/OrderContextRefusalPolicy.fs"
 #load "../Policies/PatientDraftPolicy.fs"

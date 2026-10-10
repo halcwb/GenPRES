@@ -1,11 +1,12 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
-
 
 module Formulary =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Helpers
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
 
     open Fable.Core
     open Fable.React
@@ -113,7 +114,7 @@ module Formulary =
             | DoseTypeChange s ->
                 match formulary with
                 | Resolved form ->
-                    { form with DoseType = s |> Option.map DoseType.doseTypeFromString }
+                    { form with DoseType = s |> Option.map DoseTypeText.doseTypeFromString }
                     |> updateFormulary
                 | _ -> ()
 
@@ -324,10 +325,10 @@ module Formulary =
                              (form.DoseType, form.DoseTypes)
                              |> fun (sel, items) ->
                                  let lbl = Terms.``Dose Types`` |> getTerm "Doseer types"
-                                 let sel = sel |> Option.map DoseType.doseTypeToString
+                                 let sel = sel |> Option.map DoseTypeText.doseTypeToString
 
                                  items
-                                 |> Array.map (fun s -> s |> DoseType.doseTypeToString, s |> DoseType.doseTypeToDescription)
+                                 |> Array.map (fun s -> s |> DoseTypeText.doseTypeToString, s |> DoseTypeText.doseTypeToDescription)
                                  |> select lbl sel (DoseTypeChange >> dispatch)
 
                          | _ -> null

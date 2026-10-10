@@ -1,11 +1,11 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Helpers
-
 
 /// The snackbar at the bottom of the page: the alert in words, coloured by its severity. A success
 /// or a note hides itself after three seconds; an error or a warning stays until it is closed.
 module AlertSnackbar =
+
+    open Informedica.GenPRES.Client.Core.Helpers
 
 
     open Fable.Core

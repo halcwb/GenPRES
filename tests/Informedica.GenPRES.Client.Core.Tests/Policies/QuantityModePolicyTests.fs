@@ -1,10 +1,10 @@
 namespace Informedica.GenPRES.Client.Core.Tests.Policies
 
-open Informedica.GenPRES.Client.Core.Policies
-
 
 /// How the user may move the value of a quantity field: one rule for every order variable.
 module QuantityModePolicyTests =
+
+    open Informedica.GenPRES.Client.Core.Policies
 
     open System
     open Expecto

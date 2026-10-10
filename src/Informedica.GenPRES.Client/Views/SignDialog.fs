@@ -1,9 +1,5 @@
 namespace Views
 
-open Informedica.GenPRES.Client.Core.Policies
-open Informedica.GenPRES.Client.Core.StateMachines
-open Informedica.GenPRES.Client.Core.MachinePolicies
-
 
 /// <summary>
 /// The signing dialog: modal over the order plan while a challenge stands. It lists the
@@ -14,6 +10,11 @@ open Informedica.GenPRES.Client.Core.MachinePolicies
 /// SigningPolicy, and what happens from the signing machine.
 /// </summary>
 module SignDialog =
+
+    open Informedica.GenPRES.Client.Core.Models
+    open Informedica.GenPRES.Client.Core.Policies
+    open Informedica.GenPRES.Client.Core.StateMachines
+    open Informedica.GenPRES.Client.Core.MachinePolicies
 
     open Fable.Core
     open Fable.Core.JsInterop
@@ -192,7 +193,7 @@ module SignDialog =
             |> Array.mapi (fun i (sc, difference, argumentation) ->
                 let rows =
                     sc.Prescription
-                    |> TextBlock.flatten
+                    |> TextBlockDisplay.flatten
                     |> Array.mapi (fun j row ->
                         let cells =
                             row
