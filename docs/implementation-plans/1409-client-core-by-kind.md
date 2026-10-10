@@ -39,9 +39,9 @@ Taken 2026-10-10 by the maintainer.
 
 | Question | Decision |
 |---|---|
-| Folders and namespaces | A folder is a namespace: `Informedica.GenPRES.Client.Core.<Folder>`. The root stays long, so no namespace is called `Client` and the `Wiring/Client` module keeps its name |
-| Opening namespaces | Code opens the folder namespaces only, never the root `Informedica.GenPRES.Client.Core`. With the root and Shared both opened, a name found in both (`Models.Severity`) resolves to whichever was opened last, without an error or warning. The rule lives in this plan and the 1157 addendum; no CI check |
-| Folders | `Helpers/`, `Models/` (the code from Shared), `Policies/`, `StateMachines/`, `MachinePolicies/` (the policies over machines, a namespace of their own), `Wiring/` (Lanes, Client) and `Diagnostics/` (Trail) |
+| Folders and namespaces | A folder is a namespace: `Informedica.GenPRES.Client.Core.<Folder>`. A file at the project root is in the root namespace `Informedica.GenPRES.Client.Core`. Every file declares its namespace explicitly, `namespace ...` on its own line with `module X =` below it. The root stays long, so no namespace is called `Client` and the `Client` module keeps its name |
+| Opening namespaces | Code opens the folder namespaces only, never the root `Informedica.GenPRES.Client.Core`. A caller reaches a root file through a module alias, `module Client = Informedica.GenPRES.Client.Core.Client`, or opens it by its full name, `open Informedica.GenPRES.Client.Core.Lanes`; an alias cannot be opened. With the root and Shared both opened, a name found in both (`Models.Severity`) resolves to whichever was opened last, without an error or warning. The rule lives in this plan and the 1157 addendum; no CI check |
+| Folders | `Helpers/`, `Models/` (the code from Shared), `Policies/`, `StateMachines/`, `MachinePolicies/` (the policies over machines, a namespace of their own). The entry files Lanes, Client and Trail sit at the project root, in the root namespace, so the root shows where the client starts |
 | `Models/` and `Shared.Models` | The folder keeps its name. Moved modules get names of their own (`PatientText`, `SeverityText`, ...), and code that means Shared opens `Informedica.GenPRES.Shared` and writes `Models.X`, the same in the Client, Client.Core and the tests. Proved on 2026-10-10 with a scratch build of this layout: F# does not bring parent or sibling namespaces into scope (only the file's own namespace), so with Shared opened and the root not, `Models.X` always resolves to Shared, also for a name both have. `Shared.Models.X` without an open does not compile |
 | The command preview chain and `NutritionCategory.label` | Stay in Shared, so their Server.Tests agreement tests stay where they are and no test project references across the rings |
 | `OrderContext.label` | Moves with the display helpers; it calls Shared's `NutritionCategory.label` |
@@ -153,8 +153,8 @@ Approach 2, with the edges broken, by the maintainer's decision.
 
 ### Target layout
 
-Compile order, top to bottom. Each file stays one module:
-`module Informedica.GenPRES.Client.Core.Policies.PickPolicy`.
+Compile order, top to bottom. Each file is one module in an explicit namespace:
+`namespace Informedica.GenPRES.Client.Core.Policies`, then `module PickPolicy =`.
 
 | Folder | Files |
 |---|---|
@@ -163,8 +163,7 @@ Compile order, top to bottom. Each file stays one module:
 | `Policies/` | the policies over the contract; `PatientReadiness` → `PatientReadinessPolicy`, `PickList` → `PickListPolicy`; new `BusyPolicy` (`changes`, `any`, `page`); `UrlPolicy` takes `anyOut: bool` instead of a `Busy.Request` list, and takes over `ShellMachine.seeds` |
 | `StateMachines/` | Patient, Session, Signing, OrderPlan, OrderContext, Loader, Admin, Shell; `ShellMachine` computes `anyOut` with `BusyPolicy.any` |
 | `MachinePolicies/` | the policies over machines: SessionGate, Signing, UnsignedWork, HeldPanel, `OutPolicy` (`Busy.out`), Startup |
-| `Wiring/` | Lanes, Client |
-| `Diagnostics/` | Trail |
+| the root | Lanes, Client, Trail: the entry files, in namespace `Informedica.GenPRES.Client.Core` |
 
 ### Names of moved Shared code
 
@@ -223,8 +222,8 @@ comment with the new location.
 4. **Folders and namespaces.** `git mv` into the folders, the namespace top lines, the fsproj in
    folder blocks, `Scripts/load.fsx`. Client files qualify Core modules by name today, so each
    gains one `open Informedica.GenPRES.Client.Core.<Folder>` per folder it uses; files that use
-   the `Deferred` cases open `Helpers`. The test project mirrored and its fixtures split out; the 26 stale
-   `.fs.js` files removed. No logic change.
+   the `Deferred` cases open `Helpers`; the root files are reached through module aliases. The
+   test project mirrored and its fixtures split out. No logic change.
 5. **Group A and the #1209 baseline.** First, #1209: a script runs `EmergencyTreatment.calculate`
    and `ContinuousMedication.calculate` once, over the live `emergencylist`, `continuousmeds` and
    `products` sheets, a weight grid and relevant ages, and writes the input rows and the TSV
@@ -242,8 +241,9 @@ comment with the new location.
 8. **Docs.** The Client.Core paragraph in AGENTS.md, ARCHITECTURE.md, DEVELOPMENT.md (it names
    `Trail`), the `Shared.` names in AGENTS.md and ADR-0008 (including R1's mention of the
    ADR-0003 formulas), and an addendum to
-   `docs/implementation-plans/1157-client-core-refactoring.md` with the folders, the namespace
-   rule and the rule never to open the root namespace.
+   `docs/implementation-plans/1157-client-core-refactoring.md` with the folders, the entry files
+   at the root, the explicit namespace form, the rule never to open the root namespace and the
+   aliases that reach the root files.
 
 ## Left out
 
