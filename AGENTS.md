@@ -12,7 +12,7 @@ Instructions for AI coding agents working on the GenPRES repository. Make edits 
 > - **Targeted refactoring of a single function** when explicitly requested by the user
 > - **Client-side UI code** in `src/Informedica.GenPRES.Client/` — this is the only exception, because Fable/Elmish UI code cannot be run in FSI scripts
 >
-> The exception stops at that project. `src/Informedica.GenPRES.Client.Core/` holds the client's pure state machines and policies: plain F# over the shared contract, with no React, no Browser type and no Fable package, so it runs under Expecto and in FSI like any other library. Nothing there needs the exception, and so nothing there gets it.
+> The exception stops at that project. `src/Informedica.GenPRES.Client.Core/` holds the client's pure code, its models, helpers, policies and state machines: plain F# over the shared contract, with no React, no Browser type and no Fable package, so it runs under Expecto and in FSI like any other library. Nothing there needs the exception, and so nothing there gets it.
 >
 > **NOT allowed in other `.fs` source files:**
 >
@@ -48,6 +48,7 @@ The full targets table, Docker, release automation and the environment keys are 
 - F# libraries under `src/`, one test project per library under `tests/` (Expecto + FsCheck)
 - Resource loading: `src/Informedica.GenFORM.Lib/Api.fs`; parsers in `Mapping.fs`, `Product.fs`, `DoseRuleData.fs`, `SolutionRule.fs`, `RenalRule.fs`
 - Unit and BigRational helpers: `src/Informedica.GenUNITS.Lib/ValueUnit.fs`
+- Client.Core by kind, one folder per namespace `Informedica.GenPRES.Client.Core.<Folder>`: `Models` (the code from Shared only the client uses), `Helpers`, `Policies`, `StateMachines` and `MachinePolicies`, in that compile order; the entry files `Lanes.fs`, `Client.fs` and `Trail.fs` at the project root, in the root namespace. Every file declares its namespace on its own line, followed by its types and modules, with the opens inside each module. Code opens the folder namespaces, never the root namespace, and reaches a root file through a module alias (`module Client = Informedica.GenPRES.Client.Core.Client`) or opens it by its full name. The test project mirrors the folders
 - Sheet documentation: the `Data` records in `src/Informedica.GenFORM.Lib/Types.fs`, one per sheet with the column on each field; the column names are enforced by the `ColumnContract` tests in `tests/Informedica.GenFORM.Tests/Tests.fs`
 - API contract between client and server: `src/Informedica.GenPRES.Shared/Api.fs` (Fable.Remoting)
 

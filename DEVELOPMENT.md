@@ -430,7 +430,7 @@ Top-level documents: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `DEVELOPMEN
 GenPRES is built on the [SAFE Stack](https://safe-stack.github.io/) with .NET 10.0:
 
 - **Informedica.GenPRES.Server**: F# with [Saturn](https://saturnframework.org/)
-- **Informedica.GenPRES.Client**: F# with [Fable](https://fable.io/docs/) and [Elmish](https://elmish.github.io/elmish/). Its state machines live in **Informedica.GenPRES.Client.Core**, plain F# that runs under Expecto as well as Fable
+- **Informedica.GenPRES.Client**: F# with [Fable](https://fable.io/docs/) and [Elmish](https://elmish.github.io/elmish/). Its pure code lives in **Informedica.GenPRES.Client.Core**, plain F# that runs under Expecto as well as Fable
 - **Testing**: Expecto with FsCheck
 
 ### Core Libraries
@@ -455,7 +455,7 @@ In dependency order (see [GenFORM Appendix B.3](docs/domain/genform-free-text-to
 - **Informedica.MCP.Server**: standalone stdio MCP host
 - **Informedica.GenPRES.Shared**: shared types and API contract
 - **Informedica.GenPRES.Server**: server API and orchestration
-- **Informedica.GenPRES.Client.Core**: the client's state machines and policies
+- **Informedica.GenPRES.Client.Core**: the client's pure code: models, helpers, policies and state machines
 - **Informedica.GenPRES.Client**: web UI
 
 ## Code Contribution Guidelines
