@@ -130,7 +130,7 @@ module Prescribe =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.Calculation
+                    needs = PatientReadinessPolicy.Needs.Calculation
                 |}
 
         let noticeSx = {| margin = 1 |}

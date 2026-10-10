@@ -80,7 +80,7 @@ let tests =
             }
 
             test "a seed shows its source and how many choices, never their text" {
-                let seed: OrderContextMachine.FilterSeed =
+                let seed: FilterSeed.FilterSeed =
                     {
                         Source = SeedSource.Url
                         Indication = Some "Milde pijn"
@@ -145,7 +145,7 @@ let tests =
             }
 
             test "a seed message shows its source and how many choices, never their text" {
-                let seed: OrderContextMachine.FilterSeed =
+                let seed: FilterSeed.FilterSeed =
                     {
                         Source = SeedSource.MedicationList
                         Indication = None
@@ -337,9 +337,9 @@ let tests =
             test "a load reads by its name, an answer by its size, never an error text" {
                 let state, effects =
                     LoaderMachine.LoaderState.initial
-                    |> LoaderMachine.transition (LoaderMachine.LoaderMsg.Start Busy.Load.Products)
+                    |> LoaderMachine.transition (LoaderMachine.LoaderMsg.Start Loads.Load.Products)
 
-                Trail.loader 1 at (LoaderMachine.LoaderMsg.Start Busy.Load.Products) (state, effects)
+                Trail.loader 1 at (LoaderMachine.LoaderMsg.Start Loads.Load.Products) (state, effects)
                 |> Trail.format
                 |> Expect.equal "the start" "#1 10:41:07.311 Loader Start Products -> FetchProducts | out Products"
 
@@ -376,7 +376,7 @@ let tests =
 
                 let state, effects =
                     state
-                    |> LoaderMachine.transition (LoaderMachine.LoaderMsg.Start Busy.Load.DrugNames)
+                    |> LoaderMachine.transition (LoaderMachine.LoaderMsg.Start Loads.Load.DrugNames)
                     |> fst
                     |> LoaderMachine.transition failed
 

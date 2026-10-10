@@ -3,7 +3,7 @@ namespace Informedica.GenPRES.Client.Core.Tests
 
 /// The picks the workbench dialog keeps: what a change or a step from the dialog picked, what a
 /// reopen keeps, and what the field decision reads of them.
-module PickListTests =
+module PickListPolicyTests =
 
     open Expecto
     open Expecto.Flip
@@ -77,11 +77,11 @@ module PickListTests =
         let before = order (ovar "frq" false three) (ovar "dos" false three)
 
         testList
-            "PickList"
+            "PickListPolicy"
             [
                 test "a variable narrowed to one value is picked; one left as it was is not" {
                     order (ovar "frq" false three) (ovar "dos" false one)
-                    |> PickList.picked before
+                    |> PickListPolicy.picked before
                     |> Expect.equal "the dose" [ "dos" ]
                 }
 
@@ -89,7 +89,7 @@ module PickListTests =
                     let picked = order (ovar "frq" false one) (ovar "dos" false one)
 
                     order (ovar "frq" true None) (ovar "dos" false one)
-                    |> PickList.picked picked
+                    |> PickListPolicy.picked picked
                     |> Expect.isEmpty "nothing picked"
                 }
 
@@ -97,46 +97,46 @@ module PickListTests =
                     let after = order (ovar "frq" false three) (ovar "dos" false one)
 
                     Some [| "dos"; "frq" |]
-                    |> PickList.afterChange before after
+                    |> PickListPolicy.afterChange before after
                     |> Expect.equal "the dose the latest" (Some [| "frq"; "dos" |])
 
-                    None |> PickList.afterChange before after |> Expect.isNone "unknown"
+                    None |> PickListPolicy.afterChange before after |> Expect.isNone "unknown"
                 }
 
                 test "a step that moved its variable makes it the latest pick; one at a bound does not" {
                     let stepped = order (ovar "frq" false three) (ovar "dos" false one)
 
                     Some [| "dos"; "frq" |]
-                    |> PickList.afterStep "dos" before stepped
+                    |> PickListPolicy.afterStep "dos" before stepped
                     |> Expect.equal "the dose the latest" (Some [| "frq"; "dos" |])
 
                     Some [| "frq" |]
-                    |> PickList.afterStep "dos" before before
+                    |> PickListPolicy.afterStep "dos" before before
                     |> Expect.equal "at a bound, as it was" (Some [| "frq" |])
 
-                    None |> PickList.afterStep "dos" before stepped |> Expect.isNone "unknown"
+                    None |> PickListPolicy.afterStep "dos" before stepped |> Expect.isNone "unknown"
                 }
 
                 test "a reopen keeps the picks made before the reopened one" {
                     Some [| "frq"; "dos"; "rate" |]
-                    |> PickList.beforeReopen "dos"
+                    |> PickListPolicy.beforeReopen "dos"
                     |> Expect.equal "the frequency" (Some [| "frq" |])
 
                     Some [| "frq" |]
-                    |> PickList.beforeReopen "dos"
+                    |> PickListPolicy.beforeReopen "dos"
                     |> Expect.equal "not a pick, all kept" (Some [| "frq" |])
 
-                    None |> PickList.beforeReopen "dos" |> Expect.isNone "unknown"
+                    None |> PickListPolicy.beforeReopen "dos" |> Expect.isNone "unknown"
                 }
 
                 test "the field decision reads the picks: yes, no, unknown" {
-                    PickList.constrained (Some [| "dos" |]) "dos"
+                    PickListPolicy.constrained (Some [| "dos" |]) "dos"
                     |> Expect.equal "picked" FieldOpenPolicy.Constrained.Yes
 
-                    PickList.constrained (Some [| "dos" |]) "frq"
+                    PickListPolicy.constrained (Some [| "dos" |]) "frq"
                     |> Expect.equal "not picked" FieldOpenPolicy.Constrained.No
 
-                    PickList.constrained None "frq"
+                    PickListPolicy.constrained None "frq"
                     |> Expect.equal "unknown" FieldOpenPolicy.Constrained.Unknown
                 }
             ]

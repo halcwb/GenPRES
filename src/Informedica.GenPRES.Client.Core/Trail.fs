@@ -558,6 +558,7 @@ module OrderPlan =
 [<RequireQualifiedAccess>]
 module OrderContext =
 
+    open FilterSeed
     open OrderContextMachine
 
 
@@ -704,7 +705,7 @@ module Patient =
 [<RequireQualifiedAccess>]
 module Loader =
 
-    open Busy
+    open Loads
     open LoaderMachine
 
     /// A load by name.
@@ -979,7 +980,7 @@ module Shell =
         [
             if check.SigningUnderWay then
                 "signing"
-            if Busy.any check.Out then
+            if BusyPolicy.any check.Out then
                 "busy"
             if check.UnsignedWork then
                 "unsigned work"

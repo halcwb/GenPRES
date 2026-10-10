@@ -13,9 +13,9 @@ open Informedica.GenPRES.Shared
 open Informedica.GenPRES.Shared.Types
 open Informedica.GenPRES.Shared.Models
 open Informedica.GenPRES.Shared.Api
-open Busy
+open Loads
 open Page
-open OrderContextMachine
+open FilterSeed
 
 
 /// The readings of the start-up loads, and the ones that failed.
@@ -212,7 +212,7 @@ let hospitals (meds: BolusMedication list) =
 let settle load result (state: LoaderState) =
     match result with
     | Ok value -> Resolved value, state
-    | Error _ when StartupPolicy.required |> List.contains load ->
+    | Error _ when Loads.required |> List.contains load ->
         HasNotStartedYet, { state with Failed = load :: state.Failed }
     | Error _ -> HasNotStartedYet, state
 

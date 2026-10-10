@@ -33,7 +33,7 @@ let measured =
 
 /// The requests out over the lanes alone, no loads.
 let out (lanes: LanesState) =
-    Busy.out false lanes.Patient lanes.OrderContext lanes.OrderPlan lanes.Session lanes.Signing []
+    OutPolicy.out false lanes.Patient lanes.OrderContext lanes.OrderPlan lanes.Session lanes.Signing []
 
 
 /// Messages played one after another; the lanes, effects and steps after each.
@@ -77,7 +77,7 @@ let tests =
                             PatientMsg.Changed(Some measured, PatientDraftPolicy.Estimates.Renewed, "p-1")
                         ))
 
-                lanes |> out |> Expect.equal "the patient out" [ Busy.Request.Patient ]
+                lanes |> out |> Expect.equal "the patient out" [ Loads.Request.Patient ]
 
                 // the patient answered: the workbench and the plan are asked in the same transition
                 let lanes, effects, steps =
@@ -100,7 +100,7 @@ let tests =
 
                 lanes
                 |> out
-                |> Expect.equal "the workbench and the plan out" [ Busy.Request.Workbench; Busy.Request.Plan ]
+                |> Expect.equal "the workbench and the plan out" [ Loads.Request.Workbench; Loads.Request.Plan ]
 
                 effects
                 |> List.contains (LanesEffect.Patient(PatientEffect.SetPatientData(Some measured)))

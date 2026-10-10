@@ -1,11 +1,11 @@
 /// What the pages can do with the patient draft, and what they say when it is not enough.
-module Informedica.GenPRES.Client.Core.Tests.PatientReadinessTests
+module Informedica.GenPRES.Client.Core.Tests.PatientReadinessPolicyTests
 
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared
 open Informedica.GenPRES.Shared.Types
-open PatientReadiness
+open PatientReadinessPolicy
 
 
 /// A translator that shows which term was asked for, so a test can assert terms, not prose.
@@ -161,25 +161,6 @@ let tests =
                         |> Expect.equal
                             "weight, height, then gestational age"
                             (Readiness.Patient [ Missing.Weight; Missing.Height; Missing.GestationalAge ])
-                    }
-                ]
-
-            testList
-                "canCalculate"
-                [
-                    test "agrees with the draft policy for every fixture" {
-                        for draft in
-                            [
-                                None
-                                Some empty
-                                aged
-                                aged |> withWeight
-                                None |> withWeight
-                                aged |> estimated
-                            ] do
-                            draft
-                            |> canCalculate
-                            |> Expect.equal $"%A{draft}" (draft |> PatientDraftPolicy.canCalculate)
                     }
                 ]
 

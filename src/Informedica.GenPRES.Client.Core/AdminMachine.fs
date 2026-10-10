@@ -6,7 +6,7 @@ module AdminMachine
 open Informedica.GenPRES.Shared
 open Informedica.GenPRES.Shared.Types
 open Informedica.GenPRES.Shared.Api
-open Busy
+open Loads
 
 
 /// The login, its token and the three readings.
@@ -108,7 +108,7 @@ module AdminState =
 
 
 /// The admin loads out.
-let out state = state |> AdminState.readings |> Busy.outOf
+let out state = state |> AdminState.readings |> outOf
 
 
 /// The login over and its readings gone; a later login answer of the attempt before is dropped.
@@ -162,7 +162,7 @@ let transition msg (state: AdminState) =
     | AdminMsg.Logout -> state |> loggedOut
     // one listing at a time, so an earlier answer cannot clear the error of a later one; the table
     // shown stays until the answer
-    | AdminMsg.ListLogFiles when Busy.isOut state.LogFiles -> state, []
+    | AdminMsg.ListLogFiles when isOut state.LogFiles -> state, []
     | AdminMsg.ListLogFiles ->
         { state with LogFiles = state.LogFiles |> Deferred.refresh }, [ AdminEffect.FetchLogFiles state.AuthToken ]
     | AdminMsg.AnalyzeLogFile fileName ->

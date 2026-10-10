@@ -4,7 +4,7 @@
 module StartupPolicy
 
 open Informedica.GenPRES.Shared
-open Busy
+open Loads
 open TermText
 
 
@@ -19,23 +19,12 @@ type Startup =
     | Failed of Load list
 
 
-/// The loads the application cannot be used without.
-let required =
-    [
-        Load.Localization
-        Load.NormalValues
-        Load.BolusMedication
-        Load.ContinuousMedication
-        Load.Products
-    ]
-
-
 /// Where the start-up is, from the requests out, the required loads that loaded and the loads
-/// that failed. The drug names never hold it, as Busy.any leaves them out.
+/// that failed. The drug names never hold it, as BusyPolicy.any leaves them out.
 let status out loaded failed =
     match required |> List.filter (fun load -> failed |> List.contains load) with
     | [] when
-        not (Busy.any out)
+        not (BusyPolicy.any out)
         && required |> List.forall (fun load -> loaded |> List.contains load)
         ->
         Startup.Started

@@ -11,7 +11,8 @@ open Informedica.GenPRES.Shared.Types
 open Informedica.GenPRES.Shared.Api
 open Informedica.GenPRES.Shared.Localization
 open Page
-open OrderContextMachine
+open Loads
+open FilterSeed
 
 
 /// Everything the shell holds.
@@ -52,7 +53,7 @@ type UrlCheck =
         /// Whether a signature is under way.
         SigningUnderWay: bool
         /// The requests out.
-        Out: Busy.Request list
+        Out: Request list
         /// Whether there is work not signed.
         UnsignedWork: bool
         /// Whether a launched Session is open.
@@ -158,17 +159,6 @@ module ShellState =
         }
 
 
-/// Whether a url carries a patient, a medication or a launch.
-let seeds (url: Url.UrlParts) =
-    url.Patient.IsSome
-    || url.Medication.IsSome
-    || (
-        match url.Launch with
-        | Some(Url.LaunchUrl.Launch _) -> true
-        | _ -> false
-    )
-
-
 /// The page, the language and the disclaimer of a url, and the url kept as the one the app shows.
 /// Only a language in the url changes it; a navigation keeps the current one.
 let pageApplied sl (url: Url.UrlParts) state =
@@ -220,10 +210,12 @@ let urlChanged sl (url: Url.UrlParts) (check: UrlCheck) state =
     match url.Launch with
     | Some(Url.LaunchUrl.Refused _) -> state |> urlApplied sl url
     | launch ->
-        let change = UrlPolicy.change state.Url sl (seeds url)
+        let change = UrlPolicy.change state.Url sl (UrlPolicy.seeds url)
         let back = UrlPolicy.UrlState.shown state.Url
 
-        match UrlPolicy.action change check.SigningUnderWay check.Out check.UnsignedWork check.Launched with
+        match
+            UrlPolicy.action change check.SigningUnderWay (BusyPolicy.any check.Out) check.UnsignedWork check.Launched
+        with
         | UrlPolicy.UrlAction.ApplyPage -> state |> pageApplied sl url, []
         | UrlPolicy.UrlAction.Ignore -> state, []
         | UrlPolicy.UrlAction.PutBack when launch.IsSome ->
@@ -270,7 +262,7 @@ let transition msg (state: ShellState) =
             if url.Launch.IsSome then
                 ShellEffect.EraseLaunch
             match url.Launch with
-            | None when seeds url -> ShellEffect.LeaveSession
+            | None when UrlPolicy.seeds url -> ShellEffect.LeaveSession
             | None -> ShellEffect.ResumeSession
             | Some _ -> ()
             yield! effects

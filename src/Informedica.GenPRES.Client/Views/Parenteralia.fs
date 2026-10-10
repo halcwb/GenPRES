@@ -88,7 +88,7 @@ module Parenteralia =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.DoseCheck
+                    needs = PatientReadinessPolicy.Needs.DoseCheck
                 |}
 
         let stackDirection = if isMobile then "column" else "row"

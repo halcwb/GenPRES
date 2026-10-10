@@ -120,20 +120,12 @@ let refusalBody (tr: Terms -> string) refusal =
     | LaunchRefusal.EnrolmentRequired -> [ tr Terms.``Session Refusal Enrolment`` ]
 
 
-/// Whether the text is only digits, between the given lengths.
-let digits (min: int) (max: int) (s: string) =
-    not (isNull s)
-    && s.Length >= min
-    && s.Length <= max
-    && s |> Seq.forall (fun c -> c >= '0' && c <= '9')
-
-
 /// The first error of the enrolment form before it is sent: the code must be six digits, the PIN
 /// four to six, and the repeat must match. None when the form can be sent.
 let formError (tr: Terms -> string) (code: string) (pin: string) (repeat: string) : string option =
-    if not (digits 6 6 code) then
+    if not (TextFormat.digits 6 6 code) then
         Some(tr Terms.``Session Enrolment Code Format``)
-    elif not (digits 4 6 pin) then
+    elif not (TextFormat.digits 4 6 pin) then
         Some(tr Terms.``Session Enrolment Pin Format``)
     elif pin <> repeat then
         Some(tr Terms.``Session Enrolment Pins Differ``)

@@ -41,7 +41,7 @@ module Nutrition =
             Components.PatientNotice.View
                 {|
                     appEnv = props.appEnv
-                    needs = PatientReadiness.Needs.Calculation
+                    needs = PatientReadinessPolicy.Needs.Calculation
                 |}
 
         // a request out that changes the page. The page is disabled then, but that stops clicks

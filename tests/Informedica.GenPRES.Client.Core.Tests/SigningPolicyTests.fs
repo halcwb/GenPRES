@@ -126,7 +126,7 @@ let tests =
                     }
 
                 newerPlanSentence english head
-                |> Expect.equal "moved on" $"Stub Prescriber B signed a newer version at {time at}."
+                |> Expect.equal "moved on" $"Stub Prescriber B signed a newer version at {TextFormat.time at}."
 
                 versionOpenedSentence english head
                 |> Expect.equal "opened" "Version 2 by Stub Prescriber B is now open."
@@ -160,11 +160,11 @@ let tests =
                 blocked
                 |> Expect.stringStarts "the signer" "Stub Prescriber B signed a newer version at "
 
-                blocked |> Expect.stringContains "a time of day" (time head.SignedAt)
-                time head.SignedAt |> Expect.isMatch "HH:mm" @"^\d{2}:\d{2}$"
+                blocked |> Expect.stringContains "a time of day" (TextFormat.time head.SignedAt)
+                TextFormat.time head.SignedAt |> Expect.isMatch "HH:mm" @"^\d{2}:\d{2}$"
 
                 refusalSentence english (SigningRefusal.Locked untilUtc)
-                |> Expect.equal "the lock" $"Signing is locked until {time untilUtc}."
+                |> Expect.equal "the lock" $"Signing is locked until {TextFormat.time untilUtc}."
             }
 
             test "the signed sentence names the version and the signer; the notice its case" {

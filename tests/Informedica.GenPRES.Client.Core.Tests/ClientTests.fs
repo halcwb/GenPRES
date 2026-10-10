@@ -351,7 +351,7 @@ let tests =
                             initial Url.none
                             |> play
                                 [
-                                    ClientMsg.Loader(LoaderMsg.Start Busy.Load.Formulary)
+                                    ClientMsg.Loader(LoaderMsg.Start Loads.Load.Formulary)
                                     landed (Landing.Formulary(None, Error [| "down" |]))
                                 ]
                             |> stateOf
@@ -362,7 +362,7 @@ let tests =
                             failed
                             |> play
                                 [
-                                    ClientMsg.Loader(LoaderMsg.Start Busy.Load.Formulary)
+                                    ClientMsg.Loader(LoaderMsg.Start Loads.Load.Formulary)
                                     landed (Landing.Formulary(None, answered Formulary.empty))
                                 ]
                             |> stateOf

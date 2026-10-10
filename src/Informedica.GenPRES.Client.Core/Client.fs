@@ -7,6 +7,7 @@ module Client
 
 open Informedica.GenPRES.Shared.Types
 open Page
+open Loads
 open Lanes
 open PatientMachine
 open SessionMachine
@@ -130,22 +131,22 @@ let loads (state: ClientState) =
 
 /// The requests out in the lanes and the loads.
 let busy (state: ClientState) =
-    Busy.out
+    OutPolicy.out
         state.Shell.Counting
         state.Lanes.Patient
         state.Lanes.OrderContext
         state.Lanes.OrderPlan
         state.Lanes.Session
         state.Lanes.Signing
-        (state |> loads |> Busy.outOf)
+        (state |> loads |> outOf)
 
 
 /// Whether any request is out.
-let busyAny (state: ClientState) = state |> busy |> Busy.any
+let busyAny (state: ClientState) = state |> busy |> BusyPolicy.any
 
 
 /// Whether a request is out that changes this page.
-let busyPage page (state: ClientState) = state |> busy |> Busy.page page
+let busyPage page (state: ClientState) = state |> busy |> BusyPolicy.page page
 
 
 /// Where the start-up is; started once, it stays so.
@@ -153,7 +154,7 @@ let startup (state: ClientState) =
     if state.Shell.Started then
         StartupPolicy.Startup.Started
     else
-        StartupPolicy.status (busy state) (state |> loads |> Busy.loadedOf) state.Loader.Failed
+        StartupPolicy.status (busy state) (state |> loads |> loadedOf) state.Loader.Failed
 
 
 /// What a url change is decided against.
@@ -593,15 +594,15 @@ let pageLoad newId sl (url: Url.UrlParts) state =
             ClientMsg.Loader LoaderMsg.CheckServer
             for load in
                 [
-                    Busy.Load.Settings
-                    Busy.Load.NormalValues
-                    Busy.Load.BolusMedication
-                    Busy.Load.ContinuousMedication
-                    Busy.Load.Products
-                    Busy.Load.Localization
-                    Busy.Load.Formulary
-                    Busy.Load.Parenteralia
-                    Busy.Load.DrugNames
+                    Load.Settings
+                    Load.NormalValues
+                    Load.BolusMedication
+                    Load.ContinuousMedication
+                    Load.Products
+                    Load.Localization
+                    Load.Formulary
+                    Load.Parenteralia
+                    Load.DrugNames
                 ] do
                 ClientMsg.Loader(LoaderMsg.Start load)
         ]

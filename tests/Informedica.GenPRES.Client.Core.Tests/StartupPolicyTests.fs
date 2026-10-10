@@ -3,7 +3,7 @@ module Informedica.GenPRES.Client.Core.Tests.StartupPolicyTests
 open Expecto
 open Expecto.Flip
 open Informedica.GenPRES.Shared
-open Busy
+open Loads
 open SessionMachine
 open StartupPolicy
 

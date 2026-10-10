@@ -1,7 +1,7 @@
 /// Decides, from the patient draft alone, what the pages can do with it, and what every page
 /// says when it is not enough: one message, decided here, for the emergency list and the
 /// continuous list, which have no order context, as for prescribe, nutrition and the plan.
-module PatientReadiness
+module PatientReadinessPolicy
 
 open Informedica.GenPRES.Shared
 open Informedica.GenPRES.Shared.Types
@@ -99,14 +99,6 @@ let readiness (draft: Patient option) : Readiness =
         match p |> Patient.validate with
         | Error _ -> Readiness.NoPatient
         | Ok p -> Readiness.Patient(missingOf p)
-
-
-/// Whether the draft is a patient the pages calculate for.
-let canCalculate (draft: Patient option) =
-    match draft |> readiness with
-    | Readiness.NoData
-    | Readiness.NoPatient -> false
-    | Readiness.Patient _ -> true
 
 
 /// The English of the readiness terms, used when the sheet has no row for a term or has not

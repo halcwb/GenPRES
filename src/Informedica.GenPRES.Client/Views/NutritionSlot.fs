@@ -742,7 +742,7 @@ module NutritionSlot =
         // constrained it
         let reopenOf (ovar: OrderVariable) : ViewHelpers.Reopen =
             {|
-                constrained = PickList.constrained None ovar.Name
+                constrained = PickListPolicy.constrained None ovar.Name
                 reopening = fun () -> reopening.current <- true
                 restore = props.planRestore
                 busy = busy
