@@ -265,3 +265,9 @@ Per step:
   the printed fixture report shows 0 unreachable for amox/clav under both ties
 - the maintainer repeats the issue's steps in the browser: the concentration list holds 10
   values and every one applies
+
+## As built
+
+| Step | Pull request | Note |
+|---|---|---|
+| The plan | #1420 | With the script that holds the fixes and their tests. |
