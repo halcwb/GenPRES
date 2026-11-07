@@ -1,5 +1,5 @@
 ---
-last_commit_released: 1b28bc391abe4fa9d32568c1b7b731e4bd688637
+last_commit_released: c09129710358d26c99cd893c98f7da5ca736f618
 pre_release: alpha
 name: GenPRES
 updaters:
@@ -20,6 +20,17 @@ All notable changes to GenPRES will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 0.1.2-alpha.49 - 2026-11-07
+
+### 🐞 Bug Fixes
+
+* *(gencore)* Reach age limits on the calendar day ([7fcdc041](https://github.com/halcwb/GenPRES/commit/7fcdc041af1635cd87dc5c26f056598ec0b9e6eb))
+* *(gencore)* Count age months from the birth date ([9c8e58f8](https://github.com/halcwb/GenPRES/commit/9c8e58f86b36ce4a5c68438247ce4b6a3f33fb46))
+* *(gencore)* Count identified PMA from days lived ([41dac90e](https://github.com/halcwb/GenPRES/commit/41dac90ef15787d16faddeedf735ec5ed0c9c229))
+* *(server)* Keep the exact PMA through the estimate ([144a45b0](https://github.com/halcwb/GenPRES/commit/144a45b0686c5694ac846a62ea3b4013d3892639))
+
+<strong><small>[View changes on Github](https://github.com/halcwb/GenPRES/compare/1b28bc391abe4fa9d32568c1b7b731e4bd688637..c09129710358d26c99cd893c98f7da5ca736f618)</small></strong>
 
 ## 0.1.2-alpha.48 - 2026-11-05
 
