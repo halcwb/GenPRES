@@ -1,5 +1,5 @@
 ---
-last_commit_released: 719d8833e62f8c96678df9397d124b63792da4e0
+last_commit_released: 73740f54c195042d9e2f7f07e2537c9641980a8d
 pre_release: alpha
 name: GenPRES
 updaters:
@@ -20,6 +20,32 @@ All notable changes to GenPRES will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 0.1.2-alpha.58 - 2026-11-19
+
+### 🚀 Features
+
+* *(api)* Send the patient data options to the client ([b0c7db5e](https://github.com/halcwb/GenPRES/commit/b0c7db5eccaab2c4992ab008ba328b0c81c28064))
+* *(gencore)* Make the measurement date optional ([f6c4481b](https://github.com/halcwb/GenPRES/commit/f6c4481b3206ef0b7102b11a95c2baf45b0ce24f))
+* *(gencore)* Take the department as a Dto per kind ([bb2f693a](https://github.com/halcwb/GenPRES/commit/bb2f693aa47932732e59576fcc56b94782f277c9))
+* *(gencore)* Set the adult mark and gestational age need ([67d031b4](https://github.com/halcwb/GenPRES/commit/67d031b49667e990570f0f55fe1efd3fd1fdb984))
+* *(gencore)* Read calculation weights and heights ([6db20965](https://github.com/halcwb/GenPRES/commit/6db209657cff929156f0eb92c3c429dd0ce86e93))
+* *(gencore)* Read the eGFR band options ([e7770d2f](https://github.com/halcwb/GenPRES/commit/e7770d2f9a89492de94e2a5a873467ad7d744699))
+* *(gencore)* Estimate and offer options in patient data ([14abeb6c](https://github.com/halcwb/GenPRES/commit/14abeb6c5f9d4c45355a42dd6fb027d7741d1289))
+* *(gencore)* Round a measured weight and height ([53fd23e4](https://github.com/halcwb/GenPRES/commit/53fd23e4949f9295a5db613d64bd66a7def882a5))
+* *(server)* Complete the patient data through GenCORE ([344b7e6e](https://github.com/halcwb/GenPRES/commit/344b7e6e85e78d889381d7b5ba1b6ad5ea0d05b8))
+
+### 🐞 Bug Fixes
+
+* *(api)* Compare patient data without the options ([f47dcf8a](https://github.com/halcwb/GenPRES/commit/f47dcf8a0abf56a8f48c31a582df4306e909e803))
+* *(client)* Leave the options out of the plan-behind check ([7ebf8eb4](https://github.com/halcwb/GenPRES/commit/7ebf8eb413a22cd4c608740ab77acac3012dd0bf))
+* *(gencore)* Trim department names in the Dto ([b6870cc9](https://github.com/halcwb/GenPRES/commit/b6870cc9a54b7a19f115af494b64f3ae4afb3e84))
+* *(gencore)* Refuse calculation values that round to 0 ([1967703e](https://github.com/halcwb/GenPRES/commit/1967703e63ea793dc74053f440a48a778baead64))
+* *(gencore)* Compare a measurement by date and value ([8a3be6e3](https://github.com/halcwb/GenPRES/commit/8a3be6e3b20e29ef582cdff5c85f8c9483a37de8))
+* *(genform)* Compare departments in rule overlap checks alike ([511b1e2c](https://github.com/halcwb/GenPRES/commit/511b1e2c2a1928c15c9ebf460b33a72bfa33b3ea))
+* *(genorder)* Limit a timed dose to its interval ([95fad8a8](https://github.com/halcwb/GenPRES/commit/95fad8a874d3de0660ac1c3f8d0a35aace82ca06))
+
+<strong><small>[View changes on Github](https://github.com/halcwb/GenPRES/compare/719d8833e62f8c96678df9397d124b63792da4e0..73740f54c195042d9e2f7f07e2537c9641980a8d)</small></strong>
 
 ## 0.1.2-alpha.57 - 2026-11-18
 
