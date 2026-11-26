@@ -347,10 +347,16 @@ do. There is now one copy, the inventory of what is actually built: the Core Lib
 
 | Object                       | Property   | Type                                                  | Unit            | Key | Description                                                        |
 |------------------------------|------------|-------------------------------------------------------|-----------------|-----|--------------------------------------------------------------------|
+| SolutionRule                 | Id         | text                                                  |                 |     | A hash of every field of the row but the ids and the source text   |
+| SolutionRule                 | RowId      | text                                                  |                 |     | A hash of the rule fields and the dilution target; at load         |
+| SolutionRule                 | RuleId     | text                                                  |                 |     | A hash of the key fields of the rule; calculated at load           |
+| SolutionRule                 | RowNo      | int                                                   |                 |     | The place of the row in its rule, from 0; calculated at load       |
 | Generic                      | Generic    | text                                                  |                 | yes | The generic name                                                   |
 | Generic                      | Form       | text                                                  |                 | yes | The pharmaceutical form name of the generic medication             |
 | Route                        | Route      | text                                                  |                 | yes | The route                                                          |
 | Indication                   | Indication | text                                                  |                 | yes | The corresponding matching dose rule indication                    |
+| Generic                      | GPKs       | text list                                             |                 | yes | The generic products the rule applies to                           |
+| Generic                      | HPKs       | text list                                             |                 | yes | The trade products the rule applies to                             |
 | DoseType                     | DoseType   | once / onceTimed / discontinuous / timed / continuous |                 | yes | The dosetype                                                       |
 | Administration Access Device | CVL        | boolean                                               |                 | yes | Central Venous Line                                                |
 | Administration Access Device | PVL        | boolean                                               |                 | yes | Peripheral Venous Line                                             |
@@ -379,6 +385,15 @@ do. There is now one copy, the inventory of what is actually built: the Core Lib
 | DilutionLimit                | MaxQty     | float                                                 | subst_unit      |     | The maximum substance quantity                                     |
 | DilutionLimit                | MinConc    | float                                                 | subst_unit / mL |     | The minimum substance concentration                                |
 | DilutionLimit                | MaxConc    | float                                                 | subst_unit / mL |     | The maximum substance concentration                                |
+| SolutionRule                 | SourceText | text                                                  |                 |     | The original source text the rule is built on                      |
+| SolutionRule                 | ShelfLife  | float                                                 | minute          |     | The shelf life of the prepared solution                            |
+| SolutionRule                 | MinPh      | float                                                 |                 |     | The minimum pH of the prepared solution                            |
+| SolutionRule                 | MaxPh      | float                                                 |                 |     | The maximum pH of the prepared solution                            |
+| SolutionRule                 | CombY      | text list                                             |                 |     | The generics that can be given through the same line               |
+| SolutionRule                 | NonCombY   | text list                                             |                 |     | The generics that cannot be given through the same line            |
+| SolutionRule                 | Notes      | text                                                  |                 |     | Any additional note                                                |
+| SolutionRule                 | PrepText   | text                                                  |                 |     | The preparation instructions                                       |
+| SolutionRule                 | AdminText  | text                                                  |                 |     | The administration instructions                                    |
 
 ### Appendix E.1. Renal Rule Model Figure
 

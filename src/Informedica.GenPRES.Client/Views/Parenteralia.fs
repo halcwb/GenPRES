@@ -98,6 +98,51 @@ module Parenteralia =
                     pb = 2
                 |}
 
+            // The preparation instruction has three heading levels: the medication, the sections and the
+            // condition of each instruction, each a step smaller, in the colour of the body text.
+            let markdownSx =
+                {|
+                    color = "text.primary"
+                    ``& h1`` =
+                        {|
+                            fontSize = "1.5rem"
+                            fontWeight = 500
+                            mt = 3
+                            mb = 1
+                        |}
+                    ``& h2`` =
+                        {|
+                            fontSize = "1.15rem"
+                            fontWeight = 500
+                            color = "primary.main"
+                            mt = 3
+                            mb = 1
+                            pb = 0.5
+                            borderBottom = 1
+                            borderColor = "divider"
+                        |}
+                    ``& h3`` =
+                        {|
+                            fontSize = "1rem"
+                            fontWeight = 500
+                            color = "text.secondary"
+                            mt = 2
+                            mb = 0.5
+                        |}
+                    ``& ul`` =
+                        {|
+                            mt = 0.5
+                            mb = 0.5
+                            pl = 3
+                        |}
+                    ``& li`` = {| mb = 0.25 |}
+                    ``& p`` =
+                        {|
+                            mt = 0.5
+                            mb = 0.5
+                        |}
+                |}
+
             JSX.jsx
                 $"""
             import CardContent from '@mui/material/CardContent';
@@ -146,7 +191,7 @@ module Parenteralia =
                         </Box>
 
                 </Stack>
-                <Box sx={ {| color = Mui.Colors.Indigo.``900`` |} } >
+                <Box sx={markdownSx} >
                     {match parenteralia with
                      | Resolved par
                      | Refreshing par ->

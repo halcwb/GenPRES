@@ -32,8 +32,8 @@ module DoseRuleLoader =
 
             data
             |> Array.map DoseRuleData.setDataHashIds
-            // Keeps the order of the rows.
-            |> Array.mapi (fun i dd -> { dd with SortNo = i })
+            // Numbers the rules of the group and the rows of each rule in the order of the rows.
+            |> DoseRuleData.setNumbers
             // Groups by rule id, which includes the dose type.
             |> Array.groupBy _.RuleId
             |> Array.map (fun (_, data) ->
@@ -84,9 +84,14 @@ module DoseRuleLoader =
 
             valid |> Array.map fst, invalid |> Array.map (snd >> List.toArray) |> Array.collect id
 
-        // Leaves out a rule whose rows do not share one adjust unit, or that has a per kg or per m2
-        // value without an adjust unit.
-        let data, unitWarnings = data |> DoseRuleData.checkUnits
+        // Removes the values that the dose type of a row does not use, with a warning for each row that had them.
+        let data, ignoreWarnings =
+            let rows = data |> Array.map DoseRuleData.ignoreValuesNotForDoseType
+            rows |> Array.map fst, rows |> Array.choose snd
+
+        // Leaves out a rule with a unit problem, an adjust unit that is not valid, a range with a negative
+        // value, a max of 0 or a min greater than the max, or a row without a generic or a route.
+        let data, ruleWarnings = data |> DoseRuleData.checkRules
 
         let addFormLimits = DoseRule.addFormLimits routeMapping formRoutes
 
@@ -134,7 +139,7 @@ module DoseRuleLoader =
         // Leaves out the dose rules without limits, such as a valid row without dose values, except
         // a dose rule that a solution rule limits.
         |> DoseRule.removeEmptyLimits (SolutionRule.anyLimitsDoseRule routeMapping solutionRules),
-        ([ warnings; unitWarnings; dedupWarnings ]
+        ([ warnings; ignoreWarnings; ruleWarnings; dedupWarnings ]
          |> Array.concat
          |> Array.map Warning
          |> Array.toList)

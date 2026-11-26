@@ -953,10 +953,12 @@ module RuleFixtures =
     /// The row: the department in its patient category.
     let row (department: string) : DoseRuleData =
         {
-            RowId = ""
-            RuleId = ""
-            GrpId = ""
-            SortNo = 1
+            Id = HashId.empty
+            RowId = HashId.empty
+            RowNo = 0
+            RuleId = HashId.empty
+            GrpId = HashId.empty
+            GrpNo = 1
             Source = "FTK"
             SourceText = ""
             Generic = { emptyGeneric with Name = "paracetamol" }
@@ -975,6 +977,7 @@ module RuleFixtures =
                             MaxQty = Some(BigRational.FromInt 100)
                         }
                 }
+            Select = false
             Validated = None
             FreqCheck = None
             DoseCheck = None
@@ -1174,6 +1177,18 @@ type UndilutedVancomycin() =
 
     let solutionRule: SolutionRule =
         {
+            Id = ""
+            SourceText = ""
+            GPKs = [||]
+            HPKs = [||]
+            ShelfLife = None
+            MinPh = None
+            MaxPh = None
+            SameLine = [||]
+            NotSameLine = [||]
+            Notes = ""
+            PrepText = ""
+            AdminText = ""
             Generic = "vancomycine"
             Form = None
             Route = "INTRAVENEUS"
@@ -1273,6 +1288,18 @@ module Electrolytes =
         let limit u = ValueUnit.singleWithUnit u >> Limit.inclusive >> Some
 
         {
+            Id = ""
+            SourceText = ""
+            GPKs = [||]
+            HPKs = [||]
+            ShelfLife = None
+            MinPh = None
+            MaxPh = None
+            SameLine = [||]
+            NotSameLine = [||]
+            Notes = ""
+            PrepText = ""
+            AdminText = ""
             Generic = "electrolyt/glucose mengsel"
             Form = None
             Route = "INTRAVENEUS"
@@ -1917,6 +1944,18 @@ let selectsRulesTests =
 let scenarioAccessTests =
     let solutionRule access : SolutionRule =
         {
+            Id = ""
+            SourceText = ""
+            GPKs = [||]
+            HPKs = [||]
+            ShelfLife = None
+            MinPh = None
+            MaxPh = None
+            SameLine = [||]
+            NotSameLine = [||]
+            Notes = ""
+            PrepText = ""
+            AdminText = ""
             Generic = "paracetamol"
             Form = None
             Route = "iv"

@@ -187,7 +187,7 @@ module Analyze =
 
 
     /// <summary>
-    /// Returns the identity key of a row. Leaves out the generated ids, the sort number and the quantities.
+    /// Returns the identity key of a row. Leaves out the generated ids, the row and group numbers and the quantities.
     /// </summary>
     let idKey (d: DoseRuleData) =
         [
@@ -283,7 +283,7 @@ module Analyze =
                 d.ScheduleData.DoseLimitData.Substance |> String.isNullOrWhiteSpace
                 && allLimitsEmpty d
             )
-            || ruleIdsWithoutLimits.Contains (d |> DoseRuleData.setDataHashIds).RuleId
+            || ruleIdsWithoutLimits.Contains((d |> DoseRuleData.setDataHashIds).RuleId |> HashId.toString)
         )
 
     let trunc n (s: string) = if s.Length > n then s[.. n - 1] + "…" else s
@@ -465,11 +465,12 @@ module Export =
 
     /// <summary>
     /// Builds the export rows from generated rows. Builds the dose rules, adds the G-Standaard check, maps them back
-    /// to rows and removes duplicates. Then sets the ids and numbers SortNo within each group, as the loader does.
+    /// to rows and removes duplicates. Then sets the ids, puts the rows of a group together and numbers the rules of
+    /// each group and the rows of each rule, as the loader does.
     /// </summary>
     /// <param name="provider">The resource provider for the forward map and the G-Standaard check.</param>
     /// <param name="generated">The generated rows of the last pass.</param>
-    /// <returns>The checked export rows.</returns>
+    /// <returns>The checked export rows, ordered by group, then by GrpNo and RowNo.</returns>
     let exportData (provider: Resources.IResourceProvider) generated =
         generated
         |> forward provider
@@ -478,7 +479,11 @@ module Export =
         |> Array.distinctBy Analyze.rowKey
         |> Array.map DoseRuleData.setDataHashIds
         |> Array.groupBy _.GrpId
-        |> Array.collect (snd >> Array.mapi (fun i dd -> { dd with SortNo = i }))
+        |> Array.collect snd
+        |> DoseRuleData.setNumbers
+        |> Array.groupBy _.GrpId
+        // The pair GrpNo and RowNo is unique within a group, so the sort is the same with any sort algorithm.
+        |> Array.collect (snd >> Array.sortBy (fun dd -> dd.GrpNo, dd.RowNo))
 
 
     /// <summary>Writes the export rows as TSV to a file and returns the path of the file.</summary>
@@ -489,6 +494,32 @@ module Export =
     let writeExport fileName data =
         data
         |> DoseRuleData.dataToCsv
+        |> String.concat "\n"
+        |> File.writeTextToFile fileName
+
+        let dir =
+            Environment.CurrentDirectory
+            |> Directory.tryFindParent fileName
+            |> Option.defaultValue "."
+
+        $"{dir}/{fileName}"
+
+
+    /// Builds the solution rule export rows: sets the Id, the RuleId, the RowId and the RowNo of each row, and puts
+    /// the rows of a rule together, in the order of the rows. Every row is kept, the diluent rows as they are.
+    let exportSolutionData (data: SolutionRuleData[]) =
+        data
+        |> Array.map SolutionRule.setDataId
+        |> SolutionRule.setDataHashIds
+        |> Array.groupBy _.RuleId
+        |> Array.collect snd
+
+
+    /// Writes the solution rule export rows as TSV to a file and returns the path of the file, in the parent
+    /// directory that has the file, searched upward from the current directory.
+    let writeSolutionExport fileName data =
+        data
+        |> SolutionRule.dataToCsv
         |> String.concat "\n"
         |> File.writeTextToFile fileName
 

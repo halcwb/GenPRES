@@ -615,9 +615,9 @@ module DoseRule =
                 unitGroup |> Group.toString,
                 {
                     Id = ""
-                    DataId = r.RuleId
-                    GroupId = r.GrpId
-                    SortNo = r.SortNo
+                    DataId = r.RuleId |> HashId.toString
+                    GroupId = r.GrpId |> HashId.toString
+                    GroupNo = r.GrpNo
                     Source = r.Source |> identifySource
                     SourceText = r.SourceText
                     Indication = r.Indication
@@ -745,7 +745,7 @@ module DoseRule =
     // The rows leave out the expansion per product form and the form limit, which mapToDoseRule derives again.
     // The form, brand, GPKs and HPKs come from the generic label and products. A sheet row gives a dose rule per
     // product form, so the rows of all rules contain duplicates; Array.distinct removes them. The ids and the
-    // sort number are not restored.
+    // row and group numbers are not restored.
     // -----------------------------------------------------------------------
 
 
@@ -962,10 +962,12 @@ module DoseRule =
             let dld = reverseDoseLimit cmpBased cmpName dl
 
             {
-                RowId = ""
-                RuleId = ""
-                GrpId = ""
-                SortNo = 0
+                Id = HashId.empty
+                RowId = HashId.empty
+                RowNo = 0
+                RuleId = HashId.empty
+                GrpId = HashId.empty
+                GrpNo = 0
                 Source = dr.Source |> Source.toString
                 SourceText = dr.SourceText
                 Generic = gen
@@ -975,6 +977,8 @@ module DoseRule =
                 Patient = pat
                 ScheduleText = dr.ScheduleText
                 ScheduleData = reverseSchedule dr dl dld
+                // A dose rule does not carry the selection, so a row from a dose rule is not selected.
+                Select = false
                 Validated = dr.Validated
                 FreqCheck = dr.Check.FreqCheck
                 DoseCheck = dr.Check.DoseCheck

@@ -11,6 +11,9 @@ module Types =
 
     type MinMax = Informedica.GenCore.Lib.Ranges.MinMax
 
+    [<Measure>]
+    type pH = Informedica.GenCore.Lib.Measures.pH
+
 
     /// <summary>
     /// One row of the "FormRoute" sheet, parsed by <c>Mapping.getFormRoutes</c>: the default values for a
@@ -451,7 +454,7 @@ module Types =
     type DoseRuleId = string
     type DataId = string
     type DoseRuleGroupId = string
-    type SortNo = int
+    type GroupNo = int
 
 
     /// Generic can be constructed by
@@ -502,8 +505,8 @@ module Types =
             /// Indication and PatientCategory. Rules in one group differ only in DoseType and dose schedule.
             /// Treated as opaque.
             GroupId: DoseRuleGroupId
-            /// Ordinal rank within a rule group, used for stable presentation order.
-            SortNo: SortNo
+            /// The place of the DoseRule in its group, for a strict order of the rules in the group.
+            GroupNo: GroupNo
             /// The original source of the dose rule
             Source: Source
             /// The original source text of the dose rule, before structured decomposition.
@@ -606,6 +609,10 @@ module Types =
     /// Dose range: the diluents and the limits for the solution.
     type SolutionRule =
         {
+            /// A hash of the fields that identify the SolutionRule. Treated as opaque.
+            Id: string
+            /// The original source text the SolutionRule is built on.
+            SourceText: string
             /// The Generic of the SolutionRule
             Generic: string
             /// The pharmaceutical form of the SolutionRule
@@ -614,6 +621,11 @@ module Types =
             Route: string
             /// The Indication of the SolutionRule
             Indication: string option
+            /// The GPKs of the generic products the SolutionRule applies to: products with the same substances
+            /// in different strengths. Empty for every generic product.
+            GPKs: string[]
+            /// The HPKs of the trade products the SolutionRule applies to; empty for every trade product.
+            HPKs: string[]
             /// The dose type of the SolutionRule
             DoseType: DoseType
             /// The PatientCategory of the SolutionRule
@@ -629,6 +641,22 @@ module Types =
             SolutionLimit: SolutionLimit
             /// The limits on the components and the substances in the solution
             DilutionLimits: DilutionLimit[]
+            /// The time the prepared solution can be kept
+            ShelfLife: ValueUnit option
+            /// The lowest pH of the prepared solution
+            MinPh: decimal<pH> option
+            /// The highest pH of the prepared solution
+            MaxPh: decimal<pH> option
+            /// The generics that can be given through the same line as the solution
+            SameLine: string[]
+            /// The generics that cannot be given through the same line as the solution
+            NotSameLine: string[]
+            /// Any additional notes on the SolutionRule
+            Notes: string
+            /// The instructions for the preparation of the solution
+            PrepText: string
+            /// The instructions for the administration of the solution
+            AdminText: string
         }
 
 
@@ -978,7 +1006,43 @@ module Types =
             }
 
 
-        type HashId = string
+        /// A hash of the fields that identify a sheet row, a rule or a group of rules: 12 lowercase hexadecimal
+        /// characters, or empty when the hash is not calculated yet.
+        type HashId = private HashId of string
+
+
+        /// Creates, cleans and reads a HashId.
+        [<RequireQualifiedAccess>]
+        module HashId =
+
+
+            /// A HashId that is not calculated yet.
+            let empty = HashId ""
+
+
+            /// Whether a text is a hash: 12 lowercase hexadecimal characters.
+            let isHash (s: string) =
+                s.Length = 12 && s |> Seq.forall (fun c -> (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))
+
+
+            /// Cleans a text from a sheet into a HashId: trims it, removes a leading apostrophe, with which a sheet
+            /// marks a value as text, and makes it lower case. A text that is then not a hash gives the empty HashId,
+            /// such as a hash that a sheet has turned into a number.
+            let create (s: string) =
+                let s =
+                    if isNull s then "" else s.Trim()
+                    |> fun s -> if s.StartsWith "'" then s.Substring(1).Trim() else s
+                    |> _.ToLowerInvariant()
+
+                if s |> isHash then HashId s else empty
+
+
+            /// Hashes the fields into a HashId.
+            let ofFields fields = fields |> String.sha1Short |> HashId
+
+
+            /// Returns the hash as text, or an empty text for the empty HashId.
+            let toString (HashId s) = s
 
 
         /// <summary>
@@ -996,18 +1060,26 @@ module Types =
         /// </remarks>
         type DoseRuleData =
             {
+                /// A hash of the RowId with the schedule and the dose limits of the row: every field that goes
+                /// into a dose rule. Two rows with the same Id give the same dose rule row. The parser calculates
+                /// it, so a value in the sheet column "Id" is not used.
+                Id: HashId
                 /// A hash of the identifying fields of the row, Component and Substance included.
                 /// Of the rows with the same RowId, dedupRowsByRowId keeps the first, and warns when their dose
                 /// limits differ.
                 RowId: HashId
+                /// The place of the row in its dose rule, for a strict order of the rows in the rule. Defaults to 0
+                /// when absent or not a number.
+                RowNo: int
                 /// A hash of the dose rule, shared by every component and substance row of the rule.
                 /// Becomes DoseRule.DataId.
                 RuleId: HashId
                 /// sheet column "GrpId": shared by every rule with the same clinical context; such rules
                 /// differ only in dose type and schedule
                 GrpId: HashId
-                /// The rank within a rule group, for a stable order. Defaults to 1 when absent or not a number.
-                SortNo: int
+                /// The place of the dose rule in its rule group, for a strict order of the rules in the group.
+                /// Defaults to 1 when absent or not a number.
+                GrpNo: int
                 /// The source, parsed into Identified or Other
                 Source: string
                 /// The original free text this structured row was derived from
@@ -1020,6 +1092,8 @@ module Types =
                 Patient: PatientCategoryData
                 ScheduleText: string
                 ScheduleData: ScheduleData
+                /// sheet column "Select", "x" for true: the rule is selected for use. An empty or absent cell is false.
+                Select: bool
                 /// The validation stamp; becomes DoseRule.Validated
                 Validated: string option
                 /// The outcome of the G-Standaard check; becomes DoseRule.Check. Empty when the rule agrees with
@@ -1174,16 +1248,36 @@ module Types =
         /// </remarks>
         type SolutionRuleData =
             {
+                /// A hash of every field of the row except RowId, RowNo, RuleId and SourceText, the dilution limits
+                /// included. SolutionRule.setDataId calculates it.
+                Id: HashId
+                /// A hash of the fields that identify the row: the fields of the rule, with the component and the
+                /// substance. Of the rows with the same RowId, SolutionRule.dedupRowsByRowId keeps the first, and
+                /// warns when their dilution limits differ. SolutionRule.setDataHashIds calculates it.
+                RowId: HashId
+                /// The place of the row in its rule, for a strict order of the rows in the rule, counted from 0.
+                /// SolutionRule.setDataHashIds calculates it.
+                RowNo: int
+                /// A hash of the fields that identify the solution rule: every field that is the same for all
+                /// rows of the rule, except the source text. SolutionRule.setDataHashIds calculates it.
+                RuleId: HashId
                 // solution rule section
                 /// The generic of the rule
                 Generic: string
                 Form: string
                 Route: string
                 Indication: string
+                /// sheet column "GPKs", ';'-separated: the generic products the rule applies to, with the same
+                /// substances in different strengths
+                GPKs: string array
+                /// sheet column "HPKs", ';'-separated: the trade products the rule applies to
+                HPKs: string array
                 /// sheet column "Loc": the location, hospital or institute
                 Location: string option
                 /// sheet column "Dep": the department or ward
                 Department: string option
+                /// the original source text the rule is built on
+                SourceText: string
                 /// the venous access, "x" when the rule applies to it
                 CVL: string
                 PVL: string
@@ -1249,6 +1343,25 @@ module Types =
                 /// diluent included, that the component may be: 1 part in 8 is the value 0.125.
                 MinConc: BigRational option
                 MaxConc: BigRational option
+                // The cells below belong to the rule as a whole. Rows belong to one rule only when these cells
+                // are the same, so every row of a rule repeats them.
+                /// the shelf life of the prepared solution in MINUTES
+                ShelfLife: BigRational option
+                /// the lowest pH of the prepared solution
+                MinPh: decimal<pH> option
+                /// the highest pH of the prepared solution
+                MaxPh: decimal<pH> option
+                /// sheet column "CombY", '|'-separated: the generics that can be given through the same line
+                CombY: string list
+                /// sheet column "NonCombY", '|'-separated: the generics that cannot be given through the
+                /// same line
+                NonCombY: string list
+                /// sheet column "Notes": any additional notes
+                Notes: string
+                /// sheet column "PrepText": the preparation instructions
+                PrepText: string
+                /// sheet column "AdminText": the administration instructions
+                AdminText: string
             }
 
 

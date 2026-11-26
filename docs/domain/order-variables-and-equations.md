@@ -130,15 +130,15 @@ A derived variable is calculated from the basic variables and the invariants thr
 
 | Id | Derived variable | Subsystem | Equation | Dose types | Bound at creation by |
 |---|---|---|---|---|---|
-| `orb_dos_qty` | orderable dose quantity on Continuous: the whole preparation; basic on every other dose type (Table 1) | Dosing | 43 with `orb_dos_cnt` 1 | Continuous | the dose rule's min and max |
+| `orb_dos_qty` | orderable dose quantity on Continuous: the whole preparation; basic on every other dose type (Table 1) | Dosing | 43 with `orb_dos_cnt` 1 | Continuous | none: the dose rule sets no limit on the preparation |
 | `orb_dos_ptm` | orderable dose per time | Dosing | 51 | Discontinuous, Timed | the dose rule's min and max |
-| `cmp_dos_qty` | component dose quantity | Dosing | 31 | all | the component's dose limit, when given |
+| `cmp_dos_qty` | component dose quantity | Dosing | 31 | all | the component's dose limit, when given, except on Continuous, where it has no limit |
 | `cmp_dos_ptm` | component dose per time | Dosing | 33, 34 | Discontinuous, Timed | the component's dose limit, when given |
 | `cmp_dos_rte` | component dose rate | Dosing | 36; on Timed and OnceTimed through 11 | Continuous, Timed, OnceTimed | the component's dose limit, when given |
-| `itm_dos_qty` | item dose quantity | Dosing | 4, 5 | all | the substance's dose limit |
+| `itm_dos_qty` | item dose quantity | Dosing | 4, 5 | all | the substance's dose limit, except on Continuous, where it has no limit |
 | `itm_dos_ptm` | item dose per time | Dosing | 7, 8, 9 | Discontinuous, Timed | the substance's dose limit |
 | `itm_dos_rte` | item dose rate | Dosing | 11, 12 | Continuous, Timed, OnceTimed | the substance's dose limit |
-| `orb_dos_qty_adj`, `cmp_dos_qty_adj`, `itm_dos_qty_adj` | the dose quantities per adjust unit | Dosing | 50, 32, 6: the quantity ÷ `ord_adj_qty` | all | the adjusted dose limits |
+| `orb_dos_qty_adj`, `cmp_dos_qty_adj`, `itm_dos_qty_adj` | the dose quantities per adjust unit | Dosing | 50, 32, 6: the quantity ÷ `ord_adj_qty` | all | the adjusted dose limits, except on Continuous, where they have no limit |
 | `orb_dos_ptm_adj`, `cmp_dos_ptm_adj`, `itm_dos_ptm_adj` | the doses per time per adjust unit | Dosing | 52, 35, 10 | Discontinuous, Timed | the adjusted dose limits |
 | `orb_dos_rte_adj`, `itm_dos_rte_adj` | the dose rates per adjust unit | Dosing | 53, 13 | Continuous, Timed, OnceTimed | the adjusted dose limits |
 | `cmp_dos_rte_adj` | component dose rate per adjust unit | Dosing | 37 | Continuous | the adjusted dose limit, when given |

@@ -299,7 +299,7 @@ let patientDosageToGenFormDoseRule
             Id               = ""
             DataId           = ""
             GroupId          = ""
-            SortNo           = 0
+            GroupNo          = 0
             Source           = "G-Standaard" |> Source.other
             SourceText       = scheduleText
             Indication       = indication
